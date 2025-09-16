@@ -151,12 +151,12 @@
   }
 }
 
-
 /* :root {
   --color-bg: #ffffff;
   --color-text: #1a1a1a;
   --color-primary: #3366ff;
 }
+ 
 
 [data-theme="dark"] {
   --color-bg: #121212;
@@ -168,7 +168,8 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: "Google Sans", Arial, sans-serif;
-} */
+}
+   */
 
 :root {
   --color-bg: #ffffff;
@@ -179,7 +180,7 @@ body {
   --color-accent: #ff6600;
 }
 
-[data-theme="dark"] {
+[data-theme='dark'] {
   --color-bg: #121212;
   --color-text: #f5f5f5;
   --color-primary: #4da3ff;
@@ -193,4 +194,3 @@ body {
   color: var(--color-text);
   font-family: "Google Sans", Arial, sans-serif;
 }
-

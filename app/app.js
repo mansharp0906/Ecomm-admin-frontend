@@ -7,9 +7,13 @@ import { configureStore } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import createReducer from './redux/reducers';
 import rootSaga from './redux/rootSaga';
-import { NotFound } from './containers/pageListAsync';
+// import { NotFound } from './containers/pageListAsync';
 import Layout from './containers/layout';
-import Home from './containers/Home';
+// import Home from './containers/Home';
+import LoginPage from './containers/Auth/LoginPage';
+import RegisterPage from './containers/Auth/RegisterPage';
+import ForgotPasswordPage from './containers/Auth/ForgotPasswordPage';
+import NotFound from './containers/NotFound';
 
 const sagaMiddleware = createSagaMiddleware();
 const reducer = createReducer();
@@ -30,13 +34,11 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            {/* <Route path="flights" element={<Flights />} />
-        <Route path="hotels" element={<Hotels />} />
-        <Route path="cars" element={<Cars />} /> */}
+            <Route path="login" element={<LoginPage />} />
+            <Route path="register" element={<RegisterPage />} />
+            <Route path="forgot-password" element={<ForgotPasswordPage />} />
           </Route>
-
-          <Route path="/*" element={<NotFound />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
       <ToastContainer
