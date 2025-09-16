@@ -9,7 +9,6 @@ const Layout = () => {
   return (
     <div>
       <SideBar />
-      <h1>Welcome Mansharp layout</h1>
     </div>
   );
 };
