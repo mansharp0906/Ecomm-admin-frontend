@@ -16,6 +16,9 @@ import ForgotPasswordPage from './containers/Auth/ForgotPasswordPage';
 import NotFound from './containers/NotFound';
 import CategoryForm from './Pages/CategoryForm';
 import CategoryPage from './containers/Products/CategoryPage';
+import './styles/toast.css';
+import 'react-toastify/dist/ReactToastify.css';
+// import './styles/toast.css';
 
 const sagaMiddleware = createSagaMiddleware();
 const reducer = createReducer();
@@ -35,15 +38,20 @@ function App() {
     <Provider store={store}>
       <BrowserRouter>
         <Routes>
+          {/* Auth pages without Layout */}
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+          {/* Protected pages with Layout */}
           <Route path="/" element={<Layout />}>
-            <Route index element={<LoginPage />} />
-            <Route path="login" element={<LoginPage />} />
-            <Route path="register" element={<RegisterPage />} />
-            <Route path="forgot-password" element={<ForgotPasswordPage />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="products/categories" element={<CategoryPage />} />
             <Route path="category" element={<CategoryForm />} />
           </Route>
+
+          {/* 404 page */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// import authService from "../api/services/authService";
+import { showSuccessToast, showErrorToast } from '@/utils/toast';
 import authService from '@/api/service/authService';
 
 export default function LoginPage() {
@@ -8,25 +8,18 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
 
     try {
       const response = await authService.login({ email, password });
-      console.log('Login success:', response.data);
-
-      // Save token in localStorage
       localStorage.setItem('token', response.data.token);
-      setSuccess('Login successful! Redirecting...');
-
-      // Redirect to dashboard (or wherever you want)
+      showSuccessToast('Login successful!');
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      showErrorToast(err.response?.data?.message || 'Login failed');
     }
   };
 
@@ -80,7 +73,7 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Not a member?{' '}
+              Not a member?
               <Link
                 to="/register"
                 className="text-indigo-600 hover:text-indigo-500"

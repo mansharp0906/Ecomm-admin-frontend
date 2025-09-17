@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '@/api/service/authService';
+import { showSuccessToast, showErrorToast } from '@/utils/toast'; // 👈 custom toast utils
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -23,16 +24,15 @@ export default function RegisterPage() {
         password,
         role,
       });
-      console.log('Registration success:', response.data);
 
-      setSuccess('Registration successful! Redirecting to login...');
+      showSuccessToast('Registration successful!');
 
       // Redirect to login after 1.5 seconds
       setTimeout(() => {
         navigate('/login');
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      showErrorToast(err.response?.data?.message || 'Registration failed');
     }
   };
 
