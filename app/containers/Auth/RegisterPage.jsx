@@ -11,14 +11,16 @@ export default function RegisterPage() {
   const [role, setRole] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false); // 👈 loading state
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setLoading(true); // start loading
 
     try {
-      const response = await authService.register({
+      await authService.register({
         name,
         email,
         password,
@@ -33,6 +35,8 @@ export default function RegisterPage() {
       }, 1500);
     } catch (err) {
       showErrorToast(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setLoading(false); // stop loading
     }
   };
 
@@ -103,15 +107,20 @@ export default function RegisterPage() {
             <div>
               <button
                 type="submit"
-                className="w-full py-2 px-4 text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
+                disabled={loading} // disable while loading
+                className={`w-full py-2 px-4 text-white rounded-md ${
+                  loading
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700'
+                }`}
               >
-                Create account
+                {loading ? 'Creating account...' : 'Create account'}
               </button>
             </div>
           </form>
 
           <div className="mt-6 text-center text-sm text-gray-600">
-            Already have an account?
+            Already have an account?{' '}
             <Link to="/login" className="text-indigo-600 hover:text-indigo-500">
               Sign in
             </Link>

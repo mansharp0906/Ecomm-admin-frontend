@@ -18,7 +18,7 @@ const Layout = () => {
   return (
     <div className="flex">
       {!isAuthPage && <SideBar />}
-      <div className={`${!isAuthPage ? 'ml-64' : ''} flex-1`}>
+      <div className={`${!isAuthPage} flex-1`}>
         <Outlet />
       </div>
     </div>
