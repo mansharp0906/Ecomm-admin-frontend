@@ -4,7 +4,7 @@ import authService from '@/api/service/authService';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [fullName, setFullName] = useState('');
+  const [name, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
@@ -18,7 +18,7 @@ export default function RegisterPage() {
 
     try {
       const response = await authService.register({
-        fullName,
+        name,
         email,
         password,
         role,
@@ -57,7 +57,7 @@ export default function RegisterPage() {
               <input
                 type="text"
                 placeholder="Full Name"
-                value={fullName}
+                value={name}
                 onChange={(e) => setFullName(e.target.value)}
                 required
                 className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md sm:text-sm"
@@ -111,7 +111,7 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-6 text-center text-sm text-gray-600">
-            Already have an account?{' '}
+            Already have an account?
             <Link to="/login" className="text-indigo-600 hover:text-indigo-500">
               Sign in
             </Link>
