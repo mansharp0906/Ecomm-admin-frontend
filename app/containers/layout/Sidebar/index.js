@@ -32,16 +32,20 @@ const Sidebar = () => {
       <button
         className={`md:hidden fixed top-4 ${
           sidebarOpen ? 'right-4' : 'left-4'
-        } z-50 text-white text-primary-100 p-2 transition-all duration-300`}
+        } z-50 p-2 transition-all duration-300`}
         onClick={() => setSidebarOpen(!sidebarOpen)}
         aria-label="Toggle sidebar"
       >
-        {sidebarOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        {sidebarOpen ? (
+          <FaTimes size={24} color="black" />
+        ) : (
+          <FaBars size={24} color="black" />
+        )}
       </button>
 
       {/* Sidebar container */}
       <div
-        className={`fixed top-0 left-0 h-screen w-64  p-6 text-primary-100 z-40
+        className={`fixed top-0 left-0 h-screen w-64  p-6  z-40
           transform transition-transform duration-300 rounded shadow-xl
           ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -55,10 +59,10 @@ const Sidebar = () => {
             <li>
               <Link
                 to="/dashboard"
-                className="block px-4 py-2 hover:bg-primay-400 no-underline"
+                className="block px-4 py-2  no-underline"
                 onClick={handleLinkClick}
               >
-                <div className="flex items-center text-primary-100">
+                <div className="flex items-center ">
                   <TbLayoutDashboard className="text-2xl mr-3" />
                   <span>Dashboard</span>
                 </div>
@@ -68,7 +72,7 @@ const Sidebar = () => {
             {/* Product Section Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2 hover:bg-primay-400 flex justify-between items-center text-primary-100"
+                className="w-full text-left px-4 py-2  flex justify-between items-center "
                 onClick={() => toggleDropdown('productSection')}
                 aria-expanded={openDropdown === 'productSection'}
               >
@@ -81,7 +85,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'productSection' && (
-                <ul className="bg-white shadow-xl rounded mt-1 pl-4 text-gray-700">
+                <ul className=" shadow-xl rounded mt-1 pl-4 ">
                   {[
                     { label: 'POS', path: '/pos' },
                     { label: 'Product Report', path: '/pos/report' },
@@ -90,7 +94,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
                       >
                         {label}
                       </Link>
@@ -103,7 +107,7 @@ const Sidebar = () => {
             {/* Order Section Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2 hover:bg-primay-400 flex justify-between items-center text-primary-100"
+                className="w-full text-left px-4 py-2  flex justify-between items-center "
                 onClick={() => toggleDropdown('orderSection')}
                 aria-expanded={openDropdown === 'orderSection'}
               >
@@ -116,7 +120,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'orderSection' && (
-                <ul className="text-gray-900 shadow-xl rounded mt-1 pl-8 bg-white">
+                <ul className="text-gray-900 shadow-xl rounded mt-1 pl-8 ">
                   {[
                     { label: 'All Orders', path: '/orders/all' },
                     { label: 'Pending', path: '/orders/pending' },
@@ -130,7 +134,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 text-gray-700 hover:bg-gray-200 "
+                        className="block px-4 py-2 rounded transition-colors duration-200  hover:bg-[var(--hover-bg)] "
                       >
                         {label}
                       </Link>
@@ -143,7 +147,7 @@ const Sidebar = () => {
             {/* Product Management Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2 hover:bg-primay-400 flex justify-between items-center text-primary-100"
+                className="w-full text-left px-4 py-2  flex justify-between items-center "
                 onClick={() => toggleDropdown('productManagement')}
                 aria-expanded={openDropdown === 'productManagement'}
               >
@@ -156,7 +160,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'productManagement' && (
-                <ul className="bg-white shadow-xl rounded mt-1 pl-4 text-gray-700">
+                <ul className=" shadow-xl rounded mt-1 pl-4 ">
                   {[
                     { label: 'Categories', path: '/products/categories' },
                     {
@@ -173,7 +177,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
                       >
                         {label}
                       </Link>
@@ -186,7 +190,7 @@ const Sidebar = () => {
             {/* Promotion Management Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2 hover:bg-primay-400 flex justify-between items-center text-primary-100"
+                className="w-full text-left px-4 py-2  flex justify-between items-center "
                 onClick={() => toggleDropdown('promotionManagement')}
                 aria-expanded={openDropdown === 'promotionManagement'}
               >
@@ -199,7 +203,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'promotionManagement' && (
-                <ul className="bg-white shadow-xl rounded mt-1 pl-4 text-gray-700">
+                <ul className=" shadow-xl rounded mt-1 pl-4 ">
                   {[
                     { label: 'Banners', path: '/promotions/banners' },
                     { label: 'Coupons', path: '/promotions/coupons' },
@@ -210,7 +214,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
                       >
                         {label}
                       </Link>
@@ -223,7 +227,7 @@ const Sidebar = () => {
             {/* Reports & Analysis Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2 hover:bg-primay-400 flex justify-between items-center text-primary-100"
+                className="w-full text-left px-4 py-2  flex justify-between items-center "
                 onClick={() => toggleDropdown('reportsAnalysis')}
                 aria-expanded={openDropdown === 'reportsAnalysis'}
               >
@@ -236,7 +240,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'reportsAnalysis' && (
-                <ul className="bg-white shadow-xl rounded mt-1 pl-4 text-gray-700">
+                <ul className=" shadow-xl rounded mt-1 pl-4 ">
                   {[
                     { label: 'Sales Report', path: '/reports/sales' },
                     { label: 'Earning Reports', path: '/reports/earnings' },
@@ -247,7 +251,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
                       >
                         {label}
                       </Link>
@@ -260,7 +264,7 @@ const Sidebar = () => {
             {/* User Management Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2 hover:bg-primay-400 flex justify-between items-center text-primary-100"
+                className="w-full text-left px-4 py-2  flex justify-between items-center "
                 onClick={() => toggleDropdown('userManagement')}
                 aria-expanded={openDropdown === 'userManagement'}
               >
@@ -273,7 +277,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'userManagement' && (
-                <ul className="bg-white shadow-xl rounded mt-1 pl-4 text-gray-700">
+                <ul className=" shadow-xl rounded mt-1 pl-4 ">
                   {[
                     { label: 'Customers', path: '/users/customers' },
                     { label: 'Vendors', path: '/users/vendors' },
@@ -284,7 +288,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
                       >
                         {label}
                       </Link>
@@ -297,7 +301,7 @@ const Sidebar = () => {
             {/* Business Settings Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2 hover:bg-primay-400 flex justify-between items-center text-primary-100"
+                className="w-full text-left px-4 py-2  flex justify-between items-center "
                 onClick={() => toggleDropdown('businessSettings')}
                 aria-expanded={openDropdown === 'businessSettings'}
               >
@@ -310,7 +314,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'businessSettings' && (
-                <ul className="bg-white shadow-xl rounded mt-1 pl-4 text-gray-700">
+                <ul className=" shadow-xl rounded mt-1 pl-4 ">
                   {[
                     { label: 'Business Setup', path: '/settings/business' },
                     { label: 'Payment Methods', path: '/settings/payments' },
@@ -321,7 +325,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
                       >
                         {label}
                       </Link>
@@ -334,7 +338,7 @@ const Sidebar = () => {
             {/* System Settings Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2 hover:bg-primay-400 flex justify-between items-center text-primary-100"
+                className="w-full text-left px-4 py-2  flex justify-between items-center "
                 onClick={() => toggleDropdown('systemSettings')}
                 aria-expanded={openDropdown === 'systemSettings'}
               >
@@ -347,7 +351,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'systemSettings' && (
-                <ul className="bg-white shadow-xl rounded mt-1 pl-4 text-gray-700">
+                <ul className=" shadow-xl rounded mt-1 pl-4 ">
                   {[
                     { label: 'Login Settings', path: '/system/login' },
                     { label: 'Email Template', path: '/system/emails' },
@@ -360,7 +364,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
                       >
                         {label}
                       </Link>
