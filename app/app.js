@@ -9,12 +9,13 @@ import createReducer from './redux/reducers';
 import rootSaga from './redux/rootSaga';
 // import { NotFound } from './containers/pageListAsync';
 import Layout from './containers/layout';
-// import Home from './containers/Home';
+import Dashboard from './containers/Home';
 import LoginPage from './containers/Auth/LoginPage';
 import RegisterPage from './containers/Auth/RegisterPage';
 import ForgotPasswordPage from './containers/Auth/ForgotPasswordPage';
 import NotFound from './containers/NotFound';
 import CategoryForm from './Pages/CategoryForm';
+import CategoryPage from './containers/Products/CategoryPage';
 
 const sagaMiddleware = createSagaMiddleware();
 const reducer = createReducer();
@@ -35,9 +36,12 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="products/categories" element={<CategoryPage />} />
             <Route path="category" element={<CategoryForm />} />
           </Route>
           <Route path="*" element={<NotFound />} />

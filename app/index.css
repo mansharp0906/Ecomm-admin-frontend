@@ -178,7 +178,11 @@ body {
   --color-secondary-bg: #f0f0f5;
   --color-border: #ccc;
   --color-accent: #ff6600;
+  --sidebar-active-bg-color: #020917; /* blue for active states */
+  --hover-bg: #e5e7eb
+
 }
+
 
 [data-theme='dark'] {
   --color-bg: #121212;
@@ -192,5 +196,5 @@ body {
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family: "Google Sans", Arial, sans-serif;
+  font-family: 'Google Sans', Arial, sans-serif;
 }
