@@ -1,7 +1,7 @@
 /*eslint-disable*/
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import SideBar from './Sidebar';
+import SideBar from './Sidebar/sidebar';
 
 const Layout = () => {
   const location = useLocation();
@@ -18,7 +18,7 @@ const Layout = () => {
   return (
     <div className="flex">
       {!isAuthPage && <SideBar />}
-      <div className={`${!isAuthPage ? 'ml-64' : ''} flex-1`}>
+      <div className={`${!isAuthPage ? 'p-6' : ''} flex-1`}>
         <Outlet />
       </div>
     </div>

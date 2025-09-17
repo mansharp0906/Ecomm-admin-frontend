@@ -21,7 +21,7 @@ const Sidebar = () => {
   };
 
   const handleLinkClick = () => {
-    // Close sidebar and dropdown on mobile
+    // Close sidebar and dropdown on mobile after clicking a link
     setSidebarOpen(false);
     setOpenDropdown(null);
   };
@@ -43,26 +43,33 @@ const Sidebar = () => {
         )}
       </button>
 
+      {/* Overlay for mobile when sidebar open */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        ></div>
+      )}
+
       {/* Sidebar container */}
       <div
-        className={`fixed top-0 left-0 h-screen w-64  p-6  z-40
-          transform transition-transform duration-300 rounded shadow-xl
-          ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } md:translate-x-0 md:static md:block
+        className={`fixed top-0 left-0 w-64 p-6 bg-white z-50 rounded shadow-xl
+          transform transition-transform duration-300
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:translate-x-0 md:static md:block
         `}
       >
-        <h2 className="font-semibold mb-6 text-26">Menu</h2>
+        <h2 className="font-semibold mb-6 text-2xl">Menu</h2>
         <nav>
           <ul className="list-none p-0 space-y-1">
-            {/* Dashboard Link */}
             <li>
               <Link
                 to="/dashboard"
-                className="block px-4 py-2  no-underline"
+                className="block px-4 py-2 no-underline"
                 onClick={handleLinkClick}
               >
-                <div className="flex items-center ">
+                <div className="flex items-center">
                   <TbLayoutDashboard className="text-2xl mr-3" />
                   <span>Dashboard</span>
                 </div>
@@ -72,7 +79,7 @@ const Sidebar = () => {
             {/* Product Section Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2  flex justify-between items-center "
+                className="w-full text-left px-4 py-2 flex justify-between items-center"
                 onClick={() => toggleDropdown('productSection')}
                 aria-expanded={openDropdown === 'productSection'}
               >
@@ -85,7 +92,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'productSection' && (
-                <ul className=" shadow-xl rounded mt-1 pl-4 ">
+                <ul className="shadow-xl rounded mt-1 pl-4">
                   {[
                     { label: 'POS', path: '/pos' },
                     { label: 'Product Report', path: '/pos/report' },
@@ -94,7 +101,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200"
                       >
                         {label}
                       </Link>
@@ -107,7 +114,7 @@ const Sidebar = () => {
             {/* Order Section Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2  flex justify-between items-center "
+                className="w-full text-left px-4 py-2 flex justify-between items-center"
                 onClick={() => toggleDropdown('orderSection')}
                 aria-expanded={openDropdown === 'orderSection'}
               >
@@ -120,7 +127,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'orderSection' && (
-                <ul className="text-gray-900 shadow-xl rounded mt-1 pl-8 ">
+                <ul className="text-gray-900 shadow-xl rounded mt-1 pl-8">
                   {[
                     { label: 'All Orders', path: '/orders/all' },
                     { label: 'Pending', path: '/orders/pending' },
@@ -134,7 +141,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200  hover:bg-[var(--hover-bg)] "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200"
                       >
                         {label}
                       </Link>
@@ -147,7 +154,7 @@ const Sidebar = () => {
             {/* Product Management Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2  flex justify-between items-center "
+                className="w-full text-left px-4 py-2 flex justify-between items-center"
                 onClick={() => toggleDropdown('productManagement')}
                 aria-expanded={openDropdown === 'productManagement'}
               >
@@ -160,7 +167,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'productManagement' && (
-                <ul className=" shadow-xl rounded mt-1 pl-4 ">
+                <ul className="shadow-xl rounded mt-1 pl-4">
                   {[
                     { label: 'Categories', path: '/products/categories' },
                     {
@@ -168,16 +175,16 @@ const Sidebar = () => {
                       path: '/products/subcategories',
                     },
                     { label: 'Brands', path: '/products/brands' },
-                    { label: 'Add Product', path: '/products/add' },
-                    { label: 'Product List', path: '/products/list' },
+                    { label: 'Attributes', path: '/products/attributes' },
+                    { label: 'Product In House', path: '/products/inhouse' },
                     { label: 'Vendors Products', path: '/products/vendors' },
-                    { label: 'Refund Request', path: '/pos/report' },
+                    { label: 'Bulk import', path: '/products/import' },
                   ].map(({ label, path }) => (
                     <li key={path}>
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200"
                       >
                         {label}
                       </Link>
@@ -190,7 +197,7 @@ const Sidebar = () => {
             {/* Promotion Management Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2  flex justify-between items-center "
+                className="w-full text-left px-4 py-2 flex justify-between items-center"
                 onClick={() => toggleDropdown('promotionManagement')}
                 aria-expanded={openDropdown === 'promotionManagement'}
               >
@@ -203,7 +210,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'promotionManagement' && (
-                <ul className=" shadow-xl rounded mt-1 pl-4 ">
+                <ul className="shadow-xl rounded mt-1 pl-4">
                   {[
                     { label: 'Banners', path: '/promotions/banners' },
                     { label: 'Coupons', path: '/promotions/coupons' },
@@ -214,7 +221,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200"
                       >
                         {label}
                       </Link>
@@ -227,7 +234,7 @@ const Sidebar = () => {
             {/* Reports & Analysis Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2  flex justify-between items-center "
+                className="w-full text-left px-4 py-2 flex justify-between items-center"
                 onClick={() => toggleDropdown('reportsAnalysis')}
                 aria-expanded={openDropdown === 'reportsAnalysis'}
               >
@@ -240,7 +247,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'reportsAnalysis' && (
-                <ul className=" shadow-xl rounded mt-1 pl-4 ">
+                <ul className="shadow-xl rounded mt-1 pl-4">
                   {[
                     { label: 'Sales Report', path: '/reports/sales' },
                     { label: 'Earning Reports', path: '/reports/earnings' },
@@ -251,7 +258,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200"
                       >
                         {label}
                       </Link>
@@ -264,7 +271,7 @@ const Sidebar = () => {
             {/* User Management Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2  flex justify-between items-center "
+                className="w-full text-left px-4 py-2 flex justify-between items-center"
                 onClick={() => toggleDropdown('userManagement')}
                 aria-expanded={openDropdown === 'userManagement'}
               >
@@ -277,7 +284,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'userManagement' && (
-                <ul className=" shadow-xl rounded mt-1 pl-4 ">
+                <ul className="shadow-xl rounded mt-1 pl-4">
                   {[
                     { label: 'Customers', path: '/users/customers' },
                     { label: 'Vendors', path: '/users/vendors' },
@@ -288,7 +295,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200"
                       >
                         {label}
                       </Link>
@@ -301,7 +308,7 @@ const Sidebar = () => {
             {/* Business Settings Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2  flex justify-between items-center "
+                className="w-full text-left px-4 py-2 flex justify-between items-center"
                 onClick={() => toggleDropdown('businessSettings')}
                 aria-expanded={openDropdown === 'businessSettings'}
               >
@@ -314,7 +321,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'businessSettings' && (
-                <ul className=" shadow-xl rounded mt-1 pl-4 ">
+                <ul className="shadow-xl rounded mt-1 pl-4">
                   {[
                     { label: 'Business Setup', path: '/settings/business' },
                     { label: 'Payment Methods', path: '/settings/payments' },
@@ -325,7 +332,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200"
                       >
                         {label}
                       </Link>
@@ -338,7 +345,7 @@ const Sidebar = () => {
             {/* System Settings Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2  flex justify-between items-center "
+                className="w-full text-left px-4 py-2 flex justify-between items-center"
                 onClick={() => toggleDropdown('systemSettings')}
                 aria-expanded={openDropdown === 'systemSettings'}
               >
@@ -351,7 +358,7 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'systemSettings' && (
-                <ul className=" shadow-xl rounded mt-1 pl-4 ">
+                <ul className="shadow-xl rounded mt-1 pl-4">
                   {[
                     { label: 'Login Settings', path: '/system/login' },
                     { label: 'Email Template', path: '/system/emails' },
@@ -364,7 +371,7 @@ const Sidebar = () => {
                       <Link
                         to={path}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-[var(--hover-bg)] "
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200"
                       >
                         {label}
                       </Link>

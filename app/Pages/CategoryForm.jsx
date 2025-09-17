@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import InputTextField from '@/components/custom-form-field/InputTextField';
 import Button from '@/components/custom-button/Button';
 
-export default function CategoryForm() {
+export default function CategoryForm({ sidebarOpen }) {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -21,9 +21,14 @@ export default function CategoryForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-lg p-8 bg-white rounded-xl shadow-lg border">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+    // Main content ko sidebarOpen prop ke hisab se translate aur overlay effect de rahe hain
+    <div
+      className={`min-h-screen flex items-center justify-center bg-gray-100 p-4 sm:p-6 lg:p-8 relative z-10 transition-transform duration-300 ${
+        sidebarOpen ? 'translate-x-64 md:translate-x-0' : 'translate-x-0'
+      }`}
+    >
+      <div className="w-full max-w-lg p-6 sm:p-8 bg-white rounded-xl shadow-lg border">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">
           Category Form
         </h2>
 
