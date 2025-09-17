@@ -14,6 +14,7 @@ import LoginPage from './containers/Auth/LoginPage';
 import RegisterPage from './containers/Auth/RegisterPage';
 import ForgotPasswordPage from './containers/Auth/ForgotPasswordPage';
 import NotFound from './containers/NotFound';
+import CategoryForm from './Pages/CategoryForm';
 
 const sagaMiddleware = createSagaMiddleware();
 const reducer = createReducer();
@@ -37,6 +38,7 @@ function App() {
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="category" element={<CategoryForm />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
