@@ -57,7 +57,6 @@ const CategoryPage = () => {
     priority: 1,
     status: 'active',
   });
-
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
