@@ -15,7 +15,7 @@ import ForgotPasswordPage from './containers/Auth/ForgotPasswordPage';
 import NotFound from './containers/NotFound';
 import CategoryForm from './Pages/CategoryForm';
 import CategoryPage from './containers/Products/CategoryPage';
-import SubCategory from './containers/Products/SubCategory';
+import SubCategory from './containers/Products/sub category/SubCategory';
 import Brand from './containers/Products/Brand';
 import Attributes from './containers/Products/Attributes';
 import ProductInHouse from './containers/Products/ProductInHouse';

@@ -1,0 +1,249 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/custom-button';
+import categoryService from '@/api/service/categoryService';
+import { toast } from 'react-toastify';
+import { MdEdit, MdDelete, MdVisibility } from 'react-icons/md';
+
+const SubCategoryList = ({ refreshTrigger }) => {
+  const [subCategories, setSubCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch subcategories from API using tree endpoint
+  const fetchSubCategories = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Use the tree endpoint to get hierarchical data
+      const response = await categoryService.getTree();
+      if (response?.data) {
+        // Extract all subcategories (level > 0) from the tree structure
+        const allSubCategories = [];
+
+        const extractSubCategories = (categories) => {
+          categories.forEach((category) => {
+            if (category.children && category.children.length > 0) {
+              // Add children as subcategories
+              allSubCategories.push(...category.children);
+              // Recursively extract from deeper levels
+              extractSubCategories(category.children);
+            }
+          });
+        };
+
+        extractSubCategories(response.data);
+        setSubCategories(allSubCategories);
+      } else {
+        setError('Failed to fetch subcategories');
+      }
+    } catch (err) {
+      console.error('Error fetching subcategories:', err);
+      setError('Failed to fetch subcategories');
+      toast.error('Failed to load subcategories');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load subcategories on component mount and when refreshTrigger changes
+  useEffect(() => {
+    fetchSubCategories();
+  }, [refreshTrigger]);
+
+  // Handle delete subcategory
+  const handleDelete = async (id, name) => {
+    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
+      try {
+        const response = await categoryService.delete(id);
+        if (response?.data?.success) {
+          toast.success('Sub Category deleted successfully!');
+          fetchSubCategories(); // Refresh the list
+        } else {
+          toast.error('Failed to delete sub category');
+        }
+      } catch (err) {
+        console.error('Error deleting subcategory:', err);
+        toast.error('Failed to delete sub category');
+      }
+    }
+  };
+
+  // Handle edit subcategory (placeholder for now)
+  const handleEdit = (subCategory) => {
+    toast.info('Edit functionality will be implemented soon');
+    console.log('Edit subcategory:', subCategory);
+  };
+
+  // Handle view subcategory details (placeholder for now)
+  const handleView = (subCategory) => {
+    toast.info('View functionality will be implemented soon');
+    console.log('View subcategory:', subCategory);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2">Loading subcategories...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-600 mb-4">{error}</p>
+        <Button onClick={fetchSubCategories} variant="primary">
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h3 className="text-lg font-medium text-gray-900">
+          Sub Categories List
+        </h3>
+        <p className="text-sm text-gray-600">
+          Manage your product sub categories
+        </p>
+      </div>
+
+      {subCategories.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-4">
+            <svg
+              className="mx-auto h-12 w-12"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No subcategories found
+          </h3>
+          <p className="text-gray-600">
+            Get started by creating your first sub category.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Level
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Parent Category
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Priority
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {subCategories.map((subCategory) => (
+                <tr key={subCategory._id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {subCategory.name}
+                        </div>
+                        <div className="text-sm text-gray-500 truncate max-w-xs">
+                          {subCategory.description}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      Level {subCategory.level}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {subCategory.parentId ? (
+                      <span className="text-gray-600">
+                        {subCategory.parentId}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">Root Category</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        subCategory.status === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {subCategory.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {subCategory.priority}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(subCategory.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleView(subCategory)}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="View Details"
+                      >
+                        <MdVisibility className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleEdit(subCategory)}
+                        className="text-indigo-600 hover:text-indigo-900"
+                        title="Edit"
+                      >
+                        <MdEdit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleDelete(subCategory._id, subCategory.name)
+                        }
+                        className="text-red-600 hover:text-red-900"
+                        title="Delete"
+                      >
+                        <MdDelete className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SubCategoryList;
