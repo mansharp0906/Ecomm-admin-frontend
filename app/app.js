@@ -7,7 +7,6 @@ import { configureStore } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import createReducer from './redux/reducers';
 import rootSaga from './redux/rootSaga';
-// import { NotFound } from './containers/pageListAsync';
 import Layout from './containers/layout';
 import Dashboard from './containers/Home';
 import LoginPage from './containers/Auth/LoginPage';
