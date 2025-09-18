@@ -5,124 +5,85 @@ import { toast } from 'react-toastify';
 import { MdEdit, MdDelete, MdVisibility } from 'react-icons/md';
 import PropTypes from 'prop-types';
 
-const SubCategoryList = ({ refreshTrigger }) => {
-  const [subCategories, setSubCategories] = useState([]);
+const CategoryListPage = ({ refreshTrigger }) => {
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [allCategories, setAllCategories] = useState([]);
 
-  // Fetch all categories to get parent names
-  const fetchAllCategories = async () => {
+  // Fetch categories from API
+  const fetchCategories = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await categoryService.getTree();
       if (response?.data) {
-        // Flatten all categories to create a lookup map
-        const allCats = [];
+        // Extract all categories (flatten the tree structure)
+        const allCategories = [];
         const flattenCategories = (cats) => {
-          cats.forEach((cat) => {
-            allCats.push(cat);
-            if (cat.children && cat.children.length > 0) {
-              flattenCategories(cat.children);
+          cats.forEach((category) => {
+            allCategories.push(category);
+            if (category.children && category.children.length > 0) {
+              flattenCategories(category.children);
             }
           });
         };
         flattenCategories(response.data);
-        setAllCategories(allCats);
-      }
-    } catch (err) {
-      console.error('Error fetching all categories:', err);
-    }
-  };
 
-  // Fetch subcategories from API using tree endpoint
-  const fetchSubCategories = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Use the tree endpoint to get hierarchical data
-      const response = await categoryService.getTree();
-      if (response?.data) {
-        // Extract all subcategories (level > 0) from the tree structure
-        const allSubCategories = [];
-
-        const extractSubCategories = (categories) => {
-          categories.forEach((category) => {
-            if (category.children && category.children.length > 0) {
-              // Check if children are Level 1 (sub categories)
-              const level1Children = category.children.filter(
-                (child) => child.level === 1,
-              );
-              if (level1Children.length > 0) {
-                allSubCategories.push(...level1Children);
-              }
-              // Recursively extract from deeper levels
-              extractSubCategories(category.children);
-            }
-          });
-        };
-
-        extractSubCategories(response.data);
-        setSubCategories(allSubCategories);
+        // Filter only main categories (level 0) for display
+        const mainCategories = allCategories.filter((cat) => cat.level === 0);
+        setCategories(mainCategories);
       } else {
-        setError('Failed to fetch subcategories');
+        setError('Failed to fetch categories');
       }
     } catch (err) {
-      console.error('Error fetching subcategories:', err);
-      setError('Failed to fetch subcategories');
-      toast.error('Failed to load subcategories');
+      console.error('Error fetching categories:', err);
+      setError('Failed to fetch categories');
+      toast.error('Failed to load categories');
     } finally {
       setLoading(false);
     }
   };
 
-  // Load subcategories and all categories on component mount and when refreshTrigger changes
+  // Load categories on component mount and when refreshTrigger changes
   useEffect(() => {
-    fetchAllCategories();
-    fetchSubCategories();
+    fetchCategories();
   }, [refreshTrigger]);
 
-  // Get parent category name by ID
-  const getParentCategoryName = (parentId) => {
-    if (!parentId) return 'Root Category';
-    const parentCategory = allCategories.find((cat) => cat._id === parentId);
-    return parentCategory ? `${parentCategory.name}` : '-';
-  };
-
-  // Handle delete subcategory
+  // Handle delete category
   const handleDelete = async (id, name) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
       try {
         const response = await categoryService.delete(id);
         if (response?.data?.success) {
-          toast.success('Sub Category deleted successfully!');
-          fetchSubCategories(); // Refresh the list
+          toast.success('Category deleted successfully!');
+          fetchCategories(); // Refresh the list
         } else {
-          toast.error('Failed to delete sub category');
+          toast.error('Failed to delete category');
         }
       } catch (err) {
-        console.error('Error deleting subcategory:', err);
-        toast.error('Failed to delete sub category');
+        console.error('Error deleting category:', err);
+        toast.error('Failed to delete category');
       }
     }
   };
 
-  // Handle edit subcategory (placeholder for now)
-  const handleEdit = (subCategory) => {
+  // Handle edit category (placeholder for now)
+  const handleEdit = (category) => {
     toast.info('Edit functionality will be implemented soon');
-    console.log('Edit subcategory:', subCategory);
+    console.log('Edit category:', category);
   };
 
-  // Handle view subcategory details (placeholder for now)
-  const handleView = (subCategory) => {
+  // Handle view category details (placeholder for now)
+  const handleView = (category) => {
     toast.info('View functionality will be implemented soon');
-    console.log('View subcategory:', subCategory);
+    console.log('View category:', category);
   };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2">Loading subcategories...</span>
+        <span className="ml-2">Loading categories...</span>
       </div>
     );
   }
@@ -131,7 +92,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
     return (
       <div className="text-center py-8">
         <p className="text-red-600 mb-4">{error}</p>
-        <Button onClick={fetchSubCategories} variant="primary">
+        <Button onClick={fetchCategories} variant="primary">
           Retry
         </Button>
       </div>
@@ -141,15 +102,11 @@ const SubCategoryList = ({ refreshTrigger }) => {
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900">
-          Sub Categories List
-        </h3>
-        <p className="text-sm text-gray-600">
-          Manage your product sub categories
-        </p>
+        <h3 className="text-lg font-medium text-gray-900">Categories List</h3>
+        <p className="text-sm text-gray-600">Manage your product categories</p>
       </div>
 
-      {subCategories.length === 0 ? (
+      {categories.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
             <svg
@@ -167,10 +124,10 @@ const SubCategoryList = ({ refreshTrigger }) => {
             </svg>
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No subcategories found
+            No categories found
           </h3>
           <p className="text-gray-600">
-            Get started by creating your first sub category.
+            Get started by creating your first category.
           </p>
         </div>
       ) : (
@@ -179,85 +136,86 @@ const SubCategoryList = ({ refreshTrigger }) => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sub Category Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sub Category Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Category Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Description
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Meta Title
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Meta Description
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created Date
-                </th>
+                </th> */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {subCategories.map((subCategory) => (
-                <tr key={subCategory._id} className="hover:bg-gray-50">
+              {categories.map((category) => (
+                <tr key={category._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {subCategory.name}
+                          {category.name}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500 max-w-xs">
-                      {subCategory.description}
+                      {category.description}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {getParentCategoryName(subCategory.parentId)}
-                        </div>
-                      </div>
+                    <div className="text-sm text-gray-700 max-w-xs">
+                      {category.metaTitle}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-600 max-w-xs">
+                      {category.metaDescription}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        subCategory.status === 'active'
+                        category.status === 'active'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {subCategory.status}
+                      {category.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(subCategory.createdAt).toLocaleDateString(
-                      'en-US',
-                      {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        // hour: '2-digit',
-                        // minute: '2-digit',
-                      },
-                    )}
-                  </td>
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(category.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      // hour: '2-digit',
+                      // minute: '2-digit',
+                    })}
+                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => handleView(subCategory)}
+                        onClick={() => handleView(category)}
                         className="text-blue-600 hover:text-blue-900"
                         title="View Details"
                       >
                         <MdVisibility className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleEdit(subCategory)}
+                        onClick={() => handleEdit(category)}
                         className="text-indigo-600 hover:text-indigo-900"
                         title="Edit"
                       >
@@ -265,7 +223,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
                       </button>
                       <button
                         onClick={() =>
-                          handleDelete(subCategory._id, subCategory.name)
+                          handleDelete(category._id, category.name)
                         }
                         className="text-red-600 hover:text-red-900"
                         title="Delete"
@@ -284,8 +242,8 @@ const SubCategoryList = ({ refreshTrigger }) => {
   );
 };
 
-SubCategoryList.propTypes = {
+CategoryListPage.propTypes = {
   refreshTrigger: PropTypes.number.isRequired,
 };
 
-export default SubCategoryList;
+export default CategoryListPage;

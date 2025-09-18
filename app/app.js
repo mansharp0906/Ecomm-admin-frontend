@@ -14,7 +14,7 @@ import RegisterPage from './containers/Auth/RegisterPage';
 import ForgotPasswordPage from './containers/Auth/ForgotPasswordPage';
 import NotFound from './containers/NotFound';
 import CategoryForm from './Pages/CategoryForm';
-import CategoryPage from './containers/Products/CategoryPage';
+import CategoryPage from './containers/Products/category/CategoryPage';
 import SubCategory from './containers/Products/sub category/SubCategory';
 import Brand from './containers/Products/Brand';
 import Attributes from './containers/Products/Attributes';

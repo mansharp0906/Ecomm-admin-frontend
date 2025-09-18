@@ -3,7 +3,7 @@ import InputTextField from '@/components/input-field/InputTextField';
 import SelectField from '@/components/select/SelectField';
 import TextAreaField from '@/components/textarea-field/TextAreaField';
 import categoryService from '@/api/service/categoryService';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
@@ -14,7 +14,6 @@ const validationSchema = Yup.object({
     .required('Category name is required')
     .min(2, 'Category name must be at least 2 characters')
     .max(50, 'Category name must be less than 50 characters'),
-  slug: Yup.string(),
   description: Yup.string()
     .required('Description is required')
     .min(10, 'Description must be at least 10 characters')
@@ -36,11 +35,9 @@ const validationSchema = Yup.object({
   status: Yup.string()
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
-  parentId: Yup.string().required('Parent category is required'),
-  // isFeatured: Yup.boolean(),
 });
 
-const SubCategoryForm = ({ onSuccess, onCancel }) => {
+const CategoryForm = ({ onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -50,49 +47,16 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
     image: null,
     priority: 1,
     status: 'active',
-    parentId: '',
-    isFeatured: false,
   });
 
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
-
-  // Fetch all categories for dropdown
-  const fetchCategories = async () => {
-    setLoadingCategories(true);
-    try {
-      const response = await categoryService.getTree();
-      if (response?.data) {
-        // Filter only Level 0 categories (main categories) for dropdown
-        const mainCategories = response.data.filter((cat) => cat.level === 0);
-
-        const formattedCategories = mainCategories.map((cat) => ({
-          ...cat,
-          displayName: `${cat.name} (Level ${cat.level})`,
-        }));
-
-        setCategories(formattedCategories);
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      toast.error('Failed to load categories');
-    } finally {
-      setLoadingCategories(false);
-    }
-  };
-
-  // Load categories on component mount
-  useEffect(() => {
-    fetchCategories();
-  }, []);
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
     });
 
     // Clear error for this field when user starts typing
@@ -118,16 +82,11 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
       const { slug: _slug, image: _image, ...apiData } = formData;
       console.log('Sending data to API:', apiData); // Debug log
       const response = await categoryService.create(apiData);
-      console.log('Sub Category Created Response:', response);
 
-      // Check for successful response (status 201 or 200)
-      if (
-        response?.status === 201 ||
-        response?.status === 200 ||
-        response?.data
-      ) {
-        console.log('Sub Category Created Successfully:', response.data);
-        toast.success('Sub Category added successfully!');
+      if (response?.data?.success) {
+        console.log('Category Created Response:', response.data);
+        console.log('Created Category:', response.data.data);
+        toast.success('Category added successfully!');
 
         // Reset form
         setFormData({
@@ -139,24 +98,15 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
           metaDescription: '',
           priority: 1,
           status: 'active',
-          parentId: '',
-          isFeatured: false,
         });
         setFormErrors({});
 
         // Notify parent component
         if (onSuccess) {
-          onSuccess(response.data);
+          onSuccess(response.data.data);
         }
-      } else {
-        // Handle case where response exists but indicates failure
-        const errorMessage =
-          response?.data?.message || 'Failed to create sub category';
-        toast.error(errorMessage);
       }
     } catch (error) {
-      console.error('API Error Details:', error.response?.data); // Debug log
-
       if (error.name === 'ValidationError') {
         // Handle validation errors
         const validationErrors = {};
@@ -165,19 +115,9 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
         });
         setFormErrors(validationErrors);
         toast.error('Please fix the validation errors');
-      } else if (
-        error.response?.status === 500 &&
-        error.response?.data?.error?.includes('duplicate key')
-      ) {
-        // Handle duplicate slug error
-        toast.error(
-          'A category with this name already exists. Please choose a different name.',
-        );
       } else {
-        // Handle other API errors
-        const errorMessage =
-          error.response?.data?.message || 'Failed to add sub category';
-        toast.error(errorMessage);
+        console.error('API Error Details:', error.response?.data); // Debug log
+        toast.error(error.response?.data?.message || 'Failed to add category');
       }
     } finally {
       setLoading(false);
@@ -194,8 +134,6 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
       metaDescription: '',
       priority: 1,
       status: 'active',
-      parentId: '',
-      isFeatured: false,
     });
     setFormErrors({});
     if (onCancel) {
@@ -208,9 +146,9 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
       <div className="bg-white rounded-lg w-full max-w-lg mx-4 flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold">Add New Sub Category</h2>
+          <h2 className="text-xl font-semibold">Add New Category</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Select a parent category and create a new sub category
+            Create a new main category
           </p>
         </div>
 
@@ -220,35 +158,22 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
           className="p-6 space-y-4 overflow-y-auto flex-1"
           style={{ minHeight: '200px' }}
         >
-          <SelectField
-            label="Parent Category"
-            name="parentId"
-            value={formData.parentId}
-            onChange={handleInputChange}
-            options={[
-              { value: '', label: 'Select Parent Category' },
-              ...categories.map((cat) => ({
-                value: cat._id,
-                label: cat.displayName,
-              })),
-            ]}
-            error={formErrors?.parentId}
-            disabled={loadingCategories}
-          />
-
-          {loadingCategories && (
-            <div className="text-sm text-gray-500 text-center">
-              Loading categories...
-            </div>
-          )}
-
           <InputTextField
-            label="Sub Category Name"
+            label="Category Name"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            placeholder="Enter sub category name"
+            placeholder="Enter category name"
             error={formErrors?.name}
+          />
+
+          <InputTextField
+            label="Slug"
+            name="slug"
+            value={formData.slug}
+            onChange={handleInputChange}
+            placeholder="Enter slug (auto-generated if empty)"
+            error={formErrors?.slug}
           />
 
           <TextAreaField
@@ -256,7 +181,7 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
             name="description"
             value={formData.description}
             onChange={handleInputChange}
-            placeholder="Enter sub category description"
+            placeholder="Enter category description"
             rows={3}
             error={formErrors?.description}
           />
@@ -313,24 +238,6 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
               error={formErrors?.status}
             />
           </div>
-
-          {/* Featured Category Checkbox */}
-          {/* <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="isFeatured"
-              name="isFeatured"
-              checked={formData.isFeatured}
-              onChange={handleInputChange}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label
-              htmlFor="isFeatured"
-              className="text-sm font-medium text-gray-700"
-            >
-              Featured Category
-            </label>
-          </div> */}
         </form>
 
         {/* Buttons - Fixed at bottom */}
@@ -342,7 +249,7 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? 'Adding...' : 'Add'}
+            {loading ? 'Adding...' : 'Add Category'}
           </Button>
           <Button
             type="button"
@@ -358,9 +265,9 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
   );
 };
 
-SubCategoryForm.propTypes = {
+CategoryForm.propTypes = {
   onSuccess: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
 };
 
-export default SubCategoryForm;
+export default CategoryForm;
