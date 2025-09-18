@@ -29,7 +29,7 @@ const Layout = () => {
       {!noNavbarRoutes.includes(location.pathname) && <Navbar />}
       <div className="flex">
         {!isAuthPage && <SideBar />}
-        <div className={`${!isAuthPage ? 'p-6' : ''} flex-1`}>
+        <div className={`${!isAuthPage} flex-1`}>
           <Outlet />
         </div>
       </div>

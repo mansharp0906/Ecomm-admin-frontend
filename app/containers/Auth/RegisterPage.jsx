@@ -1,38 +1,42 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '@/api/service/authService';
+import { showSuccessToast, showErrorToast } from '@/utils/toast'; // 👈 custom toast utils
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [fullName, setFullName] = useState('');
+  const [name, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false); // 👈 loading state
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setLoading(true); // start loading
 
     try {
-      const response = await authService.register({
-        fullName,
+      await authService.register({
+        name,
         email,
         password,
         role,
       });
-      console.log('Registration success:', response.data);
 
-      setSuccess('Registration successful! Redirecting to login...');
+      showSuccessToast('Registration successful!');
 
       // Redirect to login after 1.5 seconds
       setTimeout(() => {
         navigate('/login');
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      showErrorToast(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setLoading(false); // stop loading
     }
   };
 
@@ -57,7 +61,7 @@ export default function RegisterPage() {
               <input
                 type="text"
                 placeholder="Full Name"
-                value={fullName}
+                value={name}
                 onChange={(e) => setFullName(e.target.value)}
                 required
                 className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md sm:text-sm"
@@ -103,9 +107,14 @@ export default function RegisterPage() {
             <div>
               <button
                 type="submit"
-                className="w-full py-2 px-4 text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
+                disabled={loading} // disable while loading
+                className={`w-full py-2 px-4 text-white rounded-md ${
+                  loading
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700'
+                }`}
               >
-                Create account
+                {loading ? 'Creating account...' : 'Create account'}
               </button>
             </div>
           </form>

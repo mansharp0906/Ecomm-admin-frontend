@@ -50,6 +50,9 @@ import Business_setup from './containers/Business_Setting/Business_setup';
 import Pages_media from './containers/Business_Setting/Pages_media';
 import Payment_method from './containers/Business_Setting/Payment_method';
 import Seo_setting from './containers/Business_Setting/Seo_setting';
+import './styles/toast.css';
+import 'react-toastify/dist/ReactToastify.css';
+// import './styles/toast.css';
 
 const sagaMiddleware = createSagaMiddleware();
 const reducer = createReducer();
@@ -69,11 +72,14 @@ function App() {
     <Provider store={store}>
       <BrowserRouter>
         <Routes>
+          {/* Auth pages without Layout */}
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+          {/* Protected pages with Layout */}
           <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="login" element={<LoginPage />} />
-            <Route path="register" element={<RegisterPage />} />
-            <Route path="forgot-password" element={<ForgotPasswordPage />} />
             <Route path="dashboard" element={<Dashboard />} />
             {/* products */}
             <Route path="products/categories" element={<CategoryPage />} />
@@ -123,6 +129,8 @@ function App() {
             <Route path="/system/login" element={<Email_template />} />
             <Route path="category" element={<CategoryForm />} />
           </Route>
+
+          {/* 404 page */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
