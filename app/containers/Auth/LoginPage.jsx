@@ -16,6 +16,8 @@ export default function LoginPage() {
     try {
       const response = await authService.login({ email, password });
       if (response?.data?.success) {
+        // Store token in localStorage for API requests
+        localStorage.setItem('token', response.data.token || response.data.data?.token);
         toast.success('Login successful!');
         navigate('/dashboard');
       }
