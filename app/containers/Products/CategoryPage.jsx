@@ -1,3 +1,7 @@
+import { Button } from '@/components/custom-button';
+import InputTextField from '@/components/input-field/InputTextField';
+import SelectField from '@/components/select/SelectField';
+import TextAreaField from '@/components/textarea-field/TextAreaField';
 import React, { useState } from 'react';
 import { MdAdd } from 'react-icons/md';
 
@@ -11,6 +15,9 @@ const CategoryPage = () => {
     priority: '',
     status: 'active',
   });
+
+  // ❌ अभी dummy है, बाद में validation add कर सकते हो
+  const [formErrors, setFormErrors] = useState({});
 
   const handleInputChange = (e) => {
     setFormData({
@@ -47,133 +54,138 @@ const CategoryPage = () => {
                 Manage your product categories
               </p>
             </div>
-            <button
+            <Button
+              variant="primary"
               onClick={() => setShowAddForm(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+              className="flex items-center space-x-2"
             >
               <MdAdd className="text-xl" />
               <span>Add Category</span>
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Add Category Modal */}
         {showAddForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <h2 className="text-xl font-semibold mb-4">Add New Category</h2>
+            <div className="bg-white rounded-lg w-full max-w-lg mx-4 flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="p-6 border-b">
+                <h2 className="text-xl font-semibold">Add New Category</h2>
+              </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+              {/* Form Fields - Scrollable */}
+              <form
+                onSubmit={handleSubmit}
+                className="p-6 space-y-4 overflow-y-auto flex-1"
+                style={{ minHeight: '200px' }}
+              >
+                <InputTextField
+                  label="Category Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Enter category name"
+                  error={formErrors?.name}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Slug
-                  </label>
-                  <input
-                    type="text"
-                    name="slug"
-                    value={formData.slug}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+                <InputTextField
+                  label="Slug"
+                  name="slug"
+                  value={formData.slug}
+                  onChange={handleInputChange}
+                  placeholder="Enter slug"
+                  error={formErrors?.slug}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+                <TextAreaField
+                  label="Description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="Enter category description"
+                  rows={3}
+                  error={formErrors?.description}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Image URL
-                  </label>
-                  <input
-                    type="url"
-                    name="image"
-                    value={formData.image}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+                <InputTextField
+                  label="Image URL"
+                  type="url"
+                  name="image"
+                  value={formData.image}
+                  onChange={handleInputChange}
+                  placeholder="https://example.com/image.jpg"
+                  error={formErrors?.image}
+                />
+
+                <InputTextField
+                  label="Meta Title"
+                  name="metaTitle"
+                  value={formData.metaTitle}
+                  onChange={handleInputChange}
+                  placeholder="Enter meta title"
+                  error={formErrors?.metaTitle}
+                />
+
+                <TextAreaField
+                  label="Meta Description"
+                  name="metaDescription"
+                  value={formData.metaDescription}
+                  onChange={handleInputChange}
+                  placeholder="Enter meta description"
+                  rows={3}
+                  error={formErrors?.metaDescription}
+                />
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Priority
-                    </label>
-                    <input
-                      type="number"
-                      name="priority"
-                      value={formData.priority}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+                  <InputTextField
+                    label="Priority"
+                    type="number"
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 1"
+                    error={formErrors?.priority}
+                  />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Status
-                    </label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
-                  >
-                    Create Category
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAddForm(false);
-                      setFormData({
-                        name: '',
-                        slug: '',
-                        description: '',
-                        image: '',
-                        priority: '',
-                        status: 'active',
-                      });
-                    }}
-                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400"
-                  >
-                    Cancel
-                  </button>
+                  <SelectField
+                    label="Status"
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    options={[
+                      { value: 'active', label: 'Active' },
+                      { value: 'inactive', label: 'Inactive' },
+                    ]}
+                    error={formErrors?.status}
+                  />
                 </div>
               </form>
+
+              {/* Buttons - Fixed at bottom */}
+              <div className="p-6 border-t flex space-x-3">
+                <Button type="submit" variant="primary" className="flex-1">
+                  Add
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setFormData({
+                      name: '',
+                      slug: '',
+                      description: '',
+                      image: '',
+                      priority: '',
+                      status: 'active',
+                    });
+                  }}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </div>
         )}
