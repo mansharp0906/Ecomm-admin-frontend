@@ -2,8 +2,48 @@ import { Button } from '@/components/custom-button';
 import InputTextField from '@/components/input-field/InputTextField';
 import SelectField from '@/components/select/SelectField';
 import TextAreaField from '@/components/textarea-field/TextAreaField';
+import categoryService from '@/api/service/categoryService';
 import React, { useState } from 'react';
 import { MdAdd } from 'react-icons/md';
+// import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
+import * as Yup from 'yup';
+
+// Validation schema
+const validationSchema = Yup.object({
+  name: Yup.string()
+    .required('Category name is required')
+    .min(2, 'Category name must be at least 2 characters')
+    .max(50, 'Category name must be less than 50 characters'),
+  slug: Yup.string()
+    .matches(
+      /^[a-z0-9-]+$/,
+      'Slug must contain only lowercase letters, numbers, and hyphens',
+    )
+    .min(2, 'Slug must be at least 2 characters')
+    .max(50, 'Slug must be less than 50 characters'),
+  description: Yup.string()
+    .required('Description is required')
+    .min(10, 'Description must be at least 10 characters')
+    .max(500, 'Description must be less than 500 characters'),
+  metaTitle: Yup.string()
+    .required('Meta title is required')
+    .min(10, 'Meta title must be at least 10 characters')
+    .max(60, 'Meta title must be less than 60 characters'),
+  metaDescription: Yup.string()
+    .required('Meta description is required')
+    .min(20, 'Meta description must be at least 20 characters')
+    .max(160, 'Meta description must be less than 160 characters'),
+  image: Yup.string().url('Please enter a valid URL').nullable(),
+  priority: Yup.number()
+    .required('Priority is required')
+    .min(1, 'Priority must be at least 1')
+    .max(100, 'Priority must be less than 100')
+    .integer('Priority must be a whole number'),
+  status: Yup.string()
+    .required('Status is required')
+    .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
+});
 
 const CategoryPage = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -11,35 +51,80 @@ const CategoryPage = () => {
     name: '',
     slug: '',
     description: '',
-    image: '',
-    priority: '',
+    metaTitle: '',
+    metaDescription: '',
+    image: null,
+    priority: 1,
     status: 'active',
   });
 
-  // ❌ अभी dummy है, बाद में validation add कर सकते हो
   const [formErrors, setFormErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+
+    // Clear error for this field when user starts typing
+    if (formErrors[name]) {
+      setFormErrors({
+        ...formErrors,
+        [name]: '',
+      });
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form Submitted:', formData);
+    setLoading(true);
+    setFormErrors({});
 
-    // Reset form
-    setFormData({
-      name: '',
-      slug: '',
-      description: '',
-      image: '',
-      priority: '',
-      status: 'active',
-    });
-    setShowAddForm(false);
+    try {
+      // Validate form data
+      await validationSchema.validate(formData, { abortEarly: false });
+
+      // Remove fields that backend doesn't allow
+      // eslint-disable-next-line no-unused-vars
+      const { slug: _slug, image: _image, ...apiData } = formData;
+      console.log('Sending data to API:', apiData); // Debug log
+      const response = await categoryService.create(apiData);
+
+      if (response?.data?.success) {
+        console.log('Category Created Response:', response.data);
+        console.log('Created Category:', response.data.data);
+        toast.success('Category added successfully!');
+        setFormData({
+          name: '',
+          slug: '',
+          description: '',
+          image: null,
+          metaTitle: '',
+          metaDescription: '',
+          priority: 1,
+          status: 'active',
+        });
+        setFormErrors({});
+        setShowAddForm(false);
+      }
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        // Handle validation errors
+        const validationErrors = {};
+        error.inner.forEach((err) => {
+          validationErrors[err.path] = err.message;
+        });
+        setFormErrors(validationErrors);
+        toast.error('Please fix the validation errors');
+      } else {
+        console.error('API Error Details:', error.response?.data); // Debug log
+        toast.error(error.response?.data?.message || 'Failed to add category');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -160,32 +245,34 @@ const CategoryPage = () => {
                     error={formErrors?.status}
                   />
                 </div>
+                {/* Buttons - Fixed at bottom */}
+                <div className="p-6 border-t flex space-x-3">
+                  <Button type="submit" variant="primary" className="flex-1">
+                    Add
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setShowAddForm(false);
+                      setFormData({
+                        name: '',
+                        slug: '',
+                        description: '',
+                        metaTitle: '',
+                        metaDescription: '',
+                        image: null,
+                        priority: 1,
+                        status: 'active',
+                      });
+                      setFormErrors({});
+                    }}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </form>
-
-              {/* Buttons - Fixed at bottom */}
-              <div className="p-6 border-t flex space-x-3">
-                <Button type="submit" variant="primary" className="flex-1">
-                  Add
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    setShowAddForm(false);
-                    setFormData({
-                      name: '',
-                      slug: '',
-                      description: '',
-                      image: '',
-                      priority: '',
-                      status: 'active',
-                    });
-                  }}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
             </div>
           </div>
         )}
