@@ -22,7 +22,7 @@ import Attributes from './containers/Products/Attributes';
 import ProductInHouse from './containers/Products/ProductInHouse';
 import Vendors from './containers/Products/Vendors';
 import BulkImpor from './containers/Products/BulkImpor';
-import Pos from './containers/Products/pos';
+import Pos from './containers/Products/Pos';
 import Pos_report from './containers/Products/Pos_report';
 import AllOrders from './containers/Orders/AllOrders';
 import PendingOrders from './containers/Orders/PendingOrders';
