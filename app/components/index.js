@@ -14,6 +14,9 @@ export {
 // Custom Pagination component
 export { Pagination } from './custom-pagination';
 
+// Custom Search component
+export { SearchBar } from './custom-search';
+
 export const Welcome = loadable(() => import('./Welcome'), {
   fallback: <div>Loading...</div>,
 });

@@ -204,37 +204,49 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-lg mx-4 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg w-full max-w-4xl mx-auto flex flex-col h-[95vh]">
         {/* Header */}
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold">Add New Sub Category</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Select a parent category and create a new sub category
-          </p>
+        <div className="p-6 border-b flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Add New Sub Category</h2>
+            </div>
+          </div>
         </div>
 
         {/* Form Fields - Scrollable */}
         <form
           onSubmit={handleSubmit}
           className="p-6 space-y-4 overflow-y-auto flex-1"
-          style={{ minHeight: '200px' }}
         >
-          <SelectField
-            label="Parent Category"
-            name="parentId"
-            value={formData.parentId}
-            onChange={handleInputChange}
-            options={[
-              { value: '', label: 'Select Parent Category' },
-              ...categories.map((cat) => ({
-                value: cat._id,
-                label: cat.displayName,
-              })),
-            ]}
-            error={formErrors?.parentId}
-            disabled={loadingCategories}
-          />
+          {/* Row 1: Category and Sub Category */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SelectField
+              label="Category"
+              name="parentId"
+              value={formData.parentId}
+              onChange={handleInputChange}
+              options={[
+                { value: '', label: 'Select Category' },
+                ...categories.map((cat) => ({
+                  value: cat._id,
+                  label: cat.displayName,
+                })),
+              ]}
+              error={formErrors?.parentId}
+              disabled={loadingCategories}
+            />
+
+            <InputTextField
+              label="Sub Category Name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="Enter sub category"
+              error={formErrors?.name}
+            />
+          </div>
 
           {loadingCategories && (
             <div className="text-sm text-gray-500 text-center">
@@ -242,15 +254,7 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
             </div>
           )}
 
-          <InputTextField
-            label="Sub Category Name"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="Enter sub category name"
-            error={formErrors?.name}
-          />
-
+          {/* Row 2: Description (Full Width) */}
           <TextAreaField
             label="Description"
             name="description"
@@ -261,25 +265,29 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
             error={formErrors?.description}
           />
 
-          <InputTextField
-            label="Image URL"
-            type="url"
-            name="image"
-            value={formData.image || ''}
-            onChange={handleInputChange}
-            placeholder="https://example.com/image.jpg"
-            error={formErrors?.image}
-          />
+          {/* Row 3: Image URL and Meta Title */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputTextField
+              label="Image URL"
+              type="url"
+              name="image"
+              value={formData.image || ''}
+              onChange={handleInputChange}
+              placeholder="https://example.com/image.jpg"
+              error={formErrors?.image}
+            />
 
-          <InputTextField
-            label="Meta Title"
-            name="metaTitle"
-            value={formData.metaTitle}
-            onChange={handleInputChange}
-            placeholder="Enter meta title"
-            error={formErrors?.metaTitle}
-          />
+            <InputTextField
+              label="Meta Title"
+              name="metaTitle"
+              value={formData.metaTitle}
+              onChange={handleInputChange}
+              placeholder="Enter meta title"
+              error={formErrors?.metaTitle}
+            />
+          </div>
 
+          {/* Row 4: Meta Description (Full Width) */}
           <TextAreaField
             label="Meta Description"
             name="metaDescription"
@@ -290,7 +298,8 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
             error={formErrors?.metaDescription}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Row 5: Priority and Status */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputTextField
               label="Priority"
               type="number"
@@ -316,11 +325,11 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
         </form>
 
         {/* Buttons - Fixed at bottom */}
-        <div className="p-6 border-t flex space-x-3">
+        <div className="p-4 border-t flex-shrink-0 flex space-x-3">
           <Button
             type="submit"
             variant="primary"
-            className="flex-1"
+            className="flex-1 py-2 text-base"
             onClick={handleSubmit}
             disabled={loading}
           >
@@ -330,7 +339,7 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
             type="button"
             variant="secondary"
             onClick={handleCancel}
-            className="flex-1"
+            className="flex-1 py-2 text-base"
           >
             Cancel
           </Button>

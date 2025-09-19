@@ -12,7 +12,7 @@ import {
   TableCell,
 } from '@/components/custom-table';
 import CustomIcon from '@/components/custom-icon/CustomIcon';
-import { Pagination } from '@/components';
+import { Pagination, SearchBar } from '@/components';
 
 const SubCategoryList = ({ refreshTrigger }) => {
   const [subCategories, setSubCategories] = useState([]);
@@ -21,6 +21,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
   const [allCategories, setAllCategories] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch all categories to get parent names
   const fetchAllCategories = async () => {
@@ -129,22 +130,50 @@ const SubCategoryList = ({ refreshTrigger }) => {
     console.log('View subcategory:', subCategory);
   };
 
-  // Pagination calculations
-  const totalPages = Math.ceil(subCategories.length / itemsPerPage);
+  // Search and pagination calculations
+  const filteredSubCategories = subCategories.filter((subCategory) => {
+    const searchLower = searchTerm.toLowerCase();
+
+    // Check if search term matches featured status
+    const isFeaturedMatch =
+      (searchLower === 'yes' && subCategory.isFeatured === true) ||
+      (searchLower === 'no' && subCategory.isFeatured === false) ||
+      (searchLower === 'featured' && subCategory.isFeatured === true) ||
+      (searchLower === 'not featured' && subCategory.isFeatured === false);
+
+    return (
+      subCategory.name.toLowerCase().includes(searchLower) ||
+      subCategory.description.toLowerCase().includes(searchLower) ||
+      getParentCategoryName(subCategory.parentId)
+        .toLowerCase()
+        .includes(searchLower) ||
+      subCategory.status.toLowerCase().includes(searchLower) ||
+      isFeaturedMatch ||
+      `level ${subCategory.level || 1}`.includes(searchLower)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredSubCategories.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentItems = subCategories.slice(startIndex, endIndex);
+  const currentItems = filteredSubCategories.slice(startIndex, endIndex);
 
   // Handle page change
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
+  // Handle search
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2">Loading subcategories...</span>
+        <span className="ml-2">Loading Data...</span>
       </div>
     );
   }
@@ -162,13 +191,19 @@ const SubCategoryList = ({ refreshTrigger }) => {
 
   return (
     <div className="bg-white rounded-lg shadow">
+      {/* Header with Search */}
       <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900">
-          Sub Categories List
-        </h3>
-        <p className="text-sm text-gray-600">
-          Manage your product sub categories
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="w-full sm:w-80">
+            <SearchBar
+              placeholder="Search Here..."
+              value={searchTerm}
+              onChange={handleSearch}
+              size="md"
+              className="w-full"
+            />
+          </div>
+        </div>
       </div>
 
       {currentItems.length === 0 ? (
@@ -200,26 +235,50 @@ const SubCategoryList = ({ refreshTrigger }) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Sub Category Name</TableHead>
+                <TableHead className="text-center">S.No</TableHead>
+                <TableHead>Sub Category</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Category Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Level</TableHead>
+                <TableHead>Featured</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created Date</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
-              {currentItems.map((subCategory) => (
+              {currentItems.map((subCategory, index) => (
                 <TableRow key={subCategory._id}>
+                  <TableCell className="text-center font-medium text-gray-900">
+                    {(currentPage - 1) * itemsPerPage + index + 1}
+                  </TableCell>
                   <TableCell className="font-medium text-gray-900">
                     {subCategory.name}
                   </TableCell>
                   <TableCell className="text-gray-500 max-w-xs">
-                    {subCategory.description}
+                    <div className="break-words whitespace-normal">
+                      {subCategory.description}
+                    </div>
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">
                     {getParentCategoryName(subCategory.parentId)}
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      Level {subCategory.level || 1}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        subCategory.isFeatured
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {subCategory.isFeatured ? 'Yes' : 'No'}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <span
@@ -242,8 +301,8 @@ const SubCategoryList = ({ refreshTrigger }) => {
                       },
                     )}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
+                  <TableCell className="text-center">
+                    <div className="flex space-x-2 justify-center">
                       <Button
                         size="sm"
                         variant="outline"
@@ -282,7 +341,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
       )}
 
       {/* Pagination */}
-      {subCategories.length > itemsPerPage && (
+      {filteredSubCategories.length > itemsPerPage && (
         <div className="px-6 py-4 border-t border-gray-200">
           <Pagination
             currentPage={currentPage}
