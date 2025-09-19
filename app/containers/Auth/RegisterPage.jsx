@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '@/api/service/authService';
 import { showSuccessToast, showErrorToast } from '@/utils/toast'; // 👈 custom toast utils
-
+import LoadingOverlay from '@/components/Loading/index';
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [name, setFullName] = useState('');
@@ -11,7 +11,7 @@ export default function RegisterPage() {
   const [role, setRole] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false); // 👈 loading state
+  const [loading, setLoading] = useState(false); 
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -41,6 +41,8 @@ export default function RegisterPage() {
   };
 
   return (
+    <>
+      {loading && <LoadingOverlay />}
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
@@ -107,14 +109,14 @@ export default function RegisterPage() {
             <div>
               <button
                 type="submit"
-                disabled={loading} // disable while loading
+                disabled={loading} 
                 className={`w-full py-2 px-4 text-white rounded-md ${
                   loading
                     ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-indigo-600 hover:bg-indigo-700'
                 }`}
               >
-                {loading ? 'Creating account...' : 'Create account'}
+               Create account
               </button>
             </div>
           </form>
@@ -128,5 +130,6 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

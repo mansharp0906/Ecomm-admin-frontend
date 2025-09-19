@@ -195,6 +195,7 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: 'Google Sans', Arial, sans-serif;
+  overflow-x: hidden;
 }
 
 

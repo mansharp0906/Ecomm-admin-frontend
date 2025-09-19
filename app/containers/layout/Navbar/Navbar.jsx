@@ -20,8 +20,8 @@ function Navbar() {
           aria-expanded={dropdownOpen}
           aria-haspopup="true"
         >
-          <span className="flex items-center justify-center w-10 h-10 bg-black rounded-full">
-            <FiUser size={24} color="white" />
+          <span className="flex items-center justify-center w-10 h-10 bg-white rounded-full">
+            <FiUser size={24} color="black" />
           </span>
 
           <svg
