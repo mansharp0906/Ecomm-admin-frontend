@@ -17,6 +17,9 @@ export { Pagination } from './custom-pagination';
 // Custom Search component
 export { SearchBar } from './custom-search';
 
+// Custom Modal components
+export { DeleteConfirmationModal } from './custom-modal';
+
 export const Welcome = loadable(() => import('./Welcome'), {
   fallback: <div>Loading...</div>,
 });

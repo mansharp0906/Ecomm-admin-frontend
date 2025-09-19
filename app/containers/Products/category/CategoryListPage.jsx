@@ -2,36 +2,69 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/custom-button';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
-import { MdEdit, MdDelete, MdVisibility } from 'react-icons/md';
 import PropTypes from 'prop-types';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/custom-table';
+import CustomIcon from '@/components/custom-icon/CustomIcon';
+import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 
 const CategoryListPage = ({ refreshTrigger }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch categories from API
-  const fetchCategories = async () => {
+  // Pagination and search state
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 0,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Delete modal state
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    itemId: null,
+    itemName: '',
+    isLoading: false,
+  });
+
+  // Fetch categories from API with pagination and search
+  const fetchCategories = async (page = 1, search = '') => {
     setLoading(true);
     setError(null);
     try {
-      const response = await categoryService.getTree();
-      if (response?.data) {
-        // Extract all categories (flatten the tree structure)
-        const allCategories = [];
-        const flattenCategories = (cats) => {
-          cats.forEach((category) => {
-            allCategories.push(category);
-            if (category.children && category.children.length > 0) {
-              flattenCategories(category.children);
-            }
-          });
-        };
-        flattenCategories(response.data);
+      const params = {
+        page,
+        limit: pagination.itemsPerPage,
+        level: 0, // Only main categories
+        ...(search && { search }),
+      };
 
-        // Filter only main categories (level 0) for display
-        const mainCategories = allCategories.filter((cat) => cat.level === 0);
-        setCategories(mainCategories);
+      const response = await categoryService.getAll(params);
+      if (response?.data?.success) {
+        // Filter only level 0 categories (main categories)
+        const level0Categories = response.data.data.filter(
+          (category) => category.level === 0,
+        );
+        setCategories(level0Categories);
+
+        // Update pagination state from API response
+        setPagination((prev) => ({
+          ...prev,
+          currentPage: response.data.page || page,
+          totalPages: Math.ceil(
+            level0Categories.length / pagination.itemsPerPage,
+          ),
+          totalItems: level0Categories.length,
+        }));
       } else {
         setError('Failed to fetch categories');
       }
@@ -46,25 +79,77 @@ const CategoryListPage = ({ refreshTrigger }) => {
 
   // Load categories on component mount and when refreshTrigger changes
   useEffect(() => {
-    fetchCategories();
+    fetchCategories(pagination.currentPage, searchTerm);
   }, [refreshTrigger]);
 
+  // Handle page change
+  const handlePageChange = (page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+    fetchCategories(page, searchTerm);
+  };
+
+  // Handle search
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    fetchCategories(1, term);
+  };
+
   // Handle delete category
-  const handleDelete = async (id, name) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      try {
-        const response = await categoryService.delete(id);
-        if (response?.data?.success) {
-          toast.success('Category deleted successfully!');
-          fetchCategories(); // Refresh the list
-        } else {
-          toast.error('Failed to delete category');
-        }
-      } catch (err) {
-        console.error('Error deleting category:', err);
-        toast.error('Failed to delete category');
+  const handleDelete = (id, name) => {
+    setDeleteModal({
+      isOpen: true,
+      itemId: id,
+      itemName: name,
+      isLoading: false,
+    });
+  };
+
+  // Confirm delete
+  const confirmDelete = async () => {
+    if (!deleteModal.itemId) return;
+
+    setDeleteModal((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      const response = await categoryService.delete(deleteModal.itemId);
+      if (response?.data?.success) {
+        toast.success('Category deleted successfully!');
+        
+        // Remove item from frontend state immediately
+        setCategories(prev => prev.filter(category => category._id !== deleteModal.itemId));
+        
+        // Update pagination if needed
+        setPagination(prev => ({
+          ...prev,
+          totalItems: prev.totalItems - 1,
+          totalPages: Math.ceil((prev.totalItems - 1) / prev.itemsPerPage)
+        }));
+      } else {
+        toast.error(response?.data?.message || 'Failed to delete category');
       }
+    } catch (err) {
+      console.error('Error deleting category:', err);
+      toast.error(err?.response?.data?.message || 'Failed to delete category');
+    } finally {
+      // Always close modal after operation (success or error)
+      setDeleteModal({
+        isOpen: false,
+        itemId: null,
+        itemName: '',
+        isLoading: false,
+      });
     }
+  };
+
+  // Close delete modal
+  const closeDeleteModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      itemId: null,
+      itemName: '',
+      isLoading: false,
+    });
   };
 
   // Handle edit category (placeholder for now)
@@ -102,8 +187,17 @@ const CategoryListPage = ({ refreshTrigger }) => {
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900">Categories List</h3>
-        <p className="text-sm text-gray-600">Manage your product categories</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="w-full sm:w-80">
+            <SearchBar
+              placeholder="Search categories..."
+              value={searchTerm}
+              onChange={handleSearch}
+              size="md"
+              className="w-full"
+            />
+          </div>
+        </div>
       </div>
 
       {categories.length === 0 ? (
@@ -132,60 +226,53 @@ const CategoryListPage = ({ refreshTrigger }) => {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Meta Title
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Meta Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created Date
-                </th> */}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {categories.map((category) => (
-                <tr key={category._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {category.name}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500 max-w-xs">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-center">S.No</TableHead>
+                <TableHead>Category Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Level</TableHead>
+                <TableHead>Featured</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created Date</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {categories.map((category, index) => (
+                <TableRow key={category._id}>
+                  <TableCell className="text-center font-medium text-gray-900">
+                    {(pagination.currentPage - 1) * pagination.itemsPerPage +
+                      index +
+                      1}
+                  </TableCell>
+                  <TableCell className="font-medium text-gray-900">
+                    {category.name}
+                  </TableCell>
+                  <TableCell className="text-gray-500 max-w-xs">
+                    <div className="break-words whitespace-normal">
                       {category.description}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-700 max-w-xs">
-                      {category.metaTitle}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600 max-w-xs">
-                      {category.metaDescription}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      Level {category.level || 0}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        category.isFeatured
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {category.isFeatured ? 'Yes' : 'No'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         category.status === 'active'
@@ -195,49 +282,76 @@ const CategoryListPage = ({ refreshTrigger }) => {
                     >
                       {category.status}
                     </span>
-                  </td>
-                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  </TableCell>
+                  <TableCell className="text-gray-500">
                     {new Date(category.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'short',
                       day: 'numeric',
-                      // hour: '2-digit',
-                      // minute: '2-digit',
                     })}
-                  </td> */}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex space-x-2 justify-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => handleView(category)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="View Details"
+                        title="View"
                       >
-                        <MdVisibility className="h-4 w-4" />
-                      </button>
-                      <button
+                        <CustomIcon type="view" size={4} />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => handleEdit(category)}
-                        className="text-indigo-600 hover:text-indigo-900"
                         title="Edit"
                       >
-                        <MdEdit className="h-4 w-4" />
-                      </button>
-                      <button
+                        <CustomIcon type="edit" size={4} />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="destructive"
                         onClick={() =>
                           handleDelete(category._id, category.name)
                         }
-                        className="text-red-600 hover:text-red-900"
                         title="Delete"
                       >
-                        <MdDelete className="h-4 w-4" />
-                      </button>
+                        <CustomIcon type="delete" size={4} />
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="px-6 py-4 border-t border-gray-200">
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+            maxVisiblePages={5}
+            className="justify-center"
+          />
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="Delete Category"
+        message={`Are you sure you want to delete "${deleteModal.itemName}"?`}
+        itemName={deleteModal.itemName}
+        isLoading={deleteModal.isLoading}
+      />
     </div>
   );
 };
