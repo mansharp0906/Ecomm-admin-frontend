@@ -14,7 +14,11 @@ const SubSubCategoryPage = () => {
   const handleFormSuccess = (data) => {
     console.log('Sub Sub Category created:', data);
     setShowForm(false);
+<<<<<<< HEAD
+    setRefreshTrigger((prev) => prev + 1);
+=======
     setRefreshTrigger(prev => prev + 1);
+>>>>>>> pallavidev
   };
 
   const handleFormCancel = () => {
@@ -26,7 +30,9 @@ const SubSubCategoryPage = () => {
       <div className="mb-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Sub Sub Categories</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Sub Sub Categories
+            </h1>
             <p className="text-gray-600 mt-1">
               Manage your product sub sub categories (Level 2)
             </p>

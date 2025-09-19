@@ -12,7 +12,11 @@ import {
   TableCell,
 } from '@/components/custom-table';
 import CustomIcon from '@/components/custom-icon/CustomIcon';
+<<<<<<< HEAD
+import { Pagination } from '@/components';
+=======
 import { Pagination, SearchBar } from '@/components';
+>>>>>>> pallavidev
 
 const SubSubCategoryList = ({ refreshTrigger }) => {
   const [subSubCategories, setSubSubCategories] = useState([]);
@@ -107,7 +111,13 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   // Get parent sub category name by ID
   const getParentSubCategoryName = (parentId) => {
     if (!parentId) return 'Root Category';
+<<<<<<< HEAD
+    const parentSubCategory = allSubCategories.find(
+      (cat) => cat._id === parentId,
+    );
+=======
     const parentSubCategory = allSubCategories.find((cat) => cat._id === parentId);
+>>>>>>> pallavidev
     return parentSubCategory ? `${parentSubCategory.name}` : '-';
   };
 
@@ -144,6 +154,16 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   // Search and pagination calculations
   const filteredSubSubCategories = subSubCategories.filter((subSubCategory) => {
     const searchLower = searchTerm.toLowerCase();
+<<<<<<< HEAD
+
+    // Check if search term matches featured status
+    const isFeaturedMatch =
+      (searchLower === 'yes' && subSubCategory.isFeatured === true) ||
+      (searchLower === 'no' && subSubCategory.isFeatured === false) ||
+      (searchLower === 'featured' && subSubCategory.isFeatured === true) ||
+      (searchLower === 'not featured' && subSubCategory.isFeatured === false);
+
+=======
     
     // Check if search term matches featured status
     const isFeaturedMatch = searchLower === 'yes' && subSubCategory.isFeatured === true ||
@@ -151,6 +171,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
                            searchLower === 'featured' && subSubCategory.isFeatured === true ||
                            searchLower === 'not featured' && subSubCategory.isFeatured === false;
     
+>>>>>>> pallavidev
     return (
       subSubCategory.name.toLowerCase().includes(searchLower) ||
       subSubCategory.description.toLowerCase().includes(searchLower) ||
@@ -205,13 +226,30 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="w-full sm:w-80">
-            <SearchBar
-              placeholder="Search sub sub categories..."
-              value={searchTerm}
-              onChange={handleSearch}
-              size="md"
-              className="w-full"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search sub sub categories..."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg
+                  className="h-4 w-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       </div>
