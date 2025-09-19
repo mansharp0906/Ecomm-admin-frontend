@@ -3,6 +3,8 @@ module.exports = {
     './app/**/*.html',
     './app/components/**/*.js',
     './app/containers/**/*.js',
+    './app/containers/**/*.jsx',
+    './app/components/**/*.jsx',
   ],
   darkMode: 'class',
   theme: {
