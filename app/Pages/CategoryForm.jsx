@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import InputTextField from '@/components/input-field/InputTextField';
+import InputTextField from '@/components/custom-input-field/InputTextField';
 import Button from '@/components/custom-button/Button';
 
 export default function CategoryForm({ sidebarOpen }) {

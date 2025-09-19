@@ -1,7 +1,7 @@
 import { Button } from '@/components/custom-button';
-import InputTextField from '@/components/input-field/InputTextField';
-import SelectField from '@/components/select/SelectField';
-import TextAreaField from '@/components/textarea-field/TextAreaField';
+import InputTextField from '@/components/custom-input-field/InputTextField';
+import SelectField from '@/components/custom-forms/SelectField';
+import TextAreaField from '@/components/custom-forms/TextAreaField';
 import categoryService from '@/api/service/categoryService';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';

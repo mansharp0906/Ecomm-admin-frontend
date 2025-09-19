@@ -2,8 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/custom-button';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
-import { MdEdit, MdDelete, MdVisibility } from 'react-icons/md';
 import PropTypes from 'prop-types';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/custom-table';
+import CustomIcon from '@/components/custom-icon/CustomIcon';
 
 const SubCategoryList = ({ refreshTrigger }) => {
   const [subCategories, setSubCategories] = useState([]);
@@ -175,56 +183,31 @@ const SubCategoryList = ({ refreshTrigger }) => {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sub Category Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sub Category Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Sub Category Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Category Name</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created Date</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
               {subCategories.map((subCategory) => (
-                <tr key={subCategory._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {subCategory.name}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500 max-w-xs">
-                      {subCategory.description}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {getParentCategoryName(subCategory.parentId)}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <TableRow key={subCategory._id}>
+                  <TableCell className="font-medium text-gray-900">
+                    {subCategory.name}
+                  </TableCell>
+                  <TableCell className="text-gray-500 max-w-xs">
+                    {subCategory.description}
+                  </TableCell>
+                  <TableCell className="font-medium text-gray-900">
+                    {getParentCategoryName(subCategory.parentId)}
+                  </TableCell>
+                  <TableCell>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         subCategory.status === 'active'
@@ -234,50 +217,53 @@ const SubCategoryList = ({ refreshTrigger }) => {
                     >
                       {subCategory.status}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  </TableCell>
+                  <TableCell className="text-gray-500">
                     {new Date(subCategory.createdAt).toLocaleDateString(
                       'en-US',
                       {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',
-                        // hour: '2-digit',
-                        // minute: '2-digit',
                       },
                     )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  </TableCell>
+                  <TableCell>
                     <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleView(subCategory)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="View Details"
-                      >
-                        <MdVisibility className="h-4 w-4" />
-                      </button>
-                      <button
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => handleEdit(subCategory)}
-                        className="text-indigo-600 hover:text-indigo-900"
                         title="Edit"
                       >
-                        <MdEdit className="h-4 w-4" />
-                      </button>
-                      <button
+                        <CustomIcon type="edit" size={4} />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleView(subCategory)}
+                        title="View"
+                      >
+                        <CustomIcon type="view" size={4} />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="destructive"
                         onClick={() =>
                           handleDelete(subCategory._id, subCategory.name)
                         }
-                        className="text-red-600 hover:text-red-900"
                         title="Delete"
                       >
-                        <MdDelete className="h-4 w-4" />
-                      </button>
+                        <CustomIcon type="delete" size={4} />
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>
