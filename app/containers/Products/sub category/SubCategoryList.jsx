@@ -12,49 +12,52 @@ import {
   TableCell,
 } from '@/components/custom-table';
 import CustomIcon from '@/components/custom-icon/CustomIcon';
-import { Pagination, SearchBar } from '@/components';
+import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 
 const SubCategoryList = ({ refreshTrigger }) => {
   const [subCategories, setSubCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [allCategories, setAllCategories] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+
+  // Pagination and search state
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 0,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Delete modal state
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    itemId: null,
+    itemName: '',
+    isLoading: false,
+  });
 
   // Fetch all categories to get parent names
   const fetchAllCategories = async () => {
     try {
-      const response = await categoryService.getTree();
-      if (response?.data) {
-        // Flatten all categories to create a lookup map
-        const allCats = [];
-        const flattenCategories = (cats) => {
-          cats.forEach((cat) => {
-            allCats.push(cat);
-            if (cat.children && cat.children.length > 0) {
-              flattenCategories(cat.children);
-            }
-          });
-        };
-        flattenCategories(response.data);
-        setAllCategories(allCats);
+      const response = await categoryService.getAll({ level: 0, limit: 1000 }); // Get only main categories
+      if (response?.data?.success) {
+        setAllCategories(response.data.data);
       }
     } catch (err) {
       console.error('Error fetching all categories:', err);
     }
   };
 
-  // Fetch subcategories from API using tree endpoint
-  const fetchSubCategories = async () => {
+  // Fetch subcategories from API with pagination and search
+  const fetchSubCategories = async (page = 1, search = '') => {
     setLoading(true);
     setError(null);
     try {
-      // Use the tree endpoint to get hierarchical data
+      // Use getTree() to get hierarchical data and extract subcategories
       const response = await categoryService.getTree();
       if (response?.data) {
-        // Extract all subcategories (level > 0) from the tree structure
+        // Extract all subcategories (level 1) from the tree structure
         const allSubCategories = [];
 
         const extractSubCategories = (categories) => {
@@ -75,6 +78,14 @@ const SubCategoryList = ({ refreshTrigger }) => {
 
         extractSubCategories(response.data);
         setSubCategories(allSubCategories);
+
+        // Update pagination state (frontend pagination for now)
+        setPagination((prev) => ({
+          ...prev,
+          currentPage: 1,
+          totalPages: Math.ceil(allSubCategories.length / prev.itemsPerPage),
+          totalItems: allSubCategories.length,
+        }));
       } else {
         setError('Failed to fetch subcategories');
       }
@@ -90,8 +101,21 @@ const SubCategoryList = ({ refreshTrigger }) => {
   // Load subcategories and all categories on component mount and when refreshTrigger changes
   useEffect(() => {
     fetchAllCategories();
-    fetchSubCategories();
+    fetchSubCategories(pagination.currentPage, searchTerm);
   }, [refreshTrigger]);
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+    fetchSubCategories(page, searchTerm);
+  };
+
+  // Handle search
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    fetchSubCategories(1, term);
+  };
 
   // Get parent category name by ID
   const getParentCategoryName = (parentId) => {
@@ -101,21 +125,60 @@ const SubCategoryList = ({ refreshTrigger }) => {
   };
 
   // Handle delete subcategory
-  const handleDelete = async (id, name) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      try {
-        const response = await categoryService.delete(id);
-        if (response?.data?.success) {
-          toast.success('Sub Category deleted successfully!');
-          fetchSubCategories(); // Refresh the list
-        } else {
-          toast.error('Failed to delete sub category');
-        }
-      } catch (err) {
-        console.error('Error deleting subcategory:', err);
-        toast.error('Failed to delete sub category');
+  const handleDelete = (id, name) => {
+    setDeleteModal({
+      isOpen: true,
+      itemId: id,
+      itemName: name,
+      isLoading: false,
+    });
+  };
+
+  // Confirm delete
+  const confirmDelete = async () => {
+    if (!deleteModal.itemId) return;
+
+    setDeleteModal(prev => ({ ...prev, isLoading: true }));
+    
+    try {
+      const response = await categoryService.delete(deleteModal.itemId);
+      if (response?.data?.success) {
+        toast.success('Sub Category deleted successfully!');
+        
+        // Remove item from frontend state immediately
+        setSubCategories(prev => prev.filter(subCategory => subCategory._id !== deleteModal.itemId));
+        
+        // Update pagination if needed
+        setPagination(prev => ({
+          ...prev,
+          totalItems: prev.totalItems - 1,
+          totalPages: Math.ceil((prev.totalItems - 1) / prev.itemsPerPage)
+        }));
+      } else {
+        toast.error(response?.data?.message || 'Failed to delete sub category');
       }
+    } catch (err) {
+      console.error('Error deleting subcategory:', err);
+      toast.error(err?.response?.data?.message || 'Failed to delete sub category');
+    } finally {
+      // Always close modal after operation (success or error)
+      setDeleteModal({
+        isOpen: false,
+        itemId: null,
+        itemName: '',
+        isLoading: false,
+      });
     }
+  };
+
+  // Close delete modal
+  const closeDeleteModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      itemId: null,
+      itemName: '',
+      isLoading: false,
+    });
   };
 
   // Handle edit subcategory (placeholder for now)
@@ -153,21 +216,10 @@ const SubCategoryList = ({ refreshTrigger }) => {
     );
   });
 
-  const totalPages = Math.ceil(filteredSubCategories.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const totalPages = Math.ceil(filteredSubCategories.length / pagination.itemsPerPage);
+  const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
+  const endIndex = startIndex + pagination.itemsPerPage;
   const currentItems = filteredSubCategories.slice(startIndex, endIndex);
-
-  // Handle page change
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  // Handle search
-  const handleSearch = (term) => {
-    setSearchTerm(term);
-    setCurrentPage(1); // Reset to first page when searching
-  };
 
   if (loading) {
     return (
@@ -251,7 +303,9 @@ const SubCategoryList = ({ refreshTrigger }) => {
               {currentItems.map((subCategory, index) => (
                 <TableRow key={subCategory._id}>
                   <TableCell className="text-center font-medium text-gray-900">
-                    {(currentPage - 1) * itemsPerPage + index + 1}
+                    {(pagination.currentPage - 1) * pagination.itemsPerPage +
+                      index +
+                      1}
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">
                     {subCategory.name}
@@ -341,10 +395,10 @@ const SubCategoryList = ({ refreshTrigger }) => {
       )}
 
       {/* Pagination */}
-      {filteredSubCategories.length > itemsPerPage && (
+      {totalPages > 1 && (
         <div className="px-6 py-4 border-t border-gray-200">
           <Pagination
-            currentPage={currentPage}
+            currentPage={pagination.currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
             maxVisiblePages={5}
@@ -352,6 +406,17 @@ const SubCategoryList = ({ refreshTrigger }) => {
           />
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="Delete Sub Category"
+        message={`Are you sure you want to delete "${deleteModal.itemName}"?`}
+        itemName={deleteModal.itemName}
+        isLoading={deleteModal.isLoading}
+      />
     </div>
   );
 };
