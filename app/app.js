@@ -16,6 +16,7 @@ import NotFound from './containers/NotFound';
 import CategoryForm from './Pages/CategoryForm';
 import CategoryPage from './containers/Products/category/CategoryPage';
 import SubCategory from './containers/Products/sub category/SubCategory';
+import { SubSubCategoryPage } from './containers/Products/sub sub category';
 import Brand from './containers/Products/Brand';
 import Attributes from './containers/Products/Attributes';
 import ProductInHouse from './containers/Products/ProductInHouse';
@@ -85,6 +86,10 @@ function App() {
             <Route path="/pos" element={<Pos />} />
             <Route path="/pos/report" element={<Pos_report />} />
             <Route path="/products/subcategories" element={<SubCategory />} />
+            <Route
+              path="/products/subsubcategories"
+              element={<SubSubCategoryPage />}
+            />
             <Route path="/products/brands" element={<Brand />} />
             <Route path="/products/attributes" element={<Attributes />} />
             <Route path="/products/inhouse" element={<ProductInHouse />} />

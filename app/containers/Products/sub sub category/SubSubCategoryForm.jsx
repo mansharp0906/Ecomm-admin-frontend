@@ -11,9 +11,9 @@ import PropTypes from 'prop-types';
 // Validation schema
 const validationSchema = Yup.object({
   name: Yup.string()
-    .required('Category name is required')
-    .min(2, 'Category name must be at least 2 characters')
-    .max(50, 'Category name must be less than 50 characters'),
+    .required('Sub Sub Category name is required')
+    .min(2, 'Sub Sub Category name must be at least 2 characters')
+    .max(50, 'Sub Sub Category name must be less than 50 characters'),
   slug: Yup.string(),
   description: Yup.string()
     .required('Description is required')
@@ -36,11 +36,10 @@ const validationSchema = Yup.object({
   status: Yup.string()
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
-  parentId: Yup.string().required('Parent category is required'),
-  // isFeatured: Yup.boolean(),
+  parentId: Yup.string().required('Parent sub category is required'),
 });
 
-const SubCategoryForm = ({ onSuccess, onCancel }) => {
+const SubSubCategoryForm = ({ onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -56,36 +55,56 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
 
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [subCategories, setSubCategories] = useState([]);
+  const [loadingSubCategories, setLoadingSubCategories] = useState(false);
 
-  // Fetch all categories for dropdown
-  const fetchCategories = async () => {
-    setLoadingCategories(true);
+  // Fetch all sub categories (level 1) for dropdown
+  const fetchSubCategories = async () => {
+    setLoadingSubCategories(true);
     try {
       const response = await categoryService.getTree();
       if (response?.data) {
-        // Filter only Level 0 categories (main categories) for dropdown
-        const mainCategories = response.data.filter((cat) => cat.level === 0);
+        // Extract all sub categories (level 1) from the tree structure
+        const allSubCategories = [];
 
-        const formattedCategories = mainCategories.map((cat) => ({
+        const extractSubCategories = (categories) => {
+          categories.forEach((category) => {
+            if (category.children && category.children.length > 0) {
+              // Check if children are Level 1 (sub categories)
+              const level1Children = category.children.filter(
+                (child) => child.level === 1,
+              );
+              if (level1Children.length > 0) {
+                allSubCategories.push(...level1Children);
+              }
+              // Recursively extract from deeper levels
+              extractSubCategories(category.children);
+            }
+          });
+        };
+
+        extractSubCategories(response.data);
+
+        const formattedSubCategories = allSubCategories.map((cat) => ({
           ...cat,
-          displayName: `${cat.name} (Level ${cat.level})`,
+          displayName: `${cat.name} (${
+            cat.parentId ? 'Sub Category' : 'Main Category'
+          })`,
         }));
 
-        setCategories(formattedCategories);
+        setSubCategories(formattedSubCategories);
       }
     } catch (error) {
-      console.error('Error fetching categories:', error);
-      toast.error('Failed to load categories');
+      console.error('Error fetching sub categories:', error);
+      toast.error('Failed to load sub categories');
     } finally {
-      setLoadingCategories(false);
+      setLoadingSubCategories(false);
     }
   };
 
-  // Load categories on component mount
+  // Load sub categories on component mount
   useEffect(() => {
-    fetchCategories();
+    fetchSubCategories();
   }, []);
 
   const handleInputChange = (e) => {
@@ -114,10 +133,11 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
       await validationSchema.validate(formData, { abortEarly: false });
 
       // Remove fields that backend doesn't allow
+      // eslint-disable-next-line no-unused-vars
       const { slug: _slug, image: _image, ...apiData } = formData;
       console.log('Sending data to API:', apiData); // Debug log
       const response = await categoryService.create(apiData);
-      console.log('Sub Category Created Response:', response);
+      console.log('Sub Sub Category Created Response:', response);
 
       // Check for successful response (status 201 or 200)
       if (
@@ -125,8 +145,8 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
         response?.status === 200 ||
         response?.data
       ) {
-        console.log('Sub Category Created Successfully:', response.data);
-        toast.success('Sub Category added successfully!');
+        console.log('Sub Sub Category Created Successfully:', response.data);
+        toast.success('Sub Sub Category added successfully!');
 
         // Reset form
         setFormData({
@@ -150,7 +170,7 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
       } else {
         // Handle case where response exists but indicates failure
         const errorMessage =
-          response?.data?.message || 'Failed to create sub category';
+          response?.data?.message || 'Failed to create sub sub category';
         toast.error(errorMessage);
       }
     } catch (error) {
@@ -175,7 +195,7 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
       } else {
         // Handle other API errors
         const errorMessage =
-          error.response?.data?.message || 'Failed to add sub category';
+          error.response?.data?.message || 'Failed to add sub sub category';
         toast.error(errorMessage);
       }
     } finally {
@@ -203,82 +223,90 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-lg mx-4 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg w-full max-w-4xl mx-auto flex flex-col h-[95vh]">
         {/* Header */}
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold">Add New Sub Category</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Select a parent category and create a new sub category
-          </p>
+        <div className="p-6 border-b flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Add Sub Sub Category</h2>
+            </div>
+          </div>
         </div>
 
         {/* Form Fields - Scrollable */}
         <form
           onSubmit={handleSubmit}
           className="p-6 space-y-4 overflow-y-auto flex-1"
-          style={{ minHeight: '200px' }}
         >
-          <SelectField
-            label="Parent Category"
-            name="parentId"
-            value={formData.parentId}
-            onChange={handleInputChange}
-            options={[
-              { value: '', label: 'Select Parent Category' },
-              ...categories.map((cat) => ({
-                value: cat._id,
-                label: cat.displayName,
-              })),
-            ]}
-            error={formErrors?.parentId}
-            disabled={loadingCategories}
-          />
+          {/* Row 1: Parent Sub Category and Sub Sub Category */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SelectField
+              label="Sub Category"
+              name="parentId"
+              value={formData.parentId}
+              onChange={handleInputChange}
+              options={[
+                { value: '', label: 'Select Sub Category' },
+                ...subCategories.map((cat) => ({
+                  value: cat._id,
+                  label: cat.displayName,
+                })),
+              ]}
+              error={formErrors?.parentId}
+              disabled={loadingSubCategories}
+            />
 
-          {loadingCategories && (
+            <InputTextField
+              label="Sub Sub Category Name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="Enter sub sub category name"
+              error={formErrors?.name}
+            />
+          </div>
+
+          {loadingSubCategories && (
             <div className="text-sm text-gray-500 text-center">
-              Loading categories...
+              Loading sub categories...
             </div>
           )}
 
-          <InputTextField
-            label="Sub Category Name"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="Enter sub category name"
-            error={formErrors?.name}
-          />
-
+          {/* Row 2: Description (Full Width) */}
           <TextAreaField
             label="Description"
             name="description"
             value={formData.description}
             onChange={handleInputChange}
-            placeholder="Enter sub category description"
+            placeholder="Enter sub sub category description"
             rows={3}
             error={formErrors?.description}
           />
 
-          <InputTextField
-            label="Image URL"
-            type="url"
-            name="image"
-            value={formData.image || ''}
-            onChange={handleInputChange}
-            placeholder="https://example.com/image.jpg"
-            error={formErrors?.image}
-          />
+          {/* Row 3: Image URL and Meta Title */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputTextField
+              label="Image URL"
+              type="url"
+              name="image"
+              value={formData.image || ''}
+              onChange={handleInputChange}
+              placeholder="https://example.com/image.jpg"
+              error={formErrors?.image}
+            />
 
-          <InputTextField
-            label="Meta Title"
-            name="metaTitle"
-            value={formData.metaTitle}
-            onChange={handleInputChange}
-            placeholder="Enter meta title"
-            error={formErrors?.metaTitle}
-          />
+            <InputTextField
+              label="Meta Title"
+              name="metaTitle"
+              value={formData.metaTitle}
+              onChange={handleInputChange}
+              placeholder="Enter meta title"
+              error={formErrors?.metaTitle}
+            />
+          </div>
 
+          {/* Row 4: Meta Description (Full Width) */}
           <TextAreaField
             label="Meta Description"
             name="metaDescription"
@@ -289,7 +317,8 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
             error={formErrors?.metaDescription}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Row 5: Priority and Status */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputTextField
               label="Priority"
               type="number"
@@ -315,21 +344,21 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
         </form>
 
         {/* Buttons - Fixed at bottom */}
-        <div className="p-6 border-t flex space-x-3">
+        <div className="p-4 border-t flex-shrink-0 flex space-x-3">
           <Button
             type="submit"
             variant="primary"
-            className="flex-1"
+            className="flex-1 py-2 text-base"
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? 'Adding...' : 'Add'}
+            {loading ? 'Adding...' : 'Add Sub Sub Category'}
           </Button>
           <Button
             type="button"
             variant="secondary"
             onClick={handleCancel}
-            className="flex-1"
+            className="flex-1 py-2 text-base"
           >
             Cancel
           </Button>
@@ -339,9 +368,9 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
   );
 };
 
-SubCategoryForm.propTypes = {
+SubSubCategoryForm.propTypes = {
   onSuccess: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
 };
 
-export default SubCategoryForm;
+export default SubSubCategoryForm;
