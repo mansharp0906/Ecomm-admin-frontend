@@ -16,7 +16,7 @@ import NotFound from './containers/NotFound';
 import CategoryForm from './Pages/CategoryForm';
 import CategoryPage from './containers/Products/category/CategoryPage';
 import SubCategory from './containers/Products/sub category/SubCategory';
-import Brand from './containers/Products/Brand';
+import Brand from './containers/Products/Brands/Brand';
 import Attributes from './containers/Products/Attributes';
 import ProductInHouse from './containers/Products/ProductInHouse';
 import Vendors from './containers/Products/Vendors';
