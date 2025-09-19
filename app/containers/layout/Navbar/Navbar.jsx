@@ -6,7 +6,7 @@ function Navbar() {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 bg-gray-800 text-white p-4 flex items-center justify-end"
+      className="fixed top-0 left-0 right-0 z-50  text-white p-4 flex items-center justify-end"
       style={{
         color: '#fff',
         backgroundColor: 'var(--color-primary)',

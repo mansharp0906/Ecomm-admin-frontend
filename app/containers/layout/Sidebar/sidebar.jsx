@@ -38,7 +38,7 @@ const Sidebar = () => {
       {/* Overlay for mobile when sidebar open */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className=" inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         ></div>
@@ -46,13 +46,33 @@ const Sidebar = () => {
 
       {/* Sidebar container */}
       <div
-        className={`fixed top-0 left-0 w-64 p-6 bg-white z-50 rounded shadow-xl
+        className={` top-0 left-0 w-64 p-6 bg-white z-50 rounded shadow-xl
           transform transition-transform duration-300
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0 md:static md:block
         `}
       >
-        <h2 className="font-semibold mb-6 text-2xl">Menu</h2>
+        <h2
+          className="flex items-center gap-2 text-3xl font-bold mb-6"
+          style={{ color: 'var(--color-primary)' }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-8 w-8 text-black"
+          >
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6" />
+          </svg>
+          ShopEase
+        </h2>
+
         <nav>
           <ul className="list-none p-0 space-y-1">
             <li>
