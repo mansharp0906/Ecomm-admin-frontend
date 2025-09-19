@@ -12,12 +12,15 @@ import {
   TableCell,
 } from '@/components/custom-table';
 import CustomIcon from '@/components/custom-icon/CustomIcon';
+import { Pagination } from '@/components';
 
 const SubCategoryList = ({ refreshTrigger }) => {
   const [subCategories, setSubCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [allCategories, setAllCategories] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
 
   // Fetch all categories to get parent names
   const fetchAllCategories = async () => {
@@ -126,6 +129,17 @@ const SubCategoryList = ({ refreshTrigger }) => {
     console.log('View subcategory:', subCategory);
   };
 
+  // Pagination calculations
+  const totalPages = Math.ceil(subCategories.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = subCategories.slice(startIndex, endIndex);
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -157,7 +171,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
         </p>
       </div>
 
-      {subCategories.length === 0 ? (
+      {currentItems.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
             <svg
@@ -196,7 +210,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
             </TableHeader>
 
             <TableBody>
-              {subCategories.map((subCategory) => (
+              {currentItems.map((subCategory) => (
                 <TableRow key={subCategory._id}>
                   <TableCell className="font-medium text-gray-900">
                     {subCategory.name}
@@ -264,6 +278,19 @@ const SubCategoryList = ({ refreshTrigger }) => {
               ))}
             </TableBody>
           </Table>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {subCategories.length > itemsPerPage && (
+        <div className="px-6 py-4 border-t border-gray-200">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            maxVisiblePages={5}
+            className="justify-center"
+          />
         </div>
       )}
     </div>

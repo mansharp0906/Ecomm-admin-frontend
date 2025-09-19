@@ -1,9 +1,5 @@
 import React from 'react';
 import loadable from '../utils/loadable';
-import Loading from './custom-Loading';
-
-// Loading - No need to lazy load this component
-export { default as Loading } from './custom-Loading';
 
 // Custom Table components
 export {
@@ -15,6 +11,9 @@ export {
   TableCell,
 } from './custom-table';
 
+// Custom Pagination component
+export { Pagination } from './custom-pagination';
+
 export const Welcome = loadable(() => import('./Welcome'), {
-  fallback: <Loading />,
+  fallback: <div>Loading...</div>,
 });
