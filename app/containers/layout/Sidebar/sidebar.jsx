@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  MdArrowDropDown,
-  MdInventory,
-  MdReceiptLong,
-  MdCampaign,
-  MdBusiness,
-  MdBuild,
-  MdAssessment,
-} from 'react-icons/md';
-import { FaBoxOpen, FaUsersCog, FaBars, FaTimes } from 'react-icons/fa';
+import { MdArrowDropDown, MdBuild, MdAssessment } from 'react-icons/md';
+import { FaBars, FaTimes } from 'react-icons/fa';
 // import { TbLayoutDashboard } from 'react-icons/tb';
 
 const Sidebar = () => {
@@ -315,20 +307,30 @@ const Sidebar = () => {
                 />
               </button>
               {openDropdown === 'productManagement' && (
-                <ul className="shadow-xl rounded mt-1 pl-4">
+                <ul className="shadow-xl rounded mt-1 pl-4 relative z-50 border border-gray-200">
                   {[
-                    { label: 'Categories', path: '/products/categories' },
                     {
-                      label: 'Sub Categories',
-                      path: '/products/subcategories',
+                      label: 'Categories',
+                      path: '/products/categories',
+                      subItems: [
+                        {
+                          label: 'Sub Categories ',
+                          path: '/products/subcategories',
+                        },
+                        {
+                          label: 'Sub Sub-Categories',
+                          path: '/products/subSubcategories',
+                        },
+                      ],
                     },
+
                     { label: 'Brands', path: '/products/brands' },
                     { label: 'Attributes', path: '/products/attributes' },
                     { label: 'Product In House', path: '/products/inhouse' },
                     { label: 'Vendors Products', path: '/products/vendors' },
                     { label: 'Bulk import', path: '/products/import' },
-                  ].map(({ label, path }) => (
-                    <li key={path}>
+                  ].map(({ label, path, subItems }) => (
+                    <li key={path} className="relative group">
                       <Link
                         to={path}
                         onClick={handleLinkClick}
@@ -336,6 +338,25 @@ const Sidebar = () => {
                       >
                         {label}
                       </Link>
+
+                      {/* Nested dropdown for subItems */}
+                      {subItems && (
+                        <ul className="absolute left-40  top-0 mt-0 ml-1 w-48 bg-white border border-gray-300 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-300 z-50">
+                          {subItems.map(
+                            ({ label: subLabel, path: subPath }) => (
+                              <li key={subPath}>
+                                <Link
+                                  to={subPath}
+                                  className="block px-4 py-2 hover:bg-gray-100"
+                                  onClick={handleLinkClick}
+                                >
+                                  {subLabel}
+                                </Link>
+                              </li>
+                            ),
+                          )}
+                        </ul>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -593,10 +614,8 @@ const Sidebar = () => {
                 onClick={() => toggleDropdown('systemSettings')}
                 aria-expanded={openDropdown === 'systemSettings'}
               >
-               <MdBuild className="text-3xl mr-2 text-blue-500" />
-                 <span className="inline-block mr-2">
-                 
-                </span>
+                <MdBuild className="text-3xl mr-2 text-blue-500" />
+                <span className="inline-block mr-2"></span>
                 <span>System Settings</span>
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
