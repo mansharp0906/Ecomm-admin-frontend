@@ -14,7 +14,11 @@ const SubSubCategoryPage = () => {
   const handleFormSuccess = (data) => {
     console.log('Sub Sub Category created:', data);
     setShowForm(false);
+<<<<<<< HEAD
     setRefreshTrigger((prev) => prev + 1);
+=======
+    setRefreshTrigger(prev => prev + 1);
+>>>>>>> pallavidev
   };
 
   const handleFormCancel = () => {

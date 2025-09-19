@@ -12,7 +12,11 @@ import {
   TableCell,
 } from '@/components/custom-table';
 import CustomIcon from '@/components/custom-icon/CustomIcon';
+<<<<<<< HEAD
 import { Pagination } from '@/components';
+=======
+import { Pagination, SearchBar } from '@/components';
+>>>>>>> pallavidev
 
 const SubSubCategoryList = ({ refreshTrigger }) => {
   const [subSubCategories, setSubSubCategories] = useState([]);
@@ -107,9 +111,13 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   // Get parent sub category name by ID
   const getParentSubCategoryName = (parentId) => {
     if (!parentId) return 'Root Category';
+<<<<<<< HEAD
     const parentSubCategory = allSubCategories.find(
       (cat) => cat._id === parentId,
     );
+=======
+    const parentSubCategory = allSubCategories.find((cat) => cat._id === parentId);
+>>>>>>> pallavidev
     return parentSubCategory ? `${parentSubCategory.name}` : '-';
   };
 
@@ -146,6 +154,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   // Search and pagination calculations
   const filteredSubSubCategories = subSubCategories.filter((subSubCategory) => {
     const searchLower = searchTerm.toLowerCase();
+<<<<<<< HEAD
 
     // Check if search term matches featured status
     const isFeaturedMatch =
@@ -154,6 +163,15 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
       (searchLower === 'featured' && subSubCategory.isFeatured === true) ||
       (searchLower === 'not featured' && subSubCategory.isFeatured === false);
 
+=======
+    
+    // Check if search term matches featured status
+    const isFeaturedMatch = searchLower === 'yes' && subSubCategory.isFeatured === true ||
+                           searchLower === 'no' && subSubCategory.isFeatured === false ||
+                           searchLower === 'featured' && subSubCategory.isFeatured === true ||
+                           searchLower === 'not featured' && subSubCategory.isFeatured === false;
+    
+>>>>>>> pallavidev
     return (
       subSubCategory.name.toLowerCase().includes(searchLower) ||
       subSubCategory.description.toLowerCase().includes(searchLower) ||
