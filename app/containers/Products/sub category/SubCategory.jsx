@@ -24,11 +24,11 @@ const SubCategory = () => {
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900">
                 Sub Categories
               </h1>
-              <p className="text-gray-600 mt-2">
-                Manage your product sub categories
+              <p className="text-gray-600 mt-1">
+                Manage your product sub categories (Level 1)
               </p>
             </div>
             <Button

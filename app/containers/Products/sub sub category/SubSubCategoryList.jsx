@@ -14,20 +14,21 @@ import {
 import CustomIcon from '@/components/custom-icon/CustomIcon';
 import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 
-const CategoryListPage = ({ refreshTrigger }) => {
-  const [categories, setCategories] = useState([]);
+const SubSubCategoryList = ({ refreshTrigger }) => {
+  const [subSubCategories, setSubSubCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [allSubCategories, setAllSubCategories] = useState([]);
+  
   // Pagination and search state
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 0,
     totalItems: 0,
-    itemsPerPage: 10,
+    itemsPerPage: 10
   });
   const [searchTerm, setSearchTerm] = useState('');
-
+  
   // Delete modal state
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
@@ -36,66 +37,98 @@ const CategoryListPage = ({ refreshTrigger }) => {
     isLoading: false,
   });
 
-  // Fetch categories from API with pagination and search
-  const fetchCategories = async (page = 1, search = '') => {
+  // Fetch all sub categories to get parent names
+  const fetchAllSubCategories = async () => {
+    try {
+      const response = await categoryService.getAll({ level: 1, limit: 1000 }); // Get all sub categories
+      if (response?.data?.success) {
+        setAllSubCategories(response.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching all sub categories:', err);
+    }
+  };
+
+  // Fetch sub sub categories from API with pagination and search
+  const fetchSubSubCategories = async (page = 1, search = '') => {
     setLoading(true);
     setError(null);
     try {
-      const params = {
-        page,
-        limit: pagination.itemsPerPage,
-        level: 0, // Only main categories
-        ...(search && { search }),
-      };
+      // Use getTree() to get hierarchical data and extract sub sub categories
+      const response = await categoryService.getTree();
+      if (response?.data) {
+        // Extract all sub sub categories (level 2) from the tree structure
+        const allSubSubCategories = [];
 
-      const response = await categoryService.getAll(params);
-      if (response?.data?.success) {
-        // Filter only level 0 categories (main categories)
-        const level0Categories = response.data.data.filter(
-          (category) => category.level === 0,
-        );
-        setCategories(level0Categories);
+        const extractSubSubCategories = (categories) => {
+          categories.forEach((category) => {
+            if (category.children && category.children.length > 0) {
+              category.children.forEach((subCategory) => {
+                if (subCategory.children && subCategory.children.length > 0) {
+                  // Check if children are Level 2 (sub sub categories)
+                  const level2Children = subCategory.children.filter(
+                    (child) => child.level === 2,
+                  );
+                  if (level2Children.length > 0) {
+                    allSubSubCategories.push(...level2Children);
+                  }
+                }
+              });
+            }
+          });
+        };
 
-        // Update pagination state from API response
+        extractSubSubCategories(response.data);
+        setSubSubCategories(allSubSubCategories);
+
+        // Update pagination state (frontend pagination for now)
         setPagination((prev) => ({
           ...prev,
-          currentPage: response.data.page || page,
-          totalPages: Math.ceil(
-            level0Categories.length / pagination.itemsPerPage,
-          ),
-          totalItems: level0Categories.length,
+          currentPage: 1,
+          totalPages: Math.ceil(allSubSubCategories.length / prev.itemsPerPage),
+          totalItems: allSubSubCategories.length,
         }));
       } else {
-        setError('Failed to fetch categories');
+        setError('Failed to fetch sub sub categories');
       }
     } catch (err) {
-      console.error('Error fetching categories:', err);
-      setError('Failed to fetch categories');
-      toast.error('Failed to load categories');
+      console.error('Error fetching sub sub categories:', err);
+      setError('Failed to fetch sub sub categories');
+      toast.error('Failed to load sub sub categories');
     } finally {
       setLoading(false);
     }
   };
 
-  // Load categories on component mount and when refreshTrigger changes
+  // Load sub sub categories and all sub categories on component mount and when refreshTrigger changes
   useEffect(() => {
-    fetchCategories(pagination.currentPage, searchTerm);
+    fetchAllSubCategories();
+    fetchSubSubCategories(pagination.currentPage, searchTerm);
   }, [refreshTrigger]);
 
   // Handle page change
   const handlePageChange = (page) => {
-    setPagination((prev) => ({ ...prev, currentPage: page }));
-    fetchCategories(page, searchTerm);
+    setPagination(prev => ({ ...prev, currentPage: page }));
+    fetchSubSubCategories(page, searchTerm);
   };
 
   // Handle search
   const handleSearch = (term) => {
     setSearchTerm(term);
-    setPagination((prev) => ({ ...prev, currentPage: 1 }));
-    fetchCategories(1, term);
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
+    fetchSubSubCategories(1, term);
   };
 
-  // Handle delete category
+  // Get parent sub category name by ID
+  const getParentSubCategoryName = (parentId) => {
+    if (!parentId) return 'Root Category';
+    const parentSubCategory = allSubCategories.find(
+      (cat) => cat._id === parentId,
+    );
+    return parentSubCategory ? `${parentSubCategory.name}` : '-';
+  };
+
+  // Handle delete sub sub category
   const handleDelete = (id, name) => {
     setDeleteModal({
       isOpen: true,
@@ -109,15 +142,15 @@ const CategoryListPage = ({ refreshTrigger }) => {
   const confirmDelete = async () => {
     if (!deleteModal.itemId) return;
 
-    setDeleteModal((prev) => ({ ...prev, isLoading: true }));
-
+    setDeleteModal(prev => ({ ...prev, isLoading: true }));
+    
     try {
       const response = await categoryService.delete(deleteModal.itemId);
       if (response?.data?.success) {
-        toast.success('Category deleted successfully!');
+        toast.success('Sub Sub Category deleted successfully!');
         
         // Remove item from frontend state immediately
-        setCategories(prev => prev.filter(category => category._id !== deleteModal.itemId));
+        setSubSubCategories(prev => prev.filter(subSubCategory => subSubCategory._id !== deleteModal.itemId));
         
         // Update pagination if needed
         setPagination(prev => ({
@@ -126,11 +159,11 @@ const CategoryListPage = ({ refreshTrigger }) => {
           totalPages: Math.ceil((prev.totalItems - 1) / prev.itemsPerPage)
         }));
       } else {
-        toast.error(response?.data?.message || 'Failed to delete category');
+        toast.error(response?.data?.message || 'Failed to delete sub sub category');
       }
     } catch (err) {
-      console.error('Error deleting category:', err);
-      toast.error(err?.response?.data?.message || 'Failed to delete category');
+      console.error('Error deleting sub sub category:', err);
+      toast.error(err?.response?.data?.message || 'Failed to delete sub sub category');
     } finally {
       // Always close modal after operation (success or error)
       setDeleteModal({
@@ -152,23 +185,51 @@ const CategoryListPage = ({ refreshTrigger }) => {
     });
   };
 
-  // Handle edit category (placeholder for now)
-  const handleEdit = (category) => {
+  // Handle edit sub sub category (placeholder for now)
+  const handleEdit = (subSubCategory) => {
     toast.info('Edit functionality will be implemented soon');
-    console.log('Edit category:', category);
+    console.log('Edit sub sub category:', subSubCategory);
   };
 
-  // Handle view category details (placeholder for now)
-  const handleView = (category) => {
+  // Handle view sub sub category details (placeholder for now)
+  const handleView = (subSubCategory) => {
     toast.info('View functionality will be implemented soon');
-    console.log('View category:', category);
+    console.log('View sub sub category:', subSubCategory);
   };
+
+  // Search and pagination calculations
+  const filteredSubSubCategories = subSubCategories.filter((subSubCategory) => {
+    const searchLower = searchTerm.toLowerCase();
+
+    // Check if search term matches featured status
+    const isFeaturedMatch =
+      (searchLower === 'yes' && subSubCategory.isFeatured === true) ||
+      (searchLower === 'no' && subSubCategory.isFeatured === false) ||
+      (searchLower === 'featured' && subSubCategory.isFeatured === true) ||
+      (searchLower === 'not featured' && subSubCategory.isFeatured === false);
+
+    return (
+      subSubCategory.name.toLowerCase().includes(searchLower) ||
+      subSubCategory.description.toLowerCase().includes(searchLower) ||
+      getParentSubCategoryName(subSubCategory.parentId)
+        .toLowerCase()
+        .includes(searchLower) ||
+      subSubCategory.status.toLowerCase().includes(searchLower) ||
+      isFeaturedMatch ||
+      `level ${subSubCategory.level || 2}`.includes(searchLower)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredSubSubCategories.length / pagination.itemsPerPage);
+  const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
+  const endIndex = startIndex + pagination.itemsPerPage;
+  const currentItems = filteredSubSubCategories.slice(startIndex, endIndex);
 
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2">Loading categories...</span>
+        <span className="ml-2">Loading sub sub categories...</span>
       </div>
     );
   }
@@ -177,7 +238,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
     return (
       <div className="text-center py-8">
         <p className="text-red-600 mb-4">{error}</p>
-        <Button onClick={fetchCategories} variant="primary">
+        <Button onClick={fetchSubSubCategories} variant="primary">
           Retry
         </Button>
       </div>
@@ -186,11 +247,12 @@ const CategoryListPage = ({ refreshTrigger }) => {
 
   return (
     <div className="bg-white rounded-lg shadow">
+      {/* Header with Search */}
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="w-full sm:w-80">
             <SearchBar
-              placeholder="Search categories..."
+              placeholder="Search sub sub categories..."
               value={searchTerm}
               onChange={handleSearch}
               size="md"
@@ -200,7 +262,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
         </div>
       </div>
 
-      {categories.length === 0 ? (
+      {currentItems.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
             <svg
@@ -218,10 +280,10 @@ const CategoryListPage = ({ refreshTrigger }) => {
             </svg>
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No categories found
+            No sub sub categories found
           </h3>
           <p className="text-gray-600">
-            Get started by creating your first category.
+            Get started by creating your first sub sub category.
           </p>
         </div>
       ) : (
@@ -230,81 +292,66 @@ const CategoryListPage = ({ refreshTrigger }) => {
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center">S.No</TableHead>
-                <TableHead>Category Name</TableHead>
+                <TableHead>Sub Sub Category</TableHead>
                 <TableHead>Description</TableHead>
+                <TableHead>Sub Category</TableHead>
                 <TableHead>Level</TableHead>
                 <TableHead>Featured</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Created Date</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
-              {categories.map((category, index) => (
-                <TableRow key={category._id}>
+              {currentItems.map((subSubCategory, index) => (
+                <TableRow key={subSubCategory._id}>
                   <TableCell className="text-center font-medium text-gray-900">
-                    {(pagination.currentPage - 1) * pagination.itemsPerPage +
-                      index +
-                      1}
+                    {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">
-                    {category.name}
+                    {subSubCategory.name}
                   </TableCell>
                   <TableCell className="text-gray-500 max-w-xs">
                     <div className="break-words whitespace-normal">
-                      {category.description}
+                      {subSubCategory.description}
                     </div>
+                  </TableCell>
+                  <TableCell className="font-medium text-gray-900">
+                    {getParentSubCategoryName(subSubCategory.parentId)}
                   </TableCell>
                   <TableCell>
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                      Level {category.level || 0}
+                      Level {subSubCategory.level || 2}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        category.isFeatured
+                        subSubCategory.isFeatured
                           ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-gray-100 text-gray-600'
                       }`}
                     >
-                      {category.isFeatured ? 'Yes' : 'No'}
+                      {subSubCategory.isFeatured ? 'Yes' : 'No'}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        category.status === 'active'
+                        subSubCategory.status === 'active'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {category.status}
+                      {subSubCategory.status}
                     </span>
-                  </TableCell>
-                  <TableCell className="text-gray-500">
-                    {new Date(category.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex space-x-2 justify-center">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleView(category)}
-                        title="View"
-                      >
-                        <CustomIcon type="view" size={4} />
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(category)}
+                        onClick={() => handleEdit(subSubCategory)}
                         title="Edit"
                       >
                         <CustomIcon type="edit" size={4} />
@@ -312,9 +359,18 @@ const CategoryListPage = ({ refreshTrigger }) => {
 
                       <Button
                         size="sm"
+                        variant="outline"
+                        onClick={() => handleView(subSubCategory)}
+                        title="View"
+                      >
+                        <CustomIcon type="view" size={4} />
+                      </Button>
+
+                      <Button
+                        size="sm"
                         variant="destructive"
                         onClick={() =>
-                          handleDelete(category._id, category.name)
+                          handleDelete(subSubCategory._id, subSubCategory.name)
                         }
                         title="Delete"
                       >
@@ -330,11 +386,11 @@ const CategoryListPage = ({ refreshTrigger }) => {
       )}
 
       {/* Pagination */}
-      {pagination.totalPages > 1 && (
+      {totalPages > 1 && (
         <div className="px-6 py-4 border-t border-gray-200">
           <Pagination
             currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
+            totalPages={totalPages}
             onPageChange={handlePageChange}
             maxVisiblePages={5}
             className="justify-center"
@@ -347,7 +403,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
         isOpen={deleteModal.isOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
-        title="Delete Category"
+        title="Delete Sub Sub Category"
         message={`Are you sure you want to delete "${deleteModal.itemName}"?`}
         itemName={deleteModal.itemName}
         isLoading={deleteModal.isLoading}
@@ -356,8 +412,8 @@ const CategoryListPage = ({ refreshTrigger }) => {
   );
 };
 
-CategoryListPage.propTypes = {
+SubSubCategoryList.propTypes = {
   refreshTrigger: PropTypes.number.isRequired,
 };
 
-export default CategoryListPage;
+export default SubSubCategoryList;
