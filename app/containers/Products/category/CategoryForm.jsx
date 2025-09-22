@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
+import Container from '@/components/custom-pages/Container';
 
 // Validation schema
 const validationSchema = Yup.object({
@@ -142,21 +143,12 @@ const CategoryForm = ({ onSuccess, onCancel }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-lg mx-4 flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold">Add New Category</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Create a new main category
-          </p>
-        </div>
-
-        {/* Form Fields - Scrollable */}
+    <>
+      {/* Form */}
+      <div className="bg-white rounded-lg shadow">
         <form
           onSubmit={handleSubmit}
-          className="p-6 space-y-4 overflow-y-auto flex-1"
-          style={{ minHeight: '200px' }}
+          className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
         >
           <InputTextField
             label="Category Name"
@@ -182,8 +174,9 @@ const CategoryForm = ({ onSuccess, onCancel }) => {
             value={formData.description}
             onChange={handleInputChange}
             placeholder="Enter category description"
-            rows={3}
+            rows={2}
             error={formErrors?.description}
+            className="sm:col-span-2"
           />
 
           <InputTextField
@@ -211,57 +204,56 @@ const CategoryForm = ({ onSuccess, onCancel }) => {
             value={formData.metaDescription}
             onChange={handleInputChange}
             placeholder="Enter meta description"
-            rows={3}
+            rows={2}
             error={formErrors?.metaDescription}
+            className="sm:col-span-2"
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <InputTextField
-              label="Priority"
-              type="number"
-              name="priority"
-              value={formData.priority}
-              onChange={handleInputChange}
-              placeholder="e.g. 1"
-              error={formErrors?.priority}
-            />
+          <InputTextField
+            label="Priority"
+            type="number"
+            name="priority"
+            value={formData.priority}
+            onChange={handleInputChange}
+            placeholder="e.g. 1"
+            error={formErrors?.priority}
+          />
 
-            <SelectField
-              label="Status"
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-              options={[
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
-              ]}
-              error={formErrors?.status}
-            />
+          <SelectField
+            label="Status"
+            name="status"
+            value={formData.status}
+            onChange={handleInputChange}
+            options={[
+              { value: 'active', label: 'Active' },
+              { value: 'inactive', label: 'Inactive' },
+            ]}
+            error={formErrors?.status}
+          />
+
+          {/* Buttons should span full width */}
+          <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCancel}
+              className="px-8"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="px-8"
+            >
+              {loading ? 'Adding...' : 'Add Category'}
+            </Button>
           </div>
         </form>
-
-        {/* Buttons - Fixed at bottom */}
-        <div className="p-6 border-t flex space-x-3">
-          <Button
-            type="submit"
-            variant="primary"
-            className="flex-1"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? 'Adding...' : 'Add Category'}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleCancel}
-            className="flex-1"
-          >
-            Cancel
-          </Button>
-        </div>
       </div>
-    </div>
+    </>
   );
 };
 
