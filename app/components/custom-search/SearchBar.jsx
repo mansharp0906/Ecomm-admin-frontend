@@ -28,7 +28,7 @@ const SearchBar = ({
     }, debounceMs);
 
     return () => clearTimeout(timer);
-  }, [internalValue, debounceMs, value]);
+  }, [internalValue, onChange, debounceMs, value]);
 
   // Sync with external value
   useEffect(() => {

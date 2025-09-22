@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/custom-button';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
@@ -17,6 +16,7 @@ import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 import DataNotFound from '@/components/custom-pages/DataNotFound';
 import { SearchBarContainer } from '@/components/custom-search';
 import TableContainer from '@/components/custom-pages/TableContainer';
+import { useNavigate } from 'react-router-dom';
 
 const CategoryListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();
@@ -32,6 +32,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
     itemsPerPage: 5,
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const searchTimeoutRef = useRef(null);
 
   // Delete modal state
   const [deleteModal, setDeleteModal] = useState({
@@ -51,7 +52,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
           page,
           limit: pagination.itemsPerPage,
           level: 0, // Only main categories
-          ...(search && { query: search }),
+          ...(search && { search: search }),
         };
 
         const response = await categoryService.getAll(params);
@@ -93,15 +94,27 @@ const CategoryListPage = ({ refreshTrigger }) => {
     fetchCategories(page, searchTerm);
   };
 
-  // Handle search
-  const handleSearch = useCallback(
-    (term) => {
-      setSearchTerm(term);
-      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  // Handle search - throttled API call
+  const handleSearch = (term) => {
+    console.log('Search term:', term); // Debug log
+    setSearchTerm(term);
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout for throttled search (300ms delay)
+    searchTimeoutRef.current = setTimeout(() => {
       fetchCategories(1, term);
-    },
-    [fetchCategories],
-  );
+    }, 700);
+  };
+
+  // Initial load effect - only for refreshTrigger
+  useEffect(() => {
+    fetchCategories(pagination.currentPage, searchTerm);
+  }, [refreshTrigger]);
 
   // Handle delete category
   const handleDelete = (id, name) => {
@@ -164,7 +177,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
 
   // Handle edit category - navigate to form page with category ID
   const handleEdit = (category) => {
-    console.log(category,"category");
+    console.log(category, 'category');
     // Only allow editing of main categories (level 0)
     if (category.level !== 0) {
       toast.error('Only main categories can be edited from this page');
@@ -178,16 +191,8 @@ const CategoryListPage = ({ refreshTrigger }) => {
   // Handle view category details (placeholder for now)
   const handleView = (category) => {
     toast.info('View functionality will be implemented soon');
+    console.log('View category:', category);
   };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2">Loading categories...</span>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -212,9 +217,16 @@ const CategoryListPage = ({ refreshTrigger }) => {
         />
       </SearchBarContainer>
 
-      {categories.length === 0 ? (
-        <DataNotFound />
-      ) : (
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2">Loading categories...</span>
+        </div>
+      )}
+
+      {loading === false && categories.length === 0 && <DataNotFound />}
+
+      {loading === false && categories.length > 0 && (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
