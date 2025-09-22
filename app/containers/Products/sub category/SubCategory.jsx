@@ -1,61 +1,48 @@
 import { Button } from '@/components/custom-button';
 import React, { useState } from 'react';
 import { MdAdd } from 'react-icons/md';
-import SubCategoryForm from './SubCategoryForm';
+import { useNavigate } from 'react-router-dom';
 import SubCategoryList from './SubCategoryList';
+import Container from '@/components/custom-pages/Container';
+import Breadcrumb from '@/components/custom-pages/Breadcrumb';
 
 const SubCategory = () => {
-  const [showAddForm, setShowAddForm] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const navigate = useNavigate();
 
-  const handleFormSuccess = () => {
-    setShowAddForm(false);
-    setRefreshTrigger((prev) => prev + 1); // Trigger list refresh
-  };
-
-  const handleFormCancel = () => {
-    setShowAddForm(false);
+  const handleAddSubCategory = () => {
+    navigate('/products/subcategories/add');
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Sub Categories
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Manage your product sub categories (Level 1)
-              </p>
-            </div>
-            <Button
-              variant="primary"
-              onClick={() => setShowAddForm(true)}
-              className="flex items-center space-x-2"
-            >
-              <MdAdd className="text-xl" />
-              <span>Add Sub Category</span>
-            </Button>
+    <Container>
+      <div className="mb-8">
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Sub Categories' },
+          ]}
+        />
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Sub Categories</h1>
+            <p className="text-gray-600 mt-2">
+              Manage your product sub categories (Level 1)
+            </p>
           </div>
+          <Button
+            variant="primary"
+            onClick={handleAddSubCategory}
+            className="flex items-center space-x-2"
+          >
+            <MdAdd className="text-xl" />
+            <span>Add Sub Category</span>
+          </Button>
         </div>
-
-        {/* Sub Category List */}
-        <div className="mb-6">
-          <SubCategoryList refreshTrigger={refreshTrigger} />
-        </div>
-
-        {/* Add Sub Category Form Modal */}
-        {showAddForm && (
-          <SubCategoryForm
-            onSuccess={handleFormSuccess}
-            onCancel={handleFormCancel}
-          />
-        )}
       </div>
-    </div>
+
+      <SubCategoryList refreshTrigger={refreshTrigger} />
+    </Container>
   );
 };
 

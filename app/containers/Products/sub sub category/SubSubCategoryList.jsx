@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/custom-button';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
@@ -13,6 +13,9 @@ import {
 } from '@/components/custom-table';
 import CustomIcon from '@/components/custom-icon/CustomIcon';
 import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
+import DataNotFound from '@/components/custom-pages/DataNotFound';
+import { SearchBarContainer } from '@/components/custom-search';
+import TableContainer from '@/components/custom-pages/TableContainer';
 
 const SubSubCategoryList = ({ refreshTrigger }) => {
   const [subSubCategories, setSubSubCategories] = useState([]);
@@ -25,9 +28,10 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
     currentPage: 1,
     totalPages: 0,
     totalItems: 0,
-    itemsPerPage: 10
+    itemsPerPage: 5
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const searchTimeoutRef = useRef(null);
   
   // Delete modal state
   const [deleteModal, setDeleteModal] = useState({
@@ -50,55 +54,46 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   };
 
   // Fetch sub sub categories from API with pagination and search
-  const fetchSubSubCategories = async (page = 1, search = '') => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Use getTree() to get hierarchical data and extract sub sub categories
-      const response = await categoryService.getTree();
-      if (response?.data) {
-        // Extract all sub sub categories (level 2) from the tree structure
-        const allSubSubCategories = [];
-
-        const extractSubSubCategories = (categories) => {
-          categories.forEach((category) => {
-            if (category.children && category.children.length > 0) {
-              category.children.forEach((subCategory) => {
-                if (subCategory.children && subCategory.children.length > 0) {
-                  // Check if children are Level 2 (sub sub categories)
-                  const level2Children = subCategory.children.filter(
-                    (child) => child.level === 2,
-                  );
-                  if (level2Children.length > 0) {
-                    allSubSubCategories.push(...level2Children);
-                  }
-                }
-              });
-            }
-          });
+  const fetchSubSubCategories = useCallback(
+    async (page = 1, search = '') => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = {
+          page,
+          limit: pagination.itemsPerPage,
+          level: 2, // Only sub sub categories (level 2)
+          ...(search && { search: search }),
         };
 
-        extractSubSubCategories(response.data);
-        setSubSubCategories(allSubSubCategories);
+        console.log('API Request Params:', params); // Debug log
+        const response = await categoryService.getAll(params);
+        if (response?.data?.success) {
+          // Use data directly from API (backend should return only level 2 categories)
+          setSubSubCategories(response.data.data);
 
-        // Update pagination state (frontend pagination for now)
-        setPagination((prev) => ({
-          ...prev,
-          currentPage: 1,
-          totalPages: Math.ceil(allSubSubCategories.length / prev.itemsPerPage),
-          totalItems: allSubSubCategories.length,
-        }));
-      } else {
+          // Update pagination state from API response (backend handles pagination)
+          setPagination((prev) => ({
+            ...prev,
+            currentPage: response.data.page || page,
+            totalPages:
+              response.data.totalPages ||
+              Math.ceil(response.data.total / pagination.itemsPerPage),
+            totalItems: response.data.total || response.data.data.length,
+          }));
+        } else {
+          setError('Failed to fetch sub sub categories');
+        }
+      } catch (err) {
+        console.error('Error fetching sub sub categories:', err);
         setError('Failed to fetch sub sub categories');
+        toast.error('Failed to load sub sub categories');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching sub sub categories:', err);
-      setError('Failed to fetch sub sub categories');
-      toast.error('Failed to load sub sub categories');
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [pagination.itemsPerPage],
+  );
 
   // Load sub sub categories and all sub categories on component mount and when refreshTrigger changes
   useEffect(() => {
@@ -112,16 +107,33 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
     fetchSubSubCategories(page, searchTerm);
   };
 
-  // Handle search
+  // Handle search - throttled API call
   const handleSearch = (term) => {
+    console.log('Search term:', term); // Debug log
     setSearchTerm(term);
     setPagination(prev => ({ ...prev, currentPage: 1 }));
-    fetchSubSubCategories(1, term);
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout for throttled search (700ms delay)
+    searchTimeoutRef.current = setTimeout(() => {
+      fetchSubSubCategories(1, term);
+    }, 700);
   };
 
   // Get parent sub category name by ID
   const getParentSubCategoryName = (parentId) => {
     if (!parentId) return 'Root Category';
+    
+    // If parentId is an object (from API response), use its name directly
+    if (typeof parentId === 'object' && parentId.name) {
+      return parentId.name;
+    }
+    
+    // If parentId is a string, find in allSubCategories
     const parentSubCategory = allSubCategories.find(
       (cat) => cat._id === parentId,
     );
@@ -197,42 +209,8 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
     console.log('View sub sub category:', subSubCategory);
   };
 
-  // Search and pagination calculations
-  const filteredSubSubCategories = subSubCategories.filter((subSubCategory) => {
-    const searchLower = searchTerm.toLowerCase();
-
-    // Check if search term matches featured status
-    const isFeaturedMatch =
-      (searchLower === 'yes' && subSubCategory.isFeatured === true) ||
-      (searchLower === 'no' && subSubCategory.isFeatured === false) ||
-      (searchLower === 'featured' && subSubCategory.isFeatured === true) ||
-      (searchLower === 'not featured' && subSubCategory.isFeatured === false);
-
-    return (
-      subSubCategory.name.toLowerCase().includes(searchLower) ||
-      subSubCategory.description.toLowerCase().includes(searchLower) ||
-      getParentSubCategoryName(subSubCategory.parentId)
-        .toLowerCase()
-        .includes(searchLower) ||
-      subSubCategory.status.toLowerCase().includes(searchLower) ||
-      isFeaturedMatch ||
-      `level ${subSubCategory.level || 2}`.includes(searchLower)
-    );
-  });
-
-  const totalPages = Math.ceil(filteredSubSubCategories.length / pagination.itemsPerPage);
-  const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
-  const endIndex = startIndex + pagination.itemsPerPage;
-  const currentItems = filteredSubSubCategories.slice(startIndex, endIndex);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2">Loading sub sub categories...</span>
-      </div>
-    );
-  }
+  // Use data directly from API (backend handles filtering and pagination)
+  const currentItems = subSubCategories;
 
   if (error) {
     return (
@@ -246,47 +224,27 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      {/* Header with Search */}
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="w-full sm:w-80">
-            <SearchBar
-              placeholder="Search sub sub categories..."
-              value={searchTerm}
-              onChange={handleSearch}
-              size="md"
-              className="w-full"
-            />
-          </div>
-        </div>
-      </div>
+    <TableContainer>
+      <SearchBarContainer>
+        <SearchBar
+          placeholder="Search sub sub categories..."
+          value={searchTerm}
+          onChange={handleSearch}
+          size="sm"
+          className="w-full"
+        />
+      </SearchBarContainer>
 
-      {currentItems.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <svg
-              className="mx-auto h-12 w-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-              />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No sub sub categories found
-          </h3>
-          <p className="text-gray-600">
-            Get started by creating your first sub sub category.
-          </p>
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2">Loading sub sub categories...</span>
         </div>
-      ) : (
+      )}
+
+      {loading === false && currentItems.length === 0 && <DataNotFound />}
+
+      {loading === false && currentItems.length > 0 && (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -386,11 +344,11 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {pagination.totalPages > 1 && (
         <div className="px-6 py-4 border-t border-gray-200">
           <Pagination
             currentPage={pagination.currentPage}
-            totalPages={totalPages}
+            totalPages={pagination.totalPages}
             onPageChange={handlePageChange}
             maxVisiblePages={5}
             className="justify-center"
@@ -408,7 +366,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
         itemName={deleteModal.itemName}
         isLoading={deleteModal.isLoading}
       />
-    </div>
+    </TableContainer>
   );
 };
 
