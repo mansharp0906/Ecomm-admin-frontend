@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/custom-button';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
@@ -30,6 +30,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
     itemsPerPage: 5,
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const searchTimeoutRef = useRef(null);
 
   // Delete modal state
   const [deleteModal, setDeleteModal] = useState({
@@ -49,7 +50,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
           page,
           limit: pagination.itemsPerPage,
           level: 0, // Only main categories
-          ...(search && { query: search }),
+          ...(search && { search: search }),
         };
 
         console.log('API Request Params:', params); // Debug log
@@ -92,16 +93,27 @@ const CategoryListPage = ({ refreshTrigger }) => {
     fetchCategories(page, searchTerm);
   };
 
-  // Handle search
-  const handleSearch = useCallback(
-    (term) => {
-      console.log('Search term:', term); // Debug log
-      setSearchTerm(term);
-      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  // Handle search - throttled API call
+  const handleSearch = (term) => {
+    console.log('Search term:', term); // Debug log
+    setSearchTerm(term);
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout for throttled search (300ms delay)
+    searchTimeoutRef.current = setTimeout(() => {
       fetchCategories(1, term);
-    },
-    [fetchCategories],
-  );
+    }, 700);
+  };
+
+  // Initial load effect - only for refreshTrigger
+  useEffect(() => {
+    fetchCategories(pagination.currentPage, searchTerm);
+  }, [refreshTrigger]);
 
   // Handle delete category
   const handleDelete = (id, name) => {
@@ -174,14 +186,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
     console.log('View category:', category);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2">Loading categories...</span>
-      </div>
-    );
-  }
+
 
   if (error) {
     return (
@@ -206,9 +211,16 @@ const CategoryListPage = ({ refreshTrigger }) => {
         />
       </SearchBarContainer>
 
-      {categories.length === 0 ? (
-        <DataNotFound />
-      ) : (
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2">Loading categories...</span>
+        </div>
+      )}
+
+      {loading === false && categories.length === 0 && <DataNotFound />}
+
+      {loading === false && categories.length > 0 && (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
