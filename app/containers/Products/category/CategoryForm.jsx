@@ -3,11 +3,10 @@ import InputTextField from '@/components/custom-input-field/InputTextField';
 import SelectField from '@/components/custom-forms/SelectField';
 import TextAreaField from '@/components/custom-forms/TextAreaField';
 import categoryService from '@/api/service/categoryService';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
-import Container from '@/components/custom-pages/Container';
 
 // Validation schema
 const validationSchema = Yup.object({
@@ -38,7 +37,7 @@ const validationSchema = Yup.object({
     .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
 });
 
-const CategoryForm = ({ onSuccess, onCancel }) => {
+const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -52,6 +51,70 @@ const CategoryForm = ({ onSuccess, onCancel }) => {
 
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+
+  const fetchCategoryData = useCallback(async () => {
+    try {
+      setIsLoadingData(true);
+
+      // Use categoryService instead of direct fetch
+      let response = await categoryService.getById(categoryId);
+
+      // Check if response is HTML (error page)
+      if (
+        typeof response?.data === 'string' &&
+        response.data.includes('<!DOCTYPE')
+      ) {
+        toast.error('Server error: API returned HTML instead of JSON');
+        return;
+      }
+
+      // Determine the correct data structure
+      let category;
+      if (response?.data?.success) {
+        category = response.data.data;
+      } else if (response?.data) {
+        // If response.data exists but no success field, assume data is directly in response.data
+        category = response.data;
+      } else {
+        toast.error('Failed to fetch category data');
+        return;
+      }
+
+      if (category) {
+        const newFormData = {
+          name: category.name || '',
+          slug: category.slug || '',
+          description: category.description || '',
+          image: category.image || null,
+          priority: category.priority || 1,
+          status: category.status || 'active',
+          isFeatured: category.isFeatured || false,
+          metaTitle: category.metaTitle || '',
+          metaDescription: category.metaDescription || '',
+        };
+
+        setFormData(newFormData);
+      } else {
+        toast.error('No category data found');
+      }
+    } catch (error) {
+      // Check if it's a JSON parsing error
+      if (error.message.includes('Unexpected token')) {
+        toast.error('Server returned invalid response format');
+      } else {
+        toast.error('Failed to fetch category data: ' + error.message);
+      }
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, [categoryId]);
+
+  useEffect(() => {
+    if (isEditMode && categoryId) {
+      fetchCategoryData();
+    }
+  }, [isEditMode, categoryId, fetchCategoryData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -81,15 +144,24 @@ const CategoryForm = ({ onSuccess, onCancel }) => {
       // Remove fields that backend doesn't allow
       // eslint-disable-next-line no-unused-vars
       const { slug: _slug, image: _image, ...apiData } = formData;
-      console.log('Sending data to API:', apiData); // Debug log
-      const response = await categoryService.create(apiData);
 
-      if (response?.data?.success) {
-        console.log('Category Created Response:', response.data);
-        console.log('Created Category:', response.data.data);
-        toast.success('Category added successfully!');
+      let response;
+      if (isEditMode) {
+        response = await categoryService.update(categoryId, apiData);
+      } else {
+        response = await categoryService.create(apiData);
+      }
 
-        // Reset form
+      const isSuccess =
+        response?.data?.success ||
+        (response?.status >= 200 && response?.status < 300);
+
+      if (isSuccess) {
+        toast.success(
+          `Category ${isEditMode ? 'updated' : 'added'} successfully!`,
+        );
+
+        // Reset form for both create and edit modes
         setFormData({
           name: '',
           slug: '',
@@ -102,10 +174,12 @@ const CategoryForm = ({ onSuccess, onCancel }) => {
         });
         setFormErrors({});
 
-        // Notify parent component
+        // Notify parent component (this will trigger navigation)
         if (onSuccess) {
-          onSuccess(response.data.data);
+          onSuccess(response.data.data || response.data);
         }
+      } else {
+        toast.error('Failed to save category');
       }
     } catch (error) {
       if (error.name === 'ValidationError') {
@@ -117,7 +191,6 @@ const CategoryForm = ({ onSuccess, onCancel }) => {
         setFormErrors(validationErrors);
         toast.error('Please fix the validation errors');
       } else {
-        console.error('API Error Details:', error.response?.data); // Debug log
         toast.error(error.response?.data?.message || 'Failed to add category');
       }
     } finally {
@@ -146,6 +219,13 @@ const CategoryForm = ({ onSuccess, onCancel }) => {
     <>
       {/* Form */}
       <div className="bg-white rounded-lg shadow">
+        {isEditMode && isLoadingData && (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span className="ml-2">Loading category data...</span>
+          </div>
+        )}
+
         <form
           onSubmit={handleSubmit}
           className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
@@ -248,7 +328,13 @@ const CategoryForm = ({ onSuccess, onCancel }) => {
               disabled={loading}
               className="px-8"
             >
-              {loading ? 'Adding...' : 'Add Category'}
+              {loading
+                ? isEditMode
+                  ? 'Updating...'
+                  : 'Adding...'
+                : isEditMode
+                ? 'Update Category'
+                : 'Add Category'}
             </Button>
           </div>
         </form>
@@ -260,6 +346,8 @@ const CategoryForm = ({ onSuccess, onCancel }) => {
 CategoryForm.propTypes = {
   onSuccess: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
+  categoryId: PropTypes.string,
+  isEditMode: PropTypes.bool,
 };
 
 export default CategoryForm;

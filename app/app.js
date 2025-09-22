@@ -90,6 +90,10 @@ function App() {
               path="products/categories/add"
               element={<CategoryFormPage />}
             />
+            <Route
+              path="products/categories/edit/:id"
+              element={<CategoryFormPage />}
+            />
             <Route path="/pos" element={<Pos />} />
             <Route path="/pos/report" element={<Pos_report />} />
             <Route path="/products/subcategories" element={<SubCategory />} />
