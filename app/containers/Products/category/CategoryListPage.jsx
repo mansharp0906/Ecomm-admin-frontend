@@ -16,8 +16,10 @@ import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 import DataNotFound from '@/components/custom-pages/DataNotFound';
 import { SearchBarContainer } from '@/components/custom-search';
 import TableContainer from '@/components/custom-pages/TableContainer';
+import { useNavigate } from 'react-router-dom';
 
 const CategoryListPage = ({ refreshTrigger }) => {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -53,7 +55,6 @@ const CategoryListPage = ({ refreshTrigger }) => {
           ...(search && { search: search }),
         };
 
-        console.log('API Request Params:', params); // Debug log
         const response = await categoryService.getAll(params);
         if (response?.data?.success) {
           // Use data directly from API (backend should return only level 0 categories)
@@ -174,10 +175,17 @@ const CategoryListPage = ({ refreshTrigger }) => {
     });
   };
 
-  // Handle edit category (placeholder for now)
+  // Handle edit category - navigate to form page with category ID
   const handleEdit = (category) => {
-    toast.info('Edit functionality will be implemented soon');
-    console.log('Edit category:', category);
+    console.log(category, 'category');
+    // Only allow editing of main categories (level 0)
+    if (category.level !== 0) {
+      toast.error('Only main categories can be edited from this page');
+      return;
+    }
+
+    const finalId = category.id || category._id;
+    navigate(`/products/categories/edit/${finalId}`);
   };
 
   // Handle view category details (placeholder for now)
@@ -185,8 +193,6 @@ const CategoryListPage = ({ refreshTrigger }) => {
     toast.info('View functionality will be implemented soon');
     console.log('View category:', category);
   };
-
-
 
   if (error) {
     return (

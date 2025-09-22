@@ -1,14 +1,16 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import CategoryForm from './CategoryForm';
 import Container from '@/components/custom-pages/Container';
 import Breadcrumb from '@/components/custom-pages/Breadcrumb';
 
 const CategoryFormPage = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
 
   const handleFormSuccess = () => {
-    // Navigate back to categories list after successful creation
+    // Navigate back to categories list after successful creation/update
     navigate('/products/categories');
   };
 
@@ -22,19 +24,27 @@ const CategoryFormPage = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Add Category</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {isEditMode ? 'Edit Category' : 'Add Category'}
+            </h1>
           </div>
         </div>
         <Breadcrumb
           items={[
             { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Category', href: '/products/categories' },
-            { label: 'Add New Category' },
+            { label: 'Categories', href: '/products/categories' },
+            { label: isEditMode ? 'Edit Category' : 'Add New Category' },
           ]}
         />
       </div>
 
-      <CategoryForm onSuccess={handleFormSuccess} onCancel={handleFormCancel} />
+      <CategoryForm
+        key={id || 'new'}
+        onSuccess={handleFormSuccess}
+        onCancel={handleFormCancel}
+        categoryId={id}
+        isEditMode={isEditMode}
+      />
     </Container>
   );
 };

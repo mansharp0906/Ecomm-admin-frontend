@@ -203,148 +203,130 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-4xl mx-auto flex flex-col h-[95vh]">
-        {/* Header */}
-        <div className="p-6 border-b flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold">Add New Sub Category</h2>
-            </div>
-          </div>
-        </div>
-
-        {/* Form Fields - Scrollable */}
+    <>
+      {/* Form */}
+      <div className="bg-white rounded-lg shadow">
         <form
           onSubmit={handleSubmit}
-          className="p-6 space-y-4 overflow-y-auto flex-1"
+          className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
         >
-          {/* Row 1: Category and Sub Category */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <SelectField
-              label="Category"
-              name="parentId"
-              value={formData.parentId}
-              onChange={handleInputChange}
-              options={[
-                { value: '', label: 'Select Category' },
-                ...categories.map((cat) => ({
-                  value: cat._id,
-                  label: cat.displayName,
-                })),
-              ]}
-              error={formErrors?.parentId}
-              disabled={loadingCategories}
-            />
+          <SelectField
+            label="Category"
+            name="parentId"
+            value={formData.parentId}
+            onChange={handleInputChange}
+            options={[
+              { value: '', label: 'Select Category' },
+              ...categories.map((cat) => ({
+                value: cat._id,
+                label: cat.displayName,
+              })),
+            ]}
+            error={formErrors?.parentId}
+            disabled={loadingCategories}
+          />
 
-            <InputTextField
-              label="Sub Category Name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Enter sub category"
-              error={formErrors?.name}
-            />
-          </div>
+          <InputTextField
+            label="Sub Category Name"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            placeholder="Enter sub category"
+            error={formErrors?.name}
+          />
 
           {loadingCategories && (
-            <div className="text-sm text-gray-500 text-center">
+            <div className="sm:col-span-2 text-sm text-gray-500 text-center">
               Loading categories...
             </div>
           )}
 
-          {/* Row 2: Description (Full Width) */}
           <TextAreaField
             label="Description"
             name="description"
             value={formData.description}
             onChange={handleInputChange}
             placeholder="Enter sub category description"
-            rows={3}
+            rows={2}
             error={formErrors?.description}
+            className="sm:col-span-2"
           />
 
-          {/* Row 3: Image URL and Meta Title */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputTextField
-              label="Image URL"
-              type="url"
-              name="image"
-              value={formData.image || ''}
-              onChange={handleInputChange}
-              placeholder="https://example.com/image.jpg"
-              error={formErrors?.image}
-            />
+          <InputTextField
+            label="Image URL"
+            type="url"
+            name="image"
+            value={formData.image || ''}
+            onChange={handleInputChange}
+            placeholder="https://example.com/image.jpg"
+            error={formErrors?.image}
+          />
 
-            <InputTextField
-              label="Meta Title"
-              name="metaTitle"
-              value={formData.metaTitle}
-              onChange={handleInputChange}
-              placeholder="Enter meta title"
-              error={formErrors?.metaTitle}
-            />
-          </div>
+          <InputTextField
+            label="Meta Title"
+            name="metaTitle"
+            value={formData.metaTitle}
+            onChange={handleInputChange}
+            placeholder="Enter meta title"
+            error={formErrors?.metaTitle}
+          />
 
-          {/* Row 4: Meta Description (Full Width) */}
           <TextAreaField
             label="Meta Description"
             name="metaDescription"
             value={formData.metaDescription}
             onChange={handleInputChange}
             placeholder="Enter meta description"
-            rows={3}
+            rows={2}
             error={formErrors?.metaDescription}
+            className="sm:col-span-2"
           />
 
-          {/* Row 5: Priority and Status */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputTextField
-              label="Priority"
-              type="number"
-              name="priority"
-              value={formData.priority}
-              onChange={handleInputChange}
-              placeholder="e.g. 1"
-              error={formErrors?.priority}
-            />
+          <InputTextField
+            label="Priority"
+            type="number"
+            name="priority"
+            value={formData.priority}
+            onChange={handleInputChange}
+            placeholder="e.g. 1"
+            error={formErrors?.priority}
+          />
 
-            <SelectField
-              label="Status"
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-              options={[
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
-              ]}
-              error={formErrors?.status}
-            />
+          <SelectField
+            label="Status"
+            name="status"
+            value={formData.status}
+            onChange={handleInputChange}
+            options={[
+              { value: 'active', label: 'Active' },
+              { value: 'inactive', label: 'Inactive' },
+            ]}
+            error={formErrors?.status}
+          />
+
+          {/* Buttons should span full width */}
+          <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCancel}
+              className="px-8"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="px-8"
+            >
+              {loading ? 'Adding...' : 'Add Sub Category'}
+            </Button>
           </div>
         </form>
-
-        {/* Buttons - Fixed at bottom */}
-        <div className="p-4 border-t flex-shrink-0 flex space-x-3">
-          <Button
-            type="submit"
-            variant="primary"
-            className="flex-1 py-2 text-base"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? 'Adding...' : 'Add'}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleCancel}
-            className="flex-1 py-2 text-base"
-          >
-            Cancel
-          </Button>
-        </div>
       </div>
-    </div>
+    </>
   );
 };
 

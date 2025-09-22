@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/custom-button';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
@@ -13,6 +13,9 @@ import {
 } from '@/components/custom-table';
 import CustomIcon from '@/components/custom-icon/CustomIcon';
 import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
+import DataNotFound from '@/components/custom-pages/DataNotFound';
+import { SearchBarContainer } from '@/components/custom-search';
+import TableContainer from '@/components/custom-pages/TableContainer';
 
 const SubCategoryList = ({ refreshTrigger }) => {
   const [subCategories, setSubCategories] = useState([]);
@@ -25,9 +28,10 @@ const SubCategoryList = ({ refreshTrigger }) => {
     currentPage: 1,
     totalPages: 0,
     totalItems: 0,
-    itemsPerPage: 10,
+    itemsPerPage: 5,
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const searchTimeoutRef = useRef(null);
   
   // Delete modal state
   const [deleteModal, setDeleteModal] = useState({
@@ -50,53 +54,46 @@ const SubCategoryList = ({ refreshTrigger }) => {
   };
 
   // Fetch subcategories from API with pagination and search
-  const fetchSubCategories = async (page = 1, search = '') => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Use getTree() to get hierarchical data and extract subcategories
-      const response = await categoryService.getTree();
-      if (response?.data) {
-        // Extract all subcategories (level 1) from the tree structure
-        const allSubCategories = [];
-
-        const extractSubCategories = (categories) => {
-          categories.forEach((category) => {
-            if (category.children && category.children.length > 0) {
-              // Check if children are Level 1 (sub categories)
-              const level1Children = category.children.filter(
-                (child) => child.level === 1,
-              );
-              if (level1Children.length > 0) {
-                allSubCategories.push(...level1Children);
-              }
-              // Recursively extract from deeper levels
-              extractSubCategories(category.children);
-            }
-          });
+  const fetchSubCategories = useCallback(
+    async (page = 1, search = '') => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = {
+          page,
+          limit: pagination.itemsPerPage,
+          level: 1, // Only sub categories (level 1)
+          ...(search && { search: search }),
         };
 
-        extractSubCategories(response.data);
-        setSubCategories(allSubCategories);
+        console.log('API Request Params:', params); // Debug log
+        const response = await categoryService.getAll(params);
+        if (response?.data?.success) {
+          // Use data directly from API (backend should return only level 1 categories)
+          setSubCategories(response.data.data);
 
-        // Update pagination state (frontend pagination for now)
-        setPagination((prev) => ({
-          ...prev,
-          currentPage: 1,
-          totalPages: Math.ceil(allSubCategories.length / prev.itemsPerPage),
-          totalItems: allSubCategories.length,
-        }));
-      } else {
+          // Update pagination state from API response (backend handles pagination)
+          setPagination((prev) => ({
+            ...prev,
+            currentPage: response.data.page || page,
+            totalPages:
+              response.data.totalPages ||
+              Math.ceil(response.data.total / pagination.itemsPerPage),
+            totalItems: response.data.total || response.data.data.length,
+          }));
+        } else {
+          setError('Failed to fetch subcategories');
+        }
+      } catch (err) {
+        console.error('Error fetching subcategories:', err);
         setError('Failed to fetch subcategories');
+        toast.error('Failed to load subcategories');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching subcategories:', err);
-      setError('Failed to fetch subcategories');
-      toast.error('Failed to load subcategories');
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [pagination.itemsPerPage],
+  );
 
   // Load subcategories and all categories on component mount and when refreshTrigger changes
   useEffect(() => {
@@ -110,16 +107,33 @@ const SubCategoryList = ({ refreshTrigger }) => {
     fetchSubCategories(page, searchTerm);
   };
 
-  // Handle search
+  // Handle search - throttled API call
   const handleSearch = (term) => {
+    console.log('Search term:', term); // Debug log
     setSearchTerm(term);
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
-    fetchSubCategories(1, term);
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout for throttled search (700ms delay)
+    searchTimeoutRef.current = setTimeout(() => {
+      fetchSubCategories(1, term);
+    }, 700);
   };
 
   // Get parent category name by ID
   const getParentCategoryName = (parentId) => {
     if (!parentId) return 'Root Category';
+    
+    // If parentId is an object (from API response), use its name directly
+    if (typeof parentId === 'object' && parentId.name) {
+      return parentId.name;
+    }
+    
+    // If parentId is a string, find in allCategories
     const parentCategory = allCategories.find((cat) => cat._id === parentId);
     return parentCategory ? `${parentCategory.name}` : '-';
   };
@@ -193,33 +207,8 @@ const SubCategoryList = ({ refreshTrigger }) => {
     console.log('View subcategory:', subCategory);
   };
 
-  // Search and pagination calculations
-  const filteredSubCategories = subCategories.filter((subCategory) => {
-    const searchLower = searchTerm.toLowerCase();
-
-    // Check if search term matches featured status
-    const isFeaturedMatch =
-      (searchLower === 'yes' && subCategory.isFeatured === true) ||
-      (searchLower === 'no' && subCategory.isFeatured === false) ||
-      (searchLower === 'featured' && subCategory.isFeatured === true) ||
-      (searchLower === 'not featured' && subCategory.isFeatured === false);
-
-    return (
-      subCategory.name.toLowerCase().includes(searchLower) ||
-      subCategory.description.toLowerCase().includes(searchLower) ||
-      getParentCategoryName(subCategory.parentId)
-        .toLowerCase()
-        .includes(searchLower) ||
-      subCategory.status.toLowerCase().includes(searchLower) ||
-      isFeaturedMatch ||
-      `level ${subCategory.level || 1}`.includes(searchLower)
-    );
-  });
-
-  const totalPages = Math.ceil(filteredSubCategories.length / pagination.itemsPerPage);
-  const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
-  const endIndex = startIndex + pagination.itemsPerPage;
-  const currentItems = filteredSubCategories.slice(startIndex, endIndex);
+  // Use data directly from API (backend handles filtering and pagination)
+  const currentItems = subCategories;
 
   if (loading) {
     return (
@@ -242,47 +231,27 @@ const SubCategoryList = ({ refreshTrigger }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      {/* Header with Search */}
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="w-full sm:w-80">
-            <SearchBar
-              placeholder="Search Here..."
-              value={searchTerm}
-              onChange={handleSearch}
-              size="md"
-              className="w-full"
-            />
-          </div>
-        </div>
-      </div>
+    <TableContainer>
+      <SearchBarContainer>
+        <SearchBar
+          placeholder="Search subcategories..."
+          value={searchTerm}
+          onChange={handleSearch}
+          size="sm"
+          className="w-full"
+        />
+      </SearchBarContainer>
 
-      {currentItems.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <svg
-              className="mx-auto h-12 w-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-              />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No subcategories found
-          </h3>
-          <p className="text-gray-600">
-            Get started by creating your first sub category.
-          </p>
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2">Loading subcategories...</span>
         </div>
-      ) : (
+      )}
+
+      {loading === false && currentItems.length === 0 && <DataNotFound />}
+
+      {loading === false && currentItems.length > 0 && (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -395,11 +364,11 @@ const SubCategoryList = ({ refreshTrigger }) => {
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {pagination.totalPages > 1 && (
         <div className="px-6 py-4 border-t border-gray-200">
           <Pagination
             currentPage={pagination.currentPage}
-            totalPages={totalPages}
+            totalPages={pagination.totalPages}
             onPageChange={handlePageChange}
             maxVisiblePages={5}
             className="justify-center"
@@ -417,7 +386,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
         itemName={deleteModal.itemName}
         isLoading={deleteModal.isLoading}
       />
-    </div>
+    </TableContainer>
   );
 };
 
