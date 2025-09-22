@@ -15,6 +15,7 @@ import ForgotPasswordPage from './containers/Auth/ForgotPasswordPage';
 import NotFound from './containers/NotFound';
 import CategoryForm from './Pages/CategoryForm';
 import CategoryPage from './containers/Products/category/CategoryPage';
+import CategoryFormPage from './containers/Products/category/CategoryFormPage';
 import SubCategory from './containers/Products/sub category/SubCategory';
 import { SubSubCategoryPage } from './containers/Products/sub sub category';
 import Brand from './containers/Products/Brand';
@@ -83,6 +84,10 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             {/* products */}
             <Route path="products/categories" element={<CategoryPage />} />
+            <Route
+              path="products/categories/add"
+              element={<CategoryFormPage />}
+            />
             <Route path="/pos" element={<Pos />} />
             <Route path="/pos/report" element={<Pos_report />} />
             <Route path="/products/subcategories" element={<SubCategory />} />

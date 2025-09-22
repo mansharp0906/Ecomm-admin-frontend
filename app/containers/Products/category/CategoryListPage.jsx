@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/custom-button';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
@@ -14,8 +14,8 @@ import {
 import CustomIcon from '@/components/custom-icon/CustomIcon';
 import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 import DataNotFound from '@/components/custom-pages/DataNotFound';
-import Container from '@/components/custom-pages/Container';
 import { SearchBarContainer } from '@/components/custom-search';
+import TableContainer from '@/components/custom-pages/TableContainer';
 
 const CategoryListPage = ({ refreshTrigger }) => {
   const [categories, setCategories] = useState([]);
@@ -27,7 +27,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
     currentPage: 1,
     totalPages: 0,
     totalItems: 0,
-    itemsPerPage: 10,
+    itemsPerPage: 5,
   });
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -40,50 +40,51 @@ const CategoryListPage = ({ refreshTrigger }) => {
   });
 
   // Fetch categories from API with pagination and search
-  const fetchCategories = async (page = 1, search = '') => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = {
-        page,
-        limit: pagination.itemsPerPage,
-        level: 0, // Only main categories
-        ...(search && { search }),
-      };
+  const fetchCategories = useCallback(
+    async (page = 1, search = '') => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = {
+          page,
+          limit: pagination.itemsPerPage,
+          level: 0, // Only main categories
+          ...(search && { query: search }),
+        };
 
-      const response = await categoryService.getAll(params);
-      if (response?.data?.success) {
-        // Filter only level 0 categories (main categories)
-        const level0Categories = response.data.data.filter(
-          (category) => category.level === 0,
-        );
-        setCategories(level0Categories);
+        console.log('API Request Params:', params); // Debug log
+        const response = await categoryService.getAll(params);
+        if (response?.data?.success) {
+          // Use data directly from API (backend should return only level 0 categories)
+          setCategories(response.data.data);
 
-        // Update pagination state from API response
-        setPagination((prev) => ({
-          ...prev,
-          currentPage: response.data.page || page,
-          totalPages: Math.ceil(
-            level0Categories.length / pagination.itemsPerPage,
-          ),
-          totalItems: level0Categories.length,
-        }));
-      } else {
+          // Update pagination state from API response (backend handles pagination)
+          setPagination((prev) => ({
+            ...prev,
+            currentPage: response.data.page || page,
+            totalPages:
+              response.data.totalPages ||
+              Math.ceil(response.data.total / pagination.itemsPerPage),
+            totalItems: response.data.total || response.data.data.length,
+          }));
+        } else {
+          setError('Failed to fetch categories');
+        }
+      } catch (err) {
+        console.error('Error fetching categories:', err);
         setError('Failed to fetch categories');
+        toast.error('Failed to load categories');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-      setError('Failed to fetch categories');
-      toast.error('Failed to load categories');
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [pagination.itemsPerPage],
+  );
 
   // Load categories on component mount and when refreshTrigger changes
   useEffect(() => {
     fetchCategories(pagination.currentPage, searchTerm);
-  }, [refreshTrigger]);
+  }, [refreshTrigger, fetchCategories, pagination.currentPage, searchTerm]);
 
   // Handle page change
   const handlePageChange = (page) => {
@@ -92,11 +93,15 @@ const CategoryListPage = ({ refreshTrigger }) => {
   };
 
   // Handle search
-  const handleSearch = (term) => {
-    setSearchTerm(term);
-    setPagination((prev) => ({ ...prev, currentPage: 1 }));
-    fetchCategories(1, term);
-  };
+  const handleSearch = useCallback(
+    (term) => {
+      console.log('Search term:', term); // Debug log
+      setSearchTerm(term);
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+      fetchCategories(1, term);
+    },
+    [fetchCategories],
+  );
 
   // Handle delete category
   const handleDelete = (id, name) => {
@@ -190,7 +195,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
   }
 
   return (
-    <Container>
+    <TableContainer>
       <SearchBarContainer>
         <SearchBar
           placeholder="Search categories..."
@@ -270,7 +275,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
                     })}
                   </TableCell>
                   <TableCell className="text-center">
-                    <div className="flex space-x-2 justify-center">
+                    <div className="flex space-x-1 justify-center">
                       <Button
                         size="sm"
                         variant="outline"
@@ -331,7 +336,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
         itemName={deleteModal.itemName}
         isLoading={deleteModal.isLoading}
       />
-    </Container>
+    </TableContainer>
   );
 };
 
