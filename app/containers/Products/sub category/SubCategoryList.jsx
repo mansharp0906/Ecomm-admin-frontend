@@ -1,0 +1,428 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/custom-button';
+import categoryService from '@/api/service/categoryService';
+import { toast } from 'react-toastify';
+import PropTypes from 'prop-types';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/custom-table';
+import CustomIcon from '@/components/custom-icon/CustomIcon';
+import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
+
+const SubCategoryList = ({ refreshTrigger }) => {
+  const [subCategories, setSubCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [allCategories, setAllCategories] = useState([]);
+
+  // Pagination and search state
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 0,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Delete modal state
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    itemId: null,
+    itemName: '',
+    isLoading: false,
+  });
+
+  // Fetch all categories to get parent names
+  const fetchAllCategories = async () => {
+    try {
+      const response = await categoryService.getAll({ level: 0, limit: 1000 }); // Get only main categories
+      if (response?.data?.success) {
+        setAllCategories(response.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching all categories:', err);
+    }
+  };
+
+  // Fetch subcategories from API with pagination and search
+  const fetchSubCategories = async (page = 1, search = '') => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Use getTree() to get hierarchical data and extract subcategories
+      const response = await categoryService.getTree();
+      if (response?.data) {
+        // Extract all subcategories (level 1) from the tree structure
+        const allSubCategories = [];
+
+        const extractSubCategories = (categories) => {
+          categories.forEach((category) => {
+            if (category.children && category.children.length > 0) {
+              // Check if children are Level 1 (sub categories)
+              const level1Children = category.children.filter(
+                (child) => child.level === 1,
+              );
+              if (level1Children.length > 0) {
+                allSubCategories.push(...level1Children);
+              }
+              // Recursively extract from deeper levels
+              extractSubCategories(category.children);
+            }
+          });
+        };
+
+        extractSubCategories(response.data);
+        setSubCategories(allSubCategories);
+
+        // Update pagination state (frontend pagination for now)
+        setPagination((prev) => ({
+          ...prev,
+          currentPage: 1,
+          totalPages: Math.ceil(allSubCategories.length / prev.itemsPerPage),
+          totalItems: allSubCategories.length,
+        }));
+      } else {
+        setError('Failed to fetch subcategories');
+      }
+    } catch (err) {
+      console.error('Error fetching subcategories:', err);
+      setError('Failed to fetch subcategories');
+      toast.error('Failed to load subcategories');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load subcategories and all categories on component mount and when refreshTrigger changes
+  useEffect(() => {
+    fetchAllCategories();
+    fetchSubCategories(pagination.currentPage, searchTerm);
+  }, [refreshTrigger]);
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+    fetchSubCategories(page, searchTerm);
+  };
+
+  // Handle search
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    fetchSubCategories(1, term);
+  };
+
+  // Get parent category name by ID
+  const getParentCategoryName = (parentId) => {
+    if (!parentId) return 'Root Category';
+    const parentCategory = allCategories.find((cat) => cat._id === parentId);
+    return parentCategory ? `${parentCategory.name}` : '-';
+  };
+
+  // Handle delete subcategory
+  const handleDelete = (id, name) => {
+    setDeleteModal({
+      isOpen: true,
+      itemId: id,
+      itemName: name,
+      isLoading: false,
+    });
+  };
+
+  // Confirm delete
+  const confirmDelete = async () => {
+    if (!deleteModal.itemId) return;
+
+    setDeleteModal(prev => ({ ...prev, isLoading: true }));
+    
+    try {
+      const response = await categoryService.delete(deleteModal.itemId);
+      if (response?.data?.success) {
+        toast.success('Sub Category deleted successfully!');
+        
+        // Remove item from frontend state immediately
+        setSubCategories(prev => prev.filter(subCategory => subCategory._id !== deleteModal.itemId));
+        
+        // Update pagination if needed
+        setPagination(prev => ({
+          ...prev,
+          totalItems: prev.totalItems - 1,
+          totalPages: Math.ceil((prev.totalItems - 1) / prev.itemsPerPage)
+        }));
+      } else {
+        toast.error(response?.data?.message || 'Failed to delete sub category');
+      }
+    } catch (err) {
+      console.error('Error deleting subcategory:', err);
+      toast.error(err?.response?.data?.message || 'Failed to delete sub category');
+    } finally {
+      // Always close modal after operation (success or error)
+      setDeleteModal({
+        isOpen: false,
+        itemId: null,
+        itemName: '',
+        isLoading: false,
+      });
+    }
+  };
+
+  // Close delete modal
+  const closeDeleteModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      itemId: null,
+      itemName: '',
+      isLoading: false,
+    });
+  };
+
+  // Handle edit subcategory (placeholder for now)
+  const handleEdit = (subCategory) => {
+    toast.info('Edit functionality will be implemented soon');
+    console.log('Edit subcategory:', subCategory);
+  };
+
+  // Handle view subcategory details (placeholder for now)
+  const handleView = (subCategory) => {
+    toast.info('View functionality will be implemented soon');
+    console.log('View subcategory:', subCategory);
+  };
+
+  // Search and pagination calculations
+  const filteredSubCategories = subCategories.filter((subCategory) => {
+    const searchLower = searchTerm.toLowerCase();
+
+    // Check if search term matches featured status
+    const isFeaturedMatch =
+      (searchLower === 'yes' && subCategory.isFeatured === true) ||
+      (searchLower === 'no' && subCategory.isFeatured === false) ||
+      (searchLower === 'featured' && subCategory.isFeatured === true) ||
+      (searchLower === 'not featured' && subCategory.isFeatured === false);
+
+    return (
+      subCategory.name.toLowerCase().includes(searchLower) ||
+      subCategory.description.toLowerCase().includes(searchLower) ||
+      getParentCategoryName(subCategory.parentId)
+        .toLowerCase()
+        .includes(searchLower) ||
+      subCategory.status.toLowerCase().includes(searchLower) ||
+      isFeaturedMatch ||
+      `level ${subCategory.level || 1}`.includes(searchLower)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredSubCategories.length / pagination.itemsPerPage);
+  const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
+  const endIndex = startIndex + pagination.itemsPerPage;
+  const currentItems = filteredSubCategories.slice(startIndex, endIndex);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2">Loading Data...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-600 mb-4">{error}</p>
+        <Button onClick={fetchSubCategories} variant="primary">
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow">
+      {/* Header with Search */}
+      <div className="px-6 py-4 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="w-full sm:w-80">
+            <SearchBar
+              placeholder="Search Here..."
+              value={searchTerm}
+              onChange={handleSearch}
+              size="md"
+              className="w-full"
+            />
+          </div>
+        </div>
+      </div>
+
+      {currentItems.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-4">
+            <svg
+              className="mx-auto h-12 w-12"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No subcategories found
+          </h3>
+          <p className="text-gray-600">
+            Get started by creating your first sub category.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-center">S.No</TableHead>
+                <TableHead>Sub Category</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Level</TableHead>
+                <TableHead>Featured</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created Date</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {currentItems.map((subCategory, index) => (
+                <TableRow key={subCategory._id}>
+                  <TableCell className="text-center font-medium text-gray-900">
+                    {(pagination.currentPage - 1) * pagination.itemsPerPage +
+                      index +
+                      1}
+                  </TableCell>
+                  <TableCell className="font-medium text-gray-900">
+                    {subCategory.name}
+                  </TableCell>
+                  <TableCell className="text-gray-500 max-w-xs">
+                    <div className="break-words whitespace-normal">
+                      {subCategory.description}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium text-gray-900">
+                    {getParentCategoryName(subCategory.parentId)}
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      Level {subCategory.level || 1}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        subCategory.isFeatured
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {subCategory.isFeatured ? 'Yes' : 'No'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        subCategory.status === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {subCategory.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-gray-500">
+                    {new Date(subCategory.createdAt).toLocaleDateString(
+                      'en-US',
+                      {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      },
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex space-x-2 justify-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(subCategory)}
+                        title="Edit"
+                      >
+                        <CustomIcon type="edit" size={4} />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleView(subCategory)}
+                        title="View"
+                      >
+                        <CustomIcon type="view" size={4} />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() =>
+                          handleDelete(subCategory._id, subCategory.name)
+                        }
+                        title="Delete"
+                      >
+                        <CustomIcon type="delete" size={4} />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="px-6 py-4 border-t border-gray-200">
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            maxVisiblePages={5}
+            className="justify-center"
+          />
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="Delete Sub Category"
+        message={`Are you sure you want to delete "${deleteModal.itemName}"?`}
+        itemName={deleteModal.itemName}
+        isLoading={deleteModal.isLoading}
+      />
+    </div>
+  );
+};
+
+SubCategoryList.propTypes = {
+  refreshTrigger: PropTypes.number.isRequired,
+};
+
+export default SubCategoryList;

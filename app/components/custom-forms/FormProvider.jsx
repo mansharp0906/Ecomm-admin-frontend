@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import InputTextField from '@/components/custom-form-field/InputTextField';
+import InputTextField from '@/components/custom-input-field/InputTextField';
 import Button from '@/components/custom-button/Button';
 
 const Form = ({ title, fields, formData, onChange, onSubmit }) => {
