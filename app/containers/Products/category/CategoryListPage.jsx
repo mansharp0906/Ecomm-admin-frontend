@@ -13,7 +13,9 @@ import {
 } from '@/components/custom-table';
 import CustomIcon from '@/components/custom-icon/CustomIcon';
 import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
-import DataNotFound from '@/components/custom-page-loading/DataNotFound';
+import DataNotFound from '@/components/custom-pages/DataNotFound';
+import Container from '@/components/custom-pages/Container';
+import { SearchBarContainer } from '@/components/custom-search';
 
 const CategoryListPage = ({ refreshTrigger }) => {
   const [categories, setCategories] = useState([]);
@@ -188,20 +190,16 @@ const CategoryListPage = ({ refreshTrigger }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="w-full sm:w-80">
-            <SearchBar
-              placeholder="Search categories..."
-              value={searchTerm}
-              onChange={handleSearch}
-              size="md"
-              className="w-full"
-            />
-          </div>
-        </div>
-      </div>
+    <Container>
+      <SearchBarContainer>
+        <SearchBar
+          placeholder="Search categories..."
+          value={searchTerm}
+          onChange={handleSearch}
+          size="sm"
+          className="w-full"
+        />
+      </SearchBarContainer>
 
       {categories.length === 0 ? (
         <DataNotFound />
@@ -333,7 +331,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
         itemName={deleteModal.itemName}
         isLoading={deleteModal.isLoading}
       />
-    </div>
+    </Container>
   );
 };
 

@@ -23,14 +23,14 @@ export const TableRow = ({ children, className = '' }) => (
 
 export const TableHead = ({ children, className = '' }) => (
   <th
-    className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${className}`}
+    className={`px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${className}`}
   >
     {children}
   </th>
 );
 
 export const TableCell = ({ children, className = '' }) => (
-  <td className={`px-6 py-4 whitespace-nowrap text-sm ${className}`}>
+  <td className={`px-2 py-2 whitespace-nowrap text-sm ${className}`}>
     {children}
   </td>
 );

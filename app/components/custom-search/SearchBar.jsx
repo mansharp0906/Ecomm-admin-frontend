@@ -49,7 +49,6 @@ const SearchBar = ({
     }
   }, [onChange, onClear]);
 
-
   // Size variants
   const sizeClasses = {
     sm: 'px-3 py-2 text-sm',
@@ -68,7 +67,11 @@ const SearchBar = ({
       <div
         className={`
           relative flex items-center border rounded-lg transition-all duration-200
-          ${isFocused ? 'ring-2 ring-blue-500 border-blue-500' : 'border-gray-300'}
+          ${
+            isFocused
+              ? 'ring-2 ring-blue-500 border-blue-500'
+              : 'border-gray-300'
+          }
           ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
           ${sizeClasses[size]}
         `}
@@ -77,7 +80,9 @@ const SearchBar = ({
         {showSearchIcon && (
           <div className="flex-shrink-0 mr-3">
             {loading ? (
-              <div className={`animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 ${iconSizes[size]}`}></div>
+              <div
+                className={`animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 ${iconSizes[size]}`}
+              ></div>
             ) : (
               <svg
                 className={`text-gray-400 ${iconSizes[size]}`}
@@ -111,9 +116,7 @@ const SearchBar = ({
             ${sizeClasses[size]}
           `}
         />
-
       </div>
-
     </div>
   );
 };
