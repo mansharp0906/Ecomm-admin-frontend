@@ -44,7 +44,7 @@ const Layout = () => {
             sidebarOpen ? 'ml-64' : 'ml-16'
           }`}
         >
-          <div>
+          <div className="h-[calc(100vh-4rem)] overflow-y-auto">
             <Outlet />
           </div>
         </main>

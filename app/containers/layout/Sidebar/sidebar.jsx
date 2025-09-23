@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { MdArrowDropDown } from 'react-icons/md';
 import {
@@ -40,6 +41,11 @@ const ToggleIcon = ({ onClick, isOpen }) => (
   </svg>
 );
 
+ToggleIcon.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+};
+
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
 
@@ -48,7 +54,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     if (!sidebarOpen) return;
     setOpenDropdown(openDropdown === key ? null : key);
   };
-
 
   const handleLinkClick = () => {
     setOpenDropdown(null);
@@ -508,6 +513,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       </aside>
     </div>
   );
+};
+
+Sidebar.propTypes = {
+  sidebarOpen: PropTypes.bool.isRequired,
+  setSidebarOpen: PropTypes.func.isRequired,
 };
 
 export default Sidebar;
