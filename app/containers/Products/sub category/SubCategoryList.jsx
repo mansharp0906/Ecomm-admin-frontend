@@ -32,7 +32,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const searchTimeoutRef = useRef(null);
-  
+
   // Delete modal state
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
@@ -127,12 +127,12 @@ const SubCategoryList = ({ refreshTrigger }) => {
   // Get parent category name by ID
   const getParentCategoryName = (parentId) => {
     if (!parentId) return 'Root Category';
-    
+
     // If parentId is an object (from API response), use its name directly
     if (typeof parentId === 'object' && parentId.name) {
       return parentId.name;
     }
-    
+
     // If parentId is a string, find in allCategories
     const parentCategory = allCategories.find((cat) => cat._id === parentId);
     return parentCategory ? `${parentCategory.name}` : '-';
@@ -152,28 +152,32 @@ const SubCategoryList = ({ refreshTrigger }) => {
   const confirmDelete = async () => {
     if (!deleteModal.itemId) return;
 
-    setDeleteModal(prev => ({ ...prev, isLoading: true }));
-    
+    setDeleteModal((prev) => ({ ...prev, isLoading: true }));
+
     try {
       const response = await categoryService.delete(deleteModal.itemId);
       if (response?.data?.success) {
         toast.success('Sub Category deleted successfully!');
-        
+
         // Remove item from frontend state immediately
-        setSubCategories(prev => prev.filter(subCategory => subCategory._id !== deleteModal.itemId));
-        
+        setSubCategories((prev) =>
+          prev.filter((subCategory) => subCategory._id !== deleteModal.itemId),
+        );
+
         // Update pagination if needed
-        setPagination(prev => ({
+        setPagination((prev) => ({
           ...prev,
           totalItems: prev.totalItems - 1,
-          totalPages: Math.ceil((prev.totalItems - 1) / prev.itemsPerPage)
+          totalPages: Math.ceil((prev.totalItems - 1) / prev.itemsPerPage),
         }));
       } else {
         toast.error(response?.data?.message || 'Failed to delete sub category');
       }
     } catch (err) {
       console.error('Error deleting subcategory:', err);
-      toast.error(err?.response?.data?.message || 'Failed to delete sub category');
+      toast.error(
+        err?.response?.data?.message || 'Failed to delete sub category',
+      );
     } finally {
       // Always close modal after operation (success or error)
       setDeleteModal({

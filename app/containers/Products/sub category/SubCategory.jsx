@@ -17,18 +17,9 @@ const SubCategory = () => {
   return (
     <Container>
       <div className="mb-8">
-        <Breadcrumb
-          items={[
-            { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Sub Categories' },
-          ]}
-        />
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Sub Categories</h1>
-            <p className="text-gray-600 mt-2">
-              Manage your product sub categories (Level 1)
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">Sub Category</h1>
           </div>
           <Button
             variant="primary"
@@ -39,6 +30,12 @@ const SubCategory = () => {
             <span>Add Sub Category</span>
           </Button>
         </div>
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Sub Category' },
+          ]}
+        />
       </div>
 
       <SubCategoryList refreshTrigger={refreshTrigger} />

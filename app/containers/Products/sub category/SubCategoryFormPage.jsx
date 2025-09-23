@@ -24,20 +24,22 @@ const SubCategoryFormPage = () => {
           items={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Sub Categories', href: '/products/subcategories' },
-            { label: 'Add New Sub Category' },
+            { label: 'Add Sub Category' },
           ]}
         />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Add New Sub Category
+              Add Sub Category
             </h1>
-            <p className="text-gray-600 mt-2">Create a new sub category</p>
           </div>
         </div>
       </div>
 
-      <SubCategoryForm onSuccess={handleFormSuccess} onCancel={handleFormCancel} />
+      <SubCategoryForm
+        onSuccess={handleFormSuccess}
+        onCancel={handleFormCancel}
+      />
     </Container>
   );
 };

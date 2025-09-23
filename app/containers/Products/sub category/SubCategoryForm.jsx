@@ -208,7 +208,7 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
       <div className="bg-white rounded-lg shadow">
         <form
           onSubmit={handleSubmit}
-          className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
+          className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4"
         >
           <SelectField
             label="Category"
@@ -321,7 +321,7 @@ const SubCategoryForm = ({ onSuccess, onCancel }) => {
               disabled={loading}
               className="px-8"
             >
-              {loading ? 'Adding...' : 'Add Sub Category'}
+              {loading ? 'Adding...' : 'Add'}
             </Button>
           </div>
         </form>

@@ -16,18 +16,11 @@ const SubSubCategoryPage = () => {
   return (
     <Container>
       <div className="mb-8">
-        <Breadcrumb
-          items={[
-            { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Sub Sub Categories' },
-          ]}
-        />
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Sub Sub Categories</h1>
-            <p className="text-gray-600 mt-2">
-              Manage your product sub sub categories (Level 2)
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Sub Sub Category
+            </h1>
           </div>
           <Button
             onClick={handleAddSubSubCategory}
@@ -38,6 +31,12 @@ const SubSubCategoryPage = () => {
             <span>Add Sub Sub Category</span>
           </Button>
         </div>
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Sub Sub Category' },
+          ]}
+        />
       </div>
 
       <SubSubCategoryList refreshTrigger={refreshTrigger} />

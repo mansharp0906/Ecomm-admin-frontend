@@ -341,7 +341,7 @@ const SubSubCategoryForm = ({ onSuccess, onCancel }) => {
               disabled={loading}
               className="px-8"
             >
-              {loading ? 'Adding...' : 'Add Sub Sub Category'}
+              {loading ? 'Adding...' : 'Add '}
             </Button>
           </div>
         </form>
