@@ -32,9 +32,12 @@ const ToggleIcon = ({ onClick, isOpen }) => (
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
 
-  const toggleDropdown = (key) => {
-    setOpenDropdown(openDropdown === key ? null : key);
-  };
+ const toggleDropdown = (key) => {
+  // Only toggle dropdown if sidebar is open
+  if (!sidebarOpen) return;
+  setOpenDropdown(openDropdown === key ? null : key);
+};
+
 
   const handleLinkClick = () => {
     if (window.innerWidth < 768) {
@@ -75,7 +78,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   >
                     <rect
                       x="14"
-                      y="34"
                       y="34"
                       width="8"
                       height="16"
@@ -151,7 +153,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   >
                     Product Section
                   </span>
-                  
                 </div>
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform  ${
@@ -263,7 +264,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 >
                   Order Section
                 </span>
-                
+
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
                     openDropdown === 'orderSection' ? 'rotate-180' : ''
