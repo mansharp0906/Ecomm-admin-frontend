@@ -18,9 +18,6 @@ const Layout = () => {
 
   const isAuthPage = authPages.includes(location.pathname);
 
-  // Check if current page is category list page (no scrollbar needed)
-  const isCategoryListPage = location.pathname === '/products/categories';
-
   return (
     <>
       {!isAuthPage && (
@@ -29,7 +26,7 @@ const Layout = () => {
         </header>
       )}
 
-      <div className="flex">
+      <div className="flex min-h-screen">
         {!isAuthPage && (
           <aside
             className={`fixed top-16 left-0 h-[calc(100vh-4rem)] z-40 transition-all duration-300 ease-in-out 
@@ -47,11 +44,7 @@ const Layout = () => {
             sidebarOpen ? 'ml-64' : 'ml-16'
           }`}
         >
-          <div
-            className={`h-[calc(100vh-4rem)] ${
-              isCategoryListPage ? 'overflow-hidden' : 'overflow-y-auto'
-            }`}
-          >
+          <div>
             <Outlet />
           </div>
         </main>
