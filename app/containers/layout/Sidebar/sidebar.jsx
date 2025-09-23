@@ -76,7 +76,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     <rect
                       x="14"
                       y="34"
-                      y="34"
                       width="8"
                       height="16"
                       fill="#facc15"
@@ -151,7 +150,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   >
                     Product Section
                   </span>
-                  
                 </div>
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform  ${
@@ -263,7 +261,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 >
                   Order Section
                 </span>
-                
+
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
                     openDropdown === 'orderSection' ? 'rotate-180' : ''

@@ -102,11 +102,19 @@ function App() {
               element={<SubCategoryFormPage />}
             />
             <Route
+              path="/products/subcategories/edit/:id"
+              element={<SubCategoryFormPage />}
+            />
+            <Route
               path="/products/subsubcategories"
               element={<SubSubCategoryPage />}
             />
             <Route
               path="/products/subsubcategories/add"
+              element={<SubSubCategoryFormPage />}
+            />
+            <Route
+              path="/products/subsubcategories/edit/:id"
               element={<SubSubCategoryFormPage />}
             />
             <Route path="/products/brands" element={<Brand />} />
