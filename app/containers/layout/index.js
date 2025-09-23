@@ -36,7 +36,7 @@ const Layout = () => {
         {!isAuthPage && (
           <aside
             className={`sticky top-10 left-0 h-screen z-40 transition-width duration-300 ease-in-out 
-              ${sidebarOpen ? 'w-64' : 'w-1'}`}
+              ${sidebarOpen ? 'w-64' : 'w-16'}`}
           >
             <SideBar
               sidebarOpen={sidebarOpen}
