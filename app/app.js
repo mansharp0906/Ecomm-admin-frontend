@@ -21,10 +21,10 @@ import SubCategoryFormPage from './containers/Products/sub category/SubCategoryF
 import { SubSubCategoryPage } from './containers/Products/sub sub category';
 import SubSubCategoryFormPage from './containers/Products/sub sub category/SubSubCategoryFormPage';
 import Brand from './containers/Products/Brand';
-import Attributes from './containers/Products/Attributes';
-import ProductInHouse from './containers/Products/ProductInHouse';
-import Vendors from './containers/Products/Vendors';
-import BulkImpor from './containers/Products/BulkImpor';
+import Attributes from './containers/Products/Attributes/Attributes';
+import ProductInHouse from './containers/Products/Product/ProductInHouse';
+import Vendors from './containers/Products/Ventors/Vendors';
+import BulkImpor from './containers/Products/Bulk/BulkImpor';
 import Pos from './containers/Products/Pos';
 import Pos_report from './containers/Products/Pos_report';
 import AllOrders from './containers/Orders/AllOrders';
