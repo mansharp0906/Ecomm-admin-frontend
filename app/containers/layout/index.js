@@ -46,7 +46,7 @@ const Layout = () => {
         )}
 
         <main
-          className=" flex-1 bg-gray-100 min-h-[calc(100vh-4rem)] overflow-auto transition-all duration-300}
+          className=" flex-1 bg-gray-100  }
 "
         >
           <Outlet />

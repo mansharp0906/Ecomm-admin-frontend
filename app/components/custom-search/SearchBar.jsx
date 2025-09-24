@@ -61,7 +61,7 @@ const SearchBar = ({
     <div className={`relative ${className}`}>
       <div
         className={`
-          relative flex items-center border rounded-lg transition-all duration-200
+          relative  flex items-center border rounded-lg transition-all duration-200
           ${
             isFocused
               ? 'ring-2 ring-blue-500 border-blue-500'

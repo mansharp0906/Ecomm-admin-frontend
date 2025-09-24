@@ -21,7 +21,7 @@ import SubCategoryFormPage from './containers/Products/sub category/SubCategoryF
 import { SubSubCategoryPage } from './containers/Products/sub sub category';
 import SubSubCategoryFormPage from './containers/Products/sub sub category/SubSubCategoryFormPage';
 import Brand from './containers/Products/Brand';
-import Attributes from './containers/Products/Attributes/Attributes';
+import Attributes from './containers/Products/Attributes/AttributePage';
 import ProductInHouse from './containers/Products/Product/ProductInHouse';
 import Vendors from './containers/Products/Ventors/Vendors';
 import BulkImpor from './containers/Products/Bulk/BulkImpor';
@@ -55,6 +55,7 @@ import Payment_method from './containers/Business_Setting/Payment_method';
 import Seo_setting from './containers/Business_Setting/Seo_setting';
 import './styles/toast.css';
 import 'react-toastify/dist/ReactToastify.css';
+import AttributeformPage from './containers/Products/Attributes/AttributeformPage';
 // import './styles/toast.css';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -111,6 +112,10 @@ function App() {
             />
             <Route path="/products/brands" element={<Brand />} />
             <Route path="/products/attributes" element={<Attributes />} />
+            <Route
+              path="products/attribute/add"
+              element={<AttributeformPage />}
+            />
             <Route path="/products/inhouse" element={<ProductInHouse />} />
             <Route path="/products/vendors" element={<Vendors />} />
             <Route path="/products/import" element={<BulkImpor />} />

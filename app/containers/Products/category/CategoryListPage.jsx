@@ -354,6 +354,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
         itemName={deleteModal.itemName}
         isLoading={deleteModal.isLoading}
       />
+      
     </TableContainer>
   );
 };

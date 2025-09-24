@@ -1,179 +1,226 @@
-import React, { useState } from 'react';
 import { Button } from '@/components/custom-button';
 import InputTextField from '@/components/custom-input-field/InputTextField';
 import SelectField from '@/components/custom-forms/SelectField';
 import { toast } from 'react-toastify';
+import React, { useState, useEffect, useCallback } from 'react';
+import * as Yup from 'yup';
+import PropTypes from 'prop-types';
 
-// Initial empty color value template
-const emptyColorValue = {
-  value: '',
-  color: '#000000',
-  image: null,
-  isDefault: false,
-};
+// Validation schema
+const validationSchema = Yup.object({
+  name: Yup.string()
+    .required('Atrribute name is required')
+    .min(2, 'Attribute name must be at least 2 characters')
+    .max(50, 'Attribute name must be less than 50 characters'), 
+  priority: Yup.number()
+    .required('Priority is required')
+    .min(1, 'Priority must be at least 1')
+    .max(100, 'Priority must be less than 100')
+    .integer('Priority must be a whole number'),
+  status: Yup.string()
+    .required('Status is required')
+    .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
+});
 
-const AttributeForm = ({ onSuccess, onCancel }) => {
+const AttributeForm = ({ onSuccess, onCancel, AttributeId, isEditMode }) => {
   const [formData, setFormData] = useState({
     name: '',
-    values: [emptyColorValue],
-    isFilterable: true,
-    isRequired: false,
-    displayType: 'color',
+    priority: 1,
     status: 'active',
-    categories: [],
   });
+  const [formErrors, setFormErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const fetchCategoryData = useCallback(async () => {
+    try {
+      setIsLoadingData(true);
 
-  // Handle basic input changes
+      // Use categoryService instead of direct fetch
+      let response = await categoryService.getById(AttributeId);
+
+      // Check if response is HTML (error page)
+      if (
+        typeof response?.data === 'string' &&
+        response.data.includes('<!DOCTYPE')
+      ) {
+        toast.error('Server error: API returned HTML instead of JSON');
+        return;
+      }
+
+      // Determine the correct data structure
+      let category;
+      if (response?.data?.success) {
+        category = response.data.data;
+      } else if (response?.data) {
+        // If response.data exists but no success field, assume data is directly in response.data
+        category = response.data;
+      } else {
+        toast.error('Failed to fetch category data');
+        return;
+      }
+
+      if (category) {
+        const newFormData = {
+          name: category.name || '',
+          priority: category.priority || 1,
+          status: category.status || 'active',
+        };
+
+        setFormData(newFormData);
+      } else {
+        toast.error('No category data found');
+      }
+    } catch (error) {
+      // Check if it's a JSON parsing error
+      if (error.message.includes('Unexpected token')) {
+        toast.error('Server returned invalid response format');
+      } else {
+        toast.error('Failed to fetch category data: ' + error.message);
+      }
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, [AttributeId]);
+
+  useEffect(() => {
+    if (isEditMode && AttributeId) {
+      fetchCategoryData();
+    }
+  }, [isEditMode, AttributeId, fetchCategoryData]);
+
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+
+    // Clear error for this field when user starts typing
+    if (formErrors[name]) {
+      setFormErrors({
+        ...formErrors,
+        [name]: '',
+      });
+    }
   };
 
-  // Handle changes to a specific color value inside the values array
-  const handleColorValueChange = (index, field, value) => {
-    const newValues = [...formData.values];
-    newValues[index] = {
-      ...newValues[index],
-      [field]: value,
-    };
-    setFormData((prev) => ({
-      ...prev,
-      values: newValues,
-    }));
-  };
-
-  // Add a new color value
-  const addColorValue = () => {
-    setFormData((prev) => ({
-      ...prev,
-      values: [...prev.values, emptyColorValue],
-    }));
-  };
-
-  // Remove a color value by index
-  const removeColorValue = (index) => {
-    const newValues = formData.values.filter((_, i) => i !== index);
-    setFormData((prev) => ({
-      ...prev,
-      values: newValues,
-    }));
-  };
-
-  // Handle form submit (basic validation can be added)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Basic validation: name and at least one value with 'value' filled
-    if (!formData.name.trim()) {
-      toast.error('Attribute name is required');
-      return;
+    setLoading(true);
+    setFormErrors({});
+
+    try {
+      // Validate form data
+      await validationSchema.validate(formData, { abortEarly: false });
+
+      // Remove fields that backend doesn't allow
+      // eslint-disable-next-line no-unused-vars
+      // const { slug: _slug, image: _image, ...apiData } = formData;
+
+      let response;
+      if (isEditMode) {
+        response = await categoryService.update(AttributeId, apiData);
+      } else {
+        response = await categoryService.create(apiData);
+      }
+
+      const isSuccess =
+        response?.data?.success ||
+        (response?.status >= 200 && response?.status < 300);
+
+      if (isSuccess) {
+        toast.success(
+          `Category ${isEditMode ? 'updated' : 'added'} successfully!`,
+        );
+
+        // Reset form for both create and edit modes
+        setFormData({
+          name: '',
+          priority: 1,
+          status: 'active',
+        });
+        setFormErrors({});
+
+        // Notify parent component (this will trigger navigation)
+        if (onSuccess) {
+          onSuccess(response.data.data || response.data);
+        }
+      } else {
+        toast.error('Failed to save category');
+      }
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        // Handle validation errors
+        const validationErrors = {};
+        error.inner.forEach((err) => {
+          validationErrors[err.path] = err.message;
+        });
+        setFormErrors(validationErrors);
+        toast.error('Please fix the validation errors');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to add category');
+      }
+    } finally {
+      setLoading(false);
     }
-    if (formData.values.length === 0 || formData.values.some(v => !v.value.trim())) {
-      toast.error('All color values must have a name');
-      return;
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      name: '',
+      priority: 1,
+      status: 'active',
+    });
+    setFormErrors({});
+    if (onCancel) {
+      onCancel();
     }
-    // Call onSuccess with formData for further processing (e.g., API call)
-    if (onSuccess) onSuccess(formData);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto p-6">
-        <h2 className="text-xl font-semibold mb-4">Add New Attribute</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <>
+      {/* Form */}
+      <div className="bg-white rounded-lg shadow">
+        {isEditMode && isLoadingData && (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span className="ml-2">Loading Attribute data...</span>
+          </div>
+        )}
+
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
+        >
           <InputTextField
             label="Attribute Name"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            placeholder="e.g. Color"
-            required
+            placeholder="Enter Attribute Name"
+            error={formErrors?.name}
           />
-          <div>
-            <label className="block font-medium mb-2">Values</label>
-            {formData.values.map((val, index) => (
-              <div key={index} className="flex items-center space-x-2 mb-2">
-                <input
-                  type="text"
-                  placeholder="Value name (e.g. Black)"
-                  className="border rounded px-2 py-1 flex-1"
-                  value={val.value}
-                  onChange={(e) =>
-                    handleColorValueChange(index, 'value', e.target.value)
-                  }
-                  required
-                />
-                <input
-                  type="color"
-                  value={val.color}
-                  onChange={(e) =>
-                    handleColorValueChange(index, 'color', e.target.value)
-                  }
-                />
-                <label className="flex items-center space-x-1 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={val.isDefault}
-                    onChange={(e) => {
-                      // Toggle isDefault for this value and uncheck others
-                      const newValues = formData.values.map((v, i) => ({
-                        ...v,
-                        isDefault: i === index ? e.target.checked : false,
-                      }));
-                      setFormData((prev) => ({ ...prev, values: newValues }));
-                    }}
-                  />
-                  <span>Default</span>
-                </label>
-                {formData.values.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeColorValue(index)}
-                    className="text-red-500"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-            ))}
-            <Button type="button" onClick={addColorValue} variant="secondary">
-              Add Value
-            </Button>
-          </div>
 
-          <div className="flex space-x-4">
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="isFilterable"
-                checked={formData.isFilterable}
-                onChange={handleInputChange}
-              />
-              <span>Filterable</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="isRequired"
-                checked={formData.isRequired}
-                onChange={handleInputChange}
-              />
-              <span>Required</span>
-            </label>
-          </div>
 
-          <SelectField
-            label="Display Type"
-            name="displayType"
-            value={formData.displayType}
+          <InputTextField
+            label="Priority"
+            type="number"
+            name="priority"
+            value={formData.priority}
+            onChange={handleInputChange}
+            placeholder="e.g. 1"
+            error={formErrors?.priority}
+          />
+           <SelectField
+            label="Value"
+            name="status"
+            value={formData.status}
             onChange={handleInputChange}
             options={[
-              { value: 'color', label: 'Color' },
-              { value: 'text', label: 'Text' },
-              { value: 'image', label: 'Image' },
+              { value: 'active', label: 'Black' },
+              { value: 'inactive', label: 'white' },
             ]}
+            error={formErrors?.status}
           />
 
           <SelectField
@@ -185,37 +232,38 @@ const AttributeForm = ({ onSuccess, onCancel }) => {
               { value: 'active', label: 'Active' },
               { value: 'inactive', label: 'Inactive' },
             ]}
+            error={formErrors?.status}
           />
 
-          {/* Categories can be a multi-select if needed, assuming categoryService provides options */}
-          {/* For simplicity, using text input here */}
-          <InputTextField
-            label="Categories (comma separated IDs)"
-            name="categories"
-            value={formData.categories.join(', ')}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                categories: e.target.value
-                  .split(',')
-                  .map((id) => id.trim())
-                  .filter(Boolean),
-              }))
-            }
-            placeholder="e.g. 68c91e289323da2733bb50c0, 68c91f029323da2733bb50c3"
-          />
-
-          <div className="flex space-x-4 justify-end">
-            <Button variant="secondary" type="button" onClick={onCancel}>
+          {/* Buttons should span full width */}
+          <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCancel}
+              className="px-8"
+            >
               Cancel
             </Button>
-            <Button variant="primary" type="submit">
-              Add Attribute
+            <Button
+              type="submit"
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="px-8"
+            >
+              {loading
+                ? isEditMode
+                  ? 'Updating...'
+                  : 'Adding...'
+                : isEditMode
+                ? 'Update Attribute'
+                : 'Add Attribute'}
             </Button>
           </div>
         </form>
       </div>
-    </div>
+    </>
   );
 };
 
