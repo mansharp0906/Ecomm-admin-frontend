@@ -7,6 +7,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
+import { LoadingData } from '@/components/custom-pages';
 
 // Validation schema
 const validationSchema = Yup.object({
@@ -325,11 +326,8 @@ const SubSubCategoryForm = ({
     <>
       {/* Form */}
       <div className="bg-white rounded-lg shadow">
-        {isEditMode && isLoadingData && (
-          <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-2">Loading sub sub category data...</span>
-          </div>
+        {isEditMode && loadingSubCategories && (
+          <LoadingData message="Loading data..." />
         )}
 
         <form
@@ -361,11 +359,11 @@ const SubSubCategoryForm = ({
             error={formErrors?.name}
           />
 
-          {loadingSubCategories && (
+          {/* {loadingSubCategories && (
             <div className="sm:col-span-2 text-sm text-gray-500 text-center">
               Loading sub categories...
             </div>
-          )}
+          )} */}
 
           <TextAreaField
             label="Description"

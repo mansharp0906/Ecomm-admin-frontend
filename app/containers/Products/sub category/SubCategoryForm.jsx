@@ -7,6 +7,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
+import { LoadingData } from '@/components/custom-pages';
 
 // Validation schema
 const validationSchema = Yup.object({
@@ -345,152 +346,145 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     <>
       {/* Form */}
       <div className="bg-white rounded-lg shadow">
-        {isEditMode && isLoadingData && (
-          <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-2">Loading sub category data...</span>
-          </div>
-        )}
+        {isEditMode && loadingCategories ? (
+          <LoadingData message="Loading data..." />
+        ) : (
+          <form
+            onSubmit={handleSubmit}
+            className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4"
+          >
+            <SelectField
+              label="Category"
+              name="parentId"
+              value={formData.parentId}
+              onChange={handleInputChange}
+              options={(() => {
+                console.log('Current formData.parentId:', formData.parentId);
+                console.log('Available categories for dropdown:', categories);
+                const options = [
+                  { value: '', label: 'Select Category' },
+                  ...categories.map((cat) => ({
+                    value: cat._id,
+                    label: cat.displayName,
+                  })),
+                ];
+                console.log('Dropdown options:', options);
+                console.log(
+                  'Looking for parentId in options:',
+                  formData.parentId,
+                );
+                const foundOption = options.find(
+                  (opt) => opt.value === formData.parentId,
+                );
+                console.log('Found matching option:', foundOption);
+                return options;
+              })()}
+              error={formErrors?.parentId}
+              disabled={loadingCategories}
+            />
 
-        <form
-          onSubmit={handleSubmit}
-          className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4"
-        >
-          <SelectField
-            label="Category"
-            name="parentId"
-            value={formData.parentId}
-            onChange={handleInputChange}
-            options={(() => {
-              console.log('Current formData.parentId:', formData.parentId);
-              console.log('Available categories for dropdown:', categories);
-              const options = [
-                { value: '', label: 'Select Category' },
-                ...categories.map((cat) => ({
-                  value: cat._id,
-                  label: cat.displayName,
-                })),
-              ];
-              console.log('Dropdown options:', options);
-              console.log(
-                'Looking for parentId in options:',
-                formData.parentId,
-              );
-              const foundOption = options.find(
-                (opt) => opt.value === formData.parentId,
-              );
-              console.log('Found matching option:', foundOption);
-              return options;
-            })()}
-            error={formErrors?.parentId}
-            disabled={loadingCategories}
-          />
+            <InputTextField
+              label="Sub Category Name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="Enter sub category"
+              error={formErrors?.name}
+            />
 
-          <InputTextField
-            label="Sub Category Name"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="Enter sub category"
-            error={formErrors?.name}
-          />
+            {/* {loadingCategories && <LoadingData message="Loading categories" />} */}
 
-          {loadingCategories && (
-            <div className="sm:col-span-2 text-sm text-gray-500 text-center">
-              Loading categories...
+            <TextAreaField
+              label="Description"
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="Enter sub category description"
+              rows={2}
+              error={formErrors?.description}
+              className="sm:col-span-2"
+            />
+
+            <InputTextField
+              label="Image URL"
+              type="url"
+              name="image"
+              value={formData.image || ''}
+              onChange={handleInputChange}
+              placeholder="https://example.com/image.jpg"
+              error={formErrors?.image}
+            />
+
+            <InputTextField
+              label="Meta Title"
+              name="metaTitle"
+              value={formData.metaTitle}
+              onChange={handleInputChange}
+              placeholder="Enter meta title"
+              error={formErrors?.metaTitle}
+            />
+
+            <TextAreaField
+              label="Meta Description"
+              name="metaDescription"
+              value={formData.metaDescription}
+              onChange={handleInputChange}
+              placeholder="Enter meta description"
+              rows={2}
+              error={formErrors?.metaDescription}
+              className="sm:col-span-2"
+            />
+
+            <InputTextField
+              label="Priority"
+              type="number"
+              name="priority"
+              value={formData.priority}
+              onChange={handleInputChange}
+              placeholder="e.g. 1"
+              error={formErrors?.priority}
+            />
+
+            <SelectField
+              label="Status"
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              options={[
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+              ]}
+              error={formErrors?.status}
+            />
+
+            {/* Buttons should span full width */}
+            <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleCancel}
+                className="px-8"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="px-8"
+              >
+                {loading
+                  ? isEditMode
+                    ? 'Updating...'
+                    : 'Adding...'
+                  : isEditMode
+                  ? 'Update Sub Category'
+                  : 'Add Sub Category'}
+              </Button>
             </div>
-          )}
-
-          <TextAreaField
-            label="Description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            placeholder="Enter sub category description"
-            rows={2}
-            error={formErrors?.description}
-            className="sm:col-span-2"
-          />
-
-          <InputTextField
-            label="Image URL"
-            type="url"
-            name="image"
-            value={formData.image || ''}
-            onChange={handleInputChange}
-            placeholder="https://example.com/image.jpg"
-            error={formErrors?.image}
-          />
-
-          <InputTextField
-            label="Meta Title"
-            name="metaTitle"
-            value={formData.metaTitle}
-            onChange={handleInputChange}
-            placeholder="Enter meta title"
-            error={formErrors?.metaTitle}
-          />
-
-          <TextAreaField
-            label="Meta Description"
-            name="metaDescription"
-            value={formData.metaDescription}
-            onChange={handleInputChange}
-            placeholder="Enter meta description"
-            rows={2}
-            error={formErrors?.metaDescription}
-            className="sm:col-span-2"
-          />
-
-          <InputTextField
-            label="Priority"
-            type="number"
-            name="priority"
-            value={formData.priority}
-            onChange={handleInputChange}
-            placeholder="e.g. 1"
-            error={formErrors?.priority}
-          />
-
-          <SelectField
-            label="Status"
-            name="status"
-            value={formData.status}
-            onChange={handleInputChange}
-            options={[
-              { value: 'active', label: 'Active' },
-              { value: 'inactive', label: 'Inactive' },
-            ]}
-            error={formErrors?.status}
-          />
-
-          {/* Buttons should span full width */}
-          <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleCancel}
-              className="px-8"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="px-8"
-            >
-              {loading
-                ? isEditMode
-                  ? 'Updating...'
-                  : 'Adding...'
-                : isEditMode
-                ? 'Update Sub Category'
-                : 'Add Sub Category'}
-            </Button>
-          </div>
-        </form>
+          </form>
+        )}
       </div>
     </>
   );

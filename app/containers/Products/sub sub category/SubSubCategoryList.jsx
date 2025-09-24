@@ -17,6 +17,7 @@ import DataNotFound from '@/components/custom-pages/DataNotFound';
 import { SearchBarContainer } from '@/components/custom-search';
 import TableContainer from '@/components/custom-pages/TableContainer';
 import { useNavigate } from 'react-router-dom';
+import { LoadingData } from '@/components/custom-pages';
 
 const SubSubCategoryList = ({ refreshTrigger }) => {
   const navigate = useNavigate();
@@ -261,12 +262,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
         />
       </SearchBarContainer>
 
-      {loading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2">Loading sub sub categories...</span>
-        </div>
-      )}
+      {loading && <LoadingData message="Loading data..." />}
 
       {loading === false && subSubCategories.length === 0 && <DataNotFound />}
 
@@ -337,19 +333,18 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleEdit(subSubCategory)}
-                        title="Edit"
-                      >
-                        <CustomIcon type="edit" size={4} />
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="outline"
                         onClick={() => handleView(subSubCategory)}
                         title="View"
                       >
                         <CustomIcon type="view" size={4} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(subSubCategory)}
+                        title="Edit"
+                      >
+                        <CustomIcon type="edit" size={4} />
                       </Button>
 
                       <Button
