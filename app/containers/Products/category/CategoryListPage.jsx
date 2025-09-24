@@ -188,10 +188,10 @@ const CategoryListPage = ({ refreshTrigger }) => {
     navigate(`/products/categories/edit/${finalId}`);
   };
 
-  // Handle view category details (placeholder for now)
+  // Handle view category details
   const handleView = (category) => {
-    toast.info('View functionality will be implemented soon');
-    console.log('View category:', category);
+    const finalId = category.id || category._id;
+    navigate(`/products/categories/view/${finalId}`);
   };
 
   if (error) {

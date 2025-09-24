@@ -1,17 +1,43 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FiUser } from 'react-icons/fi';
+import { FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const timeoutRef = useRef(null);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   // Function to reset auto-close timer
   const resetTimer = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       setDropdownOpen(false);
-    }, 5000); // 5 seconds inactivity closes dropdown
+    }, 8000); // 8 seconds inactivity closes dropdown
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    // Clear any stored authentication data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    sessionStorage.clear();
+    
+    // Redirect to login page
+    navigate('/login');
+    setDropdownOpen(false);
+  };
+
+  // Handle profile navigation
+  const handleProfile = () => {
+    navigate('/profile');
+    setDropdownOpen(false);
+  };
+
+  // Handle settings navigation
+  const handleSettings = () => {
+    navigate('/settings');
+    setDropdownOpen(false);
   };
 
   // When dropdown opens, start timer
@@ -53,7 +79,7 @@ function Navbar() {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 text-black bg-white flex items-center justify-between px-6 h-16"
+      className="relative text-black bg-white flex items-center justify-between px-6 h-16"
     >
       {/* Logo and Title */}
       <div className="flex items-center gap-2 text-2xl font-bold text-black">
@@ -112,25 +138,28 @@ function Navbar() {
             <ul>
               <li>
                 <button
-                  onClick={() => alert('Profile clicked')}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  onClick={handleProfile}
+                  className="flex items-center w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-200"
                 >
+                  <FiUser className="mr-2" size={16} />
                   Profile
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => alert('Settings clicked')}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  onClick={handleSettings}
+                  className="flex items-center w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors duration-200"
                 >
+                  <FiSettings className="mr-2" size={16} />
                   Settings
                 </button>
               </li>
-              <li>
+              <li className="border-t border-gray-200">
                 <button
-                  onClick={() => alert('Logout clicked')}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  onClick={handleLogout}
+                  className="flex items-center w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 transition-colors duration-200"
                 >
+                  <FiLogOut className="mr-2" size={16} />
                   Logout
                 </button>
               </li>

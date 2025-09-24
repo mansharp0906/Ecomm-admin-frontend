@@ -22,20 +22,14 @@ const Layout = () => {
     <>
       {!isAuthPage && (
         <header className="fixed top-0 left-0 right-0 h-16 z-50 border-b border-gray-200 bg-white shadow-sm">
-          <div
-            className={`transition-all duration-300 ${
-              sidebarOpen ? 'ml-64' : ''
-            }`}
-          >
-            <Navbar />
-          </div>
+          <Navbar />
         </header>
       )}
 
-      <div className="flex pt-16">
+      <div className="flex min-h-screen">
         {!isAuthPage && (
           <aside
-            className={`sticky top-10 left-0 h-screen z-40 transition-width duration-300 ease-in-out 
+            className={`fixed top-16 left-0 h-[calc(100vh-4rem)] z-40 transition-all duration-300 ease-in-out 
               ${sidebarOpen ? 'w-64' : 'w-16'}`}
           >
             <SideBar
@@ -46,10 +40,13 @@ const Layout = () => {
         )}
 
         <main
-          className=" flex-1 bg-gray-100  }
-"
+          className={`flex-1 bg-gray-100 transition-all duration-300 pt-16 ${
+            sidebarOpen ? 'ml-64' : 'ml-16'
+          }`}
         >
-          <Outlet />
+          <div className="h-[calc(100vh-4rem)] overflow-y-auto">
+            <Outlet />
+          </div>
         </main>
       </div>
     </>

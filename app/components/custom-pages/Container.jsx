@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 const Container = ({ children, className = '' }) => {
   return (
     <div
-      className={`bg-white rounded-lg shadow p-6 min-h-[300px] sm:min-h-[400px] md:min-h-[550px] ${className}`}
+      className={`bg-white  shadow p-6 min-h-[300px] sm:min-h-[400px] md:min-h-[680px] ${className}`}
     >
       {children}
     </div>

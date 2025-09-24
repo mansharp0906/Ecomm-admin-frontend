@@ -219,10 +219,10 @@ const SubCategoryList = ({ refreshTrigger }) => {
     navigate(`/products/subcategories/edit/${finalId}`);
   };
 
-  // Handle view subcategory details (placeholder for now)
+  // Handle view subcategory details
   const handleView = (subCategory) => {
-    toast.info('View functionality will be implemented soon');
-    console.log('View subcategory:', subCategory);
+    const finalId = subCategory.id || subCategory._id;
+    navigate(`/products/subcategories/view/${finalId}`);
   };
 
   if (error) {
