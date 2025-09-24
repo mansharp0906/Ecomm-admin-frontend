@@ -1,14 +1,16 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import SubSubCategoryForm from './SubSubCategoryForm';
 import Container from '@/components/custom-pages/Container';
 import Breadcrumb from '@/components/custom-pages/Breadcrumb';
 
 const SubSubCategoryFormPage = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
 
   const handleFormSuccess = () => {
-    // Navigate back to sub sub categories list after successful creation
+    // Navigate back to sub sub categories list after successful creation/update
     navigate('/products/subsubcategories');
   };
 
@@ -24,21 +26,24 @@ const SubSubCategoryFormPage = () => {
           items={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Sub Sub Categories', href: '/products/subsubcategories' },
-            { label: 'Add Sub Sub Category' },
+            { label: isEditMode ? 'Edit Sub Sub Category' : 'Add Sub Sub Category' },
           ]}
         />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Add Sub Sub Category
+              {isEditMode ? 'Edit Sub Sub Category' : 'Add Sub Sub Category'}
             </h1>
           </div>
         </div>
       </div>
 
       <SubSubCategoryForm
+        key={id || 'new'}
         onSuccess={handleFormSuccess}
         onCancel={handleFormCancel}
+        categoryId={id}
+        isEditMode={isEditMode}
       />
     </Container>
   );
