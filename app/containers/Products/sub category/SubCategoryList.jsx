@@ -16,8 +16,10 @@ import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 import DataNotFound from '@/components/custom-pages/DataNotFound';
 import { SearchBarContainer } from '@/components/custom-search';
 import TableContainer from '@/components/custom-pages/TableContainer';
+import { useNavigate } from 'react-router-dom';
 
 const SubCategoryList = ({ refreshTrigger }) => {
+  const navigate = useNavigate();
   const [subCategories, setSubCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -99,7 +101,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
   useEffect(() => {
     fetchAllCategories();
     fetchSubCategories(pagination.currentPage, searchTerm);
-  }, [refreshTrigger]);
+  }, [refreshTrigger, fetchSubCategories, pagination.currentPage, searchTerm]);
 
   // Handle page change
   const handlePageChange = (page) => {
@@ -123,6 +125,11 @@ const SubCategoryList = ({ refreshTrigger }) => {
       fetchSubCategories(1, term);
     }, 700);
   };
+
+  // Initial load effect - only for refreshTrigger
+  useEffect(() => {
+    fetchSubCategories(pagination.currentPage, searchTerm);
+  }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get parent category name by ID
   const getParentCategoryName = (parentId) => {
@@ -199,10 +206,17 @@ const SubCategoryList = ({ refreshTrigger }) => {
     });
   };
 
-  // Handle edit subcategory (placeholder for now)
+  // Handle edit subcategory - navigate to form page with subcategory ID
   const handleEdit = (subCategory) => {
-    toast.info('Edit functionality will be implemented soon');
-    console.log('Edit subcategory:', subCategory);
+    console.log(subCategory, 'subcategory');
+    // Only allow editing of sub categories (level 1)
+    if (subCategory.level !== 1) {
+      toast.error('Only sub categories can be edited from this page');
+      return;
+    }
+
+    const finalId = subCategory.id || subCategory._id;
+    navigate(`/products/subcategories/edit/${finalId}`);
   };
 
   // Handle view subcategory details (placeholder for now)
@@ -210,18 +224,6 @@ const SubCategoryList = ({ refreshTrigger }) => {
     toast.info('View functionality will be implemented soon');
     console.log('View subcategory:', subCategory);
   };
-
-  // Use data directly from API (backend handles filtering and pagination)
-  const currentItems = subCategories;
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2">Loading Data...</span>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -253,9 +255,9 @@ const SubCategoryList = ({ refreshTrigger }) => {
         </div>
       )}
 
-      {loading === false && currentItems.length === 0 && <DataNotFound />}
+      {loading === false && subCategories.length === 0 && <DataNotFound />}
 
-      {loading === false && currentItems.length > 0 && (
+      {loading === false && subCategories.length > 0 && (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -264,6 +266,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
                 <TableHead>Sub Category</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead>Category ID</TableHead>
                 <TableHead>Level</TableHead>
                 <TableHead>Featured</TableHead>
                 <TableHead>Status</TableHead>
@@ -273,7 +276,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
             </TableHeader>
 
             <TableBody>
-              {currentItems.map((subCategory, index) => (
+              {subCategories.map((subCategory, index) => (
                 <TableRow key={subCategory._id}>
                   <TableCell className="text-center font-medium text-gray-900">
                     {(pagination.currentPage - 1) * pagination.itemsPerPage +
@@ -333,19 +336,18 @@ const SubCategoryList = ({ refreshTrigger }) => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleEdit(subCategory)}
-                        title="Edit"
-                      >
-                        <CustomIcon type="edit" size={4} />
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="outline"
                         onClick={() => handleView(subCategory)}
                         title="View"
                       >
                         <CustomIcon type="view" size={4} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(subCategory)}
+                        title="Edit"
+                      >
+                        <CustomIcon type="edit" size={4} />
                       </Button>
 
                       <Button

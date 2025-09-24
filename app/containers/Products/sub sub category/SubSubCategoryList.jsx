@@ -16,8 +16,10 @@ import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 import DataNotFound from '@/components/custom-pages/DataNotFound';
 import { SearchBarContainer } from '@/components/custom-search';
 import TableContainer from '@/components/custom-pages/TableContainer';
+import { useNavigate } from 'react-router-dom';
 
 const SubSubCategoryList = ({ refreshTrigger }) => {
+  const navigate = useNavigate();
   const [subSubCategories, setSubSubCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -99,7 +101,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   useEffect(() => {
     fetchAllSubCategories();
     fetchSubSubCategories(pagination.currentPage, searchTerm);
-  }, [refreshTrigger]);
+  }, [refreshTrigger, fetchSubSubCategories, pagination.currentPage, searchTerm]);
 
   // Handle page change
   const handlePageChange = (page) => {
@@ -123,6 +125,11 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
       fetchSubSubCategories(1, term);
     }, 700);
   };
+
+  // Initial load effect - only for refreshTrigger
+  useEffect(() => {
+    fetchSubSubCategories(pagination.currentPage, searchTerm);
+  }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get parent sub category name by ID
   const getParentSubCategoryName = (parentId) => {
@@ -197,10 +204,17 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
     });
   };
 
-  // Handle edit sub sub category (placeholder for now)
+  // Handle edit sub sub category - navigate to form page with sub sub category ID
   const handleEdit = (subSubCategory) => {
-    toast.info('Edit functionality will be implemented soon');
-    console.log('Edit sub sub category:', subSubCategory);
+    console.log(subSubCategory, 'sub sub category');
+    // Only allow editing of sub sub categories (level 2)
+    if (subSubCategory.level !== 2) {
+      toast.error('Only sub sub categories can be edited from this page');
+      return;
+    }
+
+    const finalId = subSubCategory.id || subSubCategory._id;
+    navigate(`/products/subsubcategories/edit/${finalId}`);
   };
 
   // Handle view sub sub category details (placeholder for now)
@@ -210,7 +224,6 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   };
 
   // Use data directly from API (backend handles filtering and pagination)
-  const currentItems = subSubCategories;
 
   if (error) {
     return (
@@ -242,9 +255,9 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
         </div>
       )}
 
-      {loading === false && currentItems.length === 0 && <DataNotFound />}
+      {loading === false && subSubCategories.length === 0 && <DataNotFound />}
 
-      {loading === false && currentItems.length > 0 && (
+      {loading === false && subSubCategories.length > 0 && (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -261,7 +274,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
             </TableHeader>
 
             <TableBody>
-              {currentItems.map((subSubCategory, index) => (
+              {subSubCategories.map((subSubCategory, index) => (
                 <TableRow key={subSubCategory._id}>
                   <TableCell className="text-center font-medium text-gray-900">
                     {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}

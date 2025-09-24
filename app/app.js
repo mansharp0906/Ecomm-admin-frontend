@@ -16,10 +16,13 @@ import NotFound from './containers/NotFound';
 import CategoryForm from './Pages/CategoryForm';
 import CategoryPage from './containers/Products/category/CategoryPage';
 import CategoryFormPage from './containers/Products/category/CategoryFormPage';
+import CategoryView from './containers/Products/category/CategoryView';
 import SubCategory from './containers/Products/sub category/SubCategory';
 import SubCategoryFormPage from './containers/Products/sub category/SubCategoryFormPage';
+import SubCategoryView from './containers/Products/sub category/SubCategoryView';
 import { SubSubCategoryPage } from './containers/Products/sub sub category';
 import SubSubCategoryFormPage from './containers/Products/sub sub category/SubSubCategoryFormPage';
+import SubSubCategoryView from './containers/Products/sub sub category/SubSubCategoryView';
 import Brand from './containers/Products/Brand';
 import Attributes from './containers/Products/Attributes/Attributes';
 import ProductInHouse from './containers/Products/Product/ProductInHouse';
@@ -94,6 +97,10 @@ function App() {
               path="products/categories/edit/:id"
               element={<CategoryFormPage />}
             />
+            <Route
+              path="products/categories/view/:id"
+              element={<CategoryView />}
+            />
             <Route path="/pos" element={<Pos />} />
             <Route path="/pos/report" element={<Pos_report />} />
             <Route path="/products/subcategories" element={<SubCategory />} />
@@ -102,12 +109,28 @@ function App() {
               element={<SubCategoryFormPage />}
             />
             <Route
+              path="/products/subcategories/edit/:id"
+              element={<SubCategoryFormPage />}
+            />
+            <Route
+              path="/products/subcategories/view/:id"
+              element={<SubCategoryView />}
+            />
+            <Route
               path="/products/subsubcategories"
               element={<SubSubCategoryPage />}
             />
             <Route
               path="/products/subsubcategories/add"
               element={<SubSubCategoryFormPage />}
+            />
+            <Route
+              path="/products/subsubcategories/edit/:id"
+              element={<SubSubCategoryFormPage />}
+            />
+            <Route
+              path="/products/subsubcategories/view/:id"
+              element={<SubSubCategoryView />}
             />
             <Route path="/products/brands" element={<Brand />} />
             <Route path="/products/attributes" element={<Attributes />} />
