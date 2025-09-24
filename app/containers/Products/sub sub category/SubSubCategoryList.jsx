@@ -24,17 +24,17 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [allSubCategories, setAllSubCategories] = useState([]);
-  
+
   // Pagination and search state
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 0,
     totalItems: 0,
-    itemsPerPage: 5
+    itemsPerPage: 5,
   });
   const [searchTerm, setSearchTerm] = useState('');
   const searchTimeoutRef = useRef(null);
-  
+
   // Delete modal state
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
@@ -101,11 +101,16 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   useEffect(() => {
     fetchAllSubCategories();
     fetchSubSubCategories(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchSubSubCategories, pagination.currentPage, searchTerm]);
+  }, [
+    refreshTrigger,
+    fetchSubSubCategories,
+    pagination.currentPage,
+    searchTerm,
+  ]);
 
   // Handle page change
   const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
+    setPagination((prev) => ({ ...prev, currentPage: page }));
     fetchSubSubCategories(page, searchTerm);
   };
 
@@ -113,7 +118,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   const handleSearch = (term) => {
     console.log('Search term:', term); // Debug log
     setSearchTerm(term);
-    setPagination(prev => ({ ...prev, currentPage: 1 }));
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
 
     // Clear previous timeout
     if (searchTimeoutRef.current) {
@@ -134,12 +139,12 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   // Get parent sub category name by ID
   const getParentSubCategoryName = (parentId) => {
     if (!parentId) return 'Root Category';
-    
+
     // If parentId is an object (from API response), use its name directly
     if (typeof parentId === 'object' && parentId.name) {
       return parentId.name;
     }
-    
+
     // If parentId is a string, find in allSubCategories
     const parentSubCategory = allSubCategories.find(
       (cat) => cat._id === parentId,
@@ -161,28 +166,36 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   const confirmDelete = async () => {
     if (!deleteModal.itemId) return;
 
-    setDeleteModal(prev => ({ ...prev, isLoading: true }));
-    
+    setDeleteModal((prev) => ({ ...prev, isLoading: true }));
+
     try {
       const response = await categoryService.delete(deleteModal.itemId);
       if (response?.data?.success) {
         toast.success('Sub Sub Category deleted successfully!');
-        
+
         // Remove item from frontend state immediately
-        setSubSubCategories(prev => prev.filter(subSubCategory => subSubCategory._id !== deleteModal.itemId));
-        
+        setSubSubCategories((prev) =>
+          prev.filter(
+            (subSubCategory) => subSubCategory._id !== deleteModal.itemId,
+          ),
+        );
+
         // Update pagination if needed
-        setPagination(prev => ({
+        setPagination((prev) => ({
           ...prev,
           totalItems: prev.totalItems - 1,
-          totalPages: Math.ceil((prev.totalItems - 1) / prev.itemsPerPage)
+          totalPages: Math.ceil((prev.totalItems - 1) / prev.itemsPerPage),
         }));
       } else {
-        toast.error(response?.data?.message || 'Failed to delete sub sub category');
+        toast.error(
+          response?.data?.message || 'Failed to delete sub sub category',
+        );
       }
     } catch (err) {
       console.error('Error deleting sub sub category:', err);
-      toast.error(err?.response?.data?.message || 'Failed to delete sub sub category');
+      toast.error(
+        err?.response?.data?.message || 'Failed to delete sub sub category',
+      );
     } finally {
       // Always close modal after operation (success or error)
       setDeleteModal({
@@ -217,10 +230,10 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
     navigate(`/products/subsubcategories/edit/${finalId}`);
   };
 
-  // Handle view sub sub category details (placeholder for now)
+  // Handle view sub sub category details
   const handleView = (subSubCategory) => {
-    toast.info('View functionality will be implemented soon');
-    console.log('View sub sub category:', subSubCategory);
+    const finalId = subSubCategory.id || subSubCategory._id;
+    navigate(`/products/subsubcategories/view/${finalId}`);
   };
 
   // Use data directly from API (backend handles filtering and pagination)
@@ -277,7 +290,9 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
               {subSubCategories.map((subSubCategory, index) => (
                 <TableRow key={subSubCategory._id}>
                   <TableCell className="text-center font-medium text-gray-900">
-                    {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
+                    {(pagination.currentPage - 1) * pagination.itemsPerPage +
+                      index +
+                      1}
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">
                     {subSubCategory.name}
