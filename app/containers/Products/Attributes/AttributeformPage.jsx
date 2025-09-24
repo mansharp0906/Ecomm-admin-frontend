@@ -12,38 +12,38 @@ const AttributeformPage = () => {
     // Navigate back to Attribute list after successful creation/update
     navigate('/products/attributes');
   };
-   const handleFormCancel = () => {
+  const handleFormCancel = () => {
     // Navigate back to categories list when cancelled
     navigate('/products/attributes');
   };
   return (
-      <Container>
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  {isEditMode ? 'Edit Attributes' : 'Add Attributes'}
-                </h1>
-              </div>
-            </div>
-            <Breadcrumb
-              items={[
-                { label: 'Dashboard', href: '/dashboard' },
-                { label: 'Attributes', href: '/products/attributes' },
-                { label: isEditMode ? 'Edit Attributes' : 'Add New Attributes' },
-              ]}
-            />
+    <Container>
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {isEditMode ? 'Edit Attributes' : 'Add Attributes'}
+            </h1>
           </div>
-    
-          <AttributeForm
-            key={id || 'new'}
-            onSuccess={handleFormSuccess}
-            onCancel={handleFormCancel}
-            categoryId={id}
-            isEditMode={isEditMode}
-          />
-        </Container>
-  )
+        </div>
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Attributes', href: '/products/attributes' },
+            { label: isEditMode ? 'Edit Attributes' : 'Add New Attributes' },
+          ]}
+        />
+      </div>
+
+      <AttributeForm
+        key={id || 'new'}
+        onSuccess={handleFormSuccess}
+        onCancel={handleFormCancel}
+        categoryId={id}
+        isEditMode={isEditMode}
+      />
+    </Container>
+  );
 };
 
 export default AttributeformPage;

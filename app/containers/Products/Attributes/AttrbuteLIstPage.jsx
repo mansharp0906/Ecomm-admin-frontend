@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/custom-button';
-import attributeService from '@/api/service/attributesServices'; // Make sure this is correct!
+import attributeService from '@/api/service/attributeService'; // Make sure this is correct!
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import {
@@ -63,7 +63,9 @@ const AttributeListPage = ({ refreshTrigger }) => {
             totalPages:
               response.data.totalPages ||
               Math.ceil(response.data.total / pagination.itemsPerPage),
-            totalItems: response.data.total || (response.data.data ? response.data.data.length : 0),
+            totalItems:
+              response.data.total ||
+              (response.data.data ? response.data.data.length : 0),
           }));
         } else {
           setError('Failed to fetch attributes');
@@ -76,7 +78,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
         setLoading(false);
       }
     },
-    [pagination.itemsPerPage]
+    [pagination.itemsPerPage],
   );
 
   // Load attributes on mount and when dependencies change
@@ -119,14 +121,20 @@ const AttributeListPage = ({ refreshTrigger }) => {
       const response = await attributeService.delete(deleteModal.itemId);
       if (response?.data?.success) {
         toast.success('Attribute deleted successfully!');
-        setAttributes((prev) => prev.filter((attribute) => attribute._id !== deleteModal.itemId));
+        setAttributes((prev) =>
+          prev.filter((attribute) => attribute._id !== deleteModal.itemId),
+        );
         const newTotalItems = pagination.totalItems - 1;
-        const newTotalPages = Math.max(1, Math.ceil(newTotalItems / pagination.itemsPerPage));
+        const newTotalPages = Math.max(
+          1,
+          Math.ceil(newTotalItems / pagination.itemsPerPage),
+        );
         setPagination((prev) => ({
           ...prev,
           totalItems: newTotalItems,
           totalPages: newTotalPages,
-          currentPage: prev.currentPage > newTotalPages ? newTotalPages : prev.currentPage,
+          currentPage:
+            prev.currentPage > newTotalPages ? newTotalPages : prev.currentPage,
         }));
       } else {
         toast.error(response?.data?.message || 'Failed to delete attribute');
@@ -220,13 +228,17 @@ const AttributeListPage = ({ refreshTrigger }) => {
               {attributes.map((attribute, index) => (
                 <TableRow key={attribute._id}>
                   <TableCell className="text-center font-medium text-gray-900">
-                    {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
+                    {(pagination.currentPage - 1) * pagination.itemsPerPage +
+                      index +
+                      1}
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">
                     {attribute.name}
                   </TableCell>
                   <TableCell className="text-gray-500 max-w-xs">
-                    <div className="break-words whitespace-normal">{attribute.description}</div>
+                    <div className="break-words whitespace-normal">
+                      {attribute.description}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <span
@@ -267,7 +279,9 @@ const AttributeListPage = ({ refreshTrigger }) => {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleDelete(attribute._id, attribute.name)}
+                        onClick={() =>
+                          handleDelete(attribute._id, attribute.name)
+                        }
                         title="Delete"
                       >
                         <CustomIcon type="delete" size={4} />
