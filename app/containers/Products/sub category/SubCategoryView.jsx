@@ -6,6 +6,7 @@ import Breadcrumb from '@/components/custom-pages/Breadcrumb';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
 import CustomIcon from '@/components/custom-icon/CustomIcon';
+import { LoadingData } from '@/components/custom-pages';
 
 const SubCategoryView = () => {
   const { id } = useParams();
@@ -84,10 +85,7 @@ const SubCategoryView = () => {
   if (loading) {
     return (
       <Container>
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2">Loading sub-category details...</span>
-        </div>
+        <LoadingData message="Loading subcatgeories details" />
       </Container>
     );
   }

@@ -26,7 +26,11 @@ const SubSubCategoryFormPage = () => {
           items={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Sub Sub Categories', href: '/products/subsubcategories' },
-            { label: isEditMode ? 'Edit Sub Sub Category' : 'Add Sub Sub Category' },
+            {
+              label: isEditMode
+                ? 'Edit Sub Sub Category'
+                : 'Add Sub Sub Category',
+            },
           ]}
         />
         <div className="flex items-center justify-between">

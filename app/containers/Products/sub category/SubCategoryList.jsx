@@ -17,6 +17,7 @@ import DataNotFound from '@/components/custom-pages/DataNotFound';
 import { SearchBarContainer } from '@/components/custom-search';
 import TableContainer from '@/components/custom-pages/TableContainer';
 import { useNavigate } from 'react-router-dom';
+import { LoadingData } from '@/components/custom-pages';
 
 const SubCategoryList = ({ refreshTrigger }) => {
   const navigate = useNavigate();
@@ -248,12 +249,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
         />
       </SearchBarContainer>
 
-      {loading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2">Loading subcategories...</span>
-        </div>
-      )}
+      {loading && <LoadingData message="Loading data..." />}
 
       {loading === false && subCategories.length === 0 && <DataNotFound />}
 
@@ -266,7 +262,6 @@ const SubCategoryList = ({ refreshTrigger }) => {
                 <TableHead>Sub Category</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>Category ID</TableHead>
                 <TableHead>Level</TableHead>
                 <TableHead>Featured</TableHead>
                 <TableHead>Status</TableHead>

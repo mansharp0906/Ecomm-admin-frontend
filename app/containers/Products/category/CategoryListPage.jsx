@@ -17,6 +17,7 @@ import DataNotFound from '@/components/custom-pages/DataNotFound';
 import { SearchBarContainer } from '@/components/custom-search';
 import TableContainer from '@/components/custom-pages/TableContainer';
 import { useNavigate } from 'react-router-dom';
+import { LoadingData } from '@/components/custom-pages';
 
 const CategoryListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();
@@ -217,12 +218,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
         />
       </SearchBarContainer>
 
-      {loading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2">Loading categories...</span>
-        </div>
-      )}
+      {loading && <LoadingData message="Loading data..." />}
 
       {loading === false && categories.length === 0 && <DataNotFound />}
 
