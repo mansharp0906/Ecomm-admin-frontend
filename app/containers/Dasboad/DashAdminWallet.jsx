@@ -12,6 +12,7 @@ const walletData = [
     label: 'In-House Earning',
     value: '$39,892.00',
     icon: <FaChartBar className="text-blue-600" />,
+    featured: true,  // Mark this as featured for styling
   },
   {
     label: 'Commission Earned',
@@ -38,25 +39,28 @@ const walletData = [
 function DashAdminWallet() {
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4 p-6 bg-white rounded-lg shadow-md">
-         <h3 className="text-lg font-semibold text-gray-800">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4 p-6 bg-white rounded-lg shadow-md">
+        <h3 className="col-span-3 text-lg font-semibold text-gray-800">
           Business Analysis
         </h3>
         {walletData.map((item, index) => (
           <div
             key={index}
-            className="flex items-center gap-4 p-4 border rounded-lg hover:shadow-lg transition"
+            
+            className={`flex items-center gap-4 p-6 border rounded-lg hover:shadow-lg transition ${
+              item.featured ? 'md:col-span-2 bg-blue-100' : ''
+            }`}
           >
-            <div className="text-3xl">{item.icon}</div>
+            <div className="text-4xl">{item.icon}</div>
             <div>
               <p className="text-sm text-gray-500">{item.label}</p>
-              <p className="text-xl font-semibold text-gray-800">
+              <p className="text-2xl font-semibold text-gray-800">
                 {item.value}
               </p>
             </div>
           </div>
         ))}
-     </div>
+      </div>
     </>
   );
 }
