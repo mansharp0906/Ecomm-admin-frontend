@@ -14,7 +14,6 @@ const validationSchema = Yup.object({
     .required('Category name is required')
     .min(2, 'Category name must be at least 2 characters')
     .max(50, 'Category name must be less than 50 characters'),
-  slug: Yup.string(),
   description: Yup.string()
     .required('Description is required')
     .min(10, 'Description must be at least 10 characters')
@@ -43,7 +42,6 @@ const validationSchema = Yup.object({
 const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [formData, setFormData] = useState({
     name: '',
-    slug: '',
     description: '',
     metaTitle: '',
     metaDescription: '',
@@ -67,7 +65,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       const response = await categoryService.getTree();
       if (response?.data) {
         console.log('Full category tree response:', response.data);
-        
+
         // Filter only Level 0 categories (main categories) for dropdown
         const mainCategories = response.data.filter((cat) => cat.level === 0);
         console.log('Main categories (Level 0):', mainCategories);
@@ -146,8 +144,11 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           } else if (category.path) {
             // Try to find a category that matches the path
             console.log('Using path to find parent:', category.path);
-            console.log('Available category IDs:', categories.map(cat => cat._id));
-            
+            console.log(
+              'Available category IDs:',
+              categories.map((cat) => cat._id),
+            );
+
             const parentExists = categories.find(
               (cat) => cat._id === category.path,
             );
@@ -157,18 +158,25 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
             } else {
               console.log('Path does not match any available category');
               console.log('Path ID:', category.path);
-              console.log('Available IDs:', categories.map(cat => cat._id));
-              
+              console.log(
+                'Available IDs:',
+                categories.map((cat) => cat._id),
+              );
+
               // If path doesn't match, this sub-category might not have a proper parent assigned
               // or the parent category is not available in the dropdown
               console.log('Path does not match any available category');
-              console.log('This sub-category may not have a parent assigned or parent is not available');
-              
+              console.log(
+                'This sub-category may not have a parent assigned or parent is not available',
+              );
+
               // For now, leave it empty so user can select the correct parent
               parentId = '';
-              
+
               // Show a warning to the user
-              toast.warning('Parent category not found. Please select the correct parent category.');
+              toast.warning(
+                'Parent category not found. Please select the correct parent category.',
+              );
             }
           } else {
             console.log('No parent information available');
@@ -178,7 +186,6 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
         const newFormData = {
           name: category.name || '',
-          slug: category.slug || '',
           description: category.description || '',
           image: category.image || null,
           priority: category.priority || 1,
@@ -244,7 +251,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       await validationSchema.validate(formData, { abortEarly: false });
 
       // Remove fields that backend doesn't allow
-      const { slug: _slug, image: _image, ...apiData } = formData;
+      const { image: _image, ...apiData } = formData;
       console.log('Sending data to API:', apiData); // Debug log
 
       let response;
@@ -267,7 +274,6 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         // Reset form for both create and edit modes
         setFormData({
           name: '',
-          slug: '',
           description: '',
           image: null,
           metaTitle: '',
@@ -320,7 +326,6 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const handleCancel = () => {
     setFormData({
       name: '',
-      slug: '',
       description: '',
       image: null,
       metaTitle: '',

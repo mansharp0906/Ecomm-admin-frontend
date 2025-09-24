@@ -14,7 +14,6 @@ const validationSchema = Yup.object({
     .required('Sub Sub Category name is required')
     .min(2, 'Sub Sub Category name must be at least 2 characters')
     .max(50, 'Sub Sub Category name must be less than 50 characters'),
-  slug: Yup.string(),
   description: Yup.string()
     .required('Description is required')
     .min(10, 'Description must be at least 10 characters')
@@ -39,10 +38,14 @@ const validationSchema = Yup.object({
   parentId: Yup.string().required('Parent sub category is required'),
 });
 
-const SubSubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
+const SubSubCategoryForm = ({
+  onSuccess,
+  onCancel,
+  categoryId,
+  isEditMode,
+}) => {
   const [formData, setFormData] = useState({
     name: '',
-    slug: '',
     description: '',
     metaTitle: '',
     metaDescription: '',
@@ -135,9 +138,13 @@ const SubSubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => 
       if (category) {
         // Handle parentId - it might be an object, string, or null
         console.log('SubSubCategory data for edit:', category);
-        console.log('ParentId type:', typeof category.parentId, category.parentId);
+        console.log(
+          'ParentId type:',
+          typeof category.parentId,
+          category.parentId,
+        );
         console.log('Path field:', category.path);
-        
+
         let parentId = '';
         if (category.parentId) {
           if (typeof category.parentId === 'object' && category.parentId._id) {
@@ -158,7 +165,6 @@ const SubSubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => 
 
         const newFormData = {
           name: category.name || '',
-          slug: category.slug || '',
           description: category.description || '',
           image: category.image || null,
           priority: category.priority || 1,
@@ -225,9 +231,9 @@ const SubSubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => 
 
       // Remove fields that backend doesn't allow
       // eslint-disable-next-line no-unused-vars
-      const { slug: _slug, image: _image, ...apiData } = formData;
+      const { image: _image, ...apiData } = formData;
       console.log('Sending data to API:', apiData); // Debug log
-      
+
       let response;
       if (isEditMode) {
         response = await categoryService.update(categoryId, apiData);
@@ -248,7 +254,6 @@ const SubSubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => 
         // Reset form for both create and edit modes
         setFormData({
           name: '',
-          slug: '',
           description: '',
           image: null,
           metaTitle: '',
@@ -289,7 +294,8 @@ const SubSubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => 
       } else {
         // Handle other API errors
         const errorMessage =
-          error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'add'} sub sub category`;
+          error.response?.data?.message ||
+          `Failed to ${isEditMode ? 'update' : 'add'} sub sub category`;
         toast.error(errorMessage);
       }
     } finally {
@@ -300,7 +306,6 @@ const SubSubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => 
   const handleCancel = () => {
     setFormData({
       name: '',
-      slug: '',
       description: '',
       image: null,
       metaTitle: '',

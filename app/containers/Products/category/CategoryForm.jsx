@@ -40,7 +40,6 @@ const validationSchema = Yup.object({
 const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [formData, setFormData] = useState({
     name: '',
-    slug: '',
     description: '',
     metaTitle: '',
     metaDescription: '',
@@ -84,7 +83,6 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       if (category) {
         const newFormData = {
           name: category.name || '',
-          slug: category.slug || '',
           description: category.description || '',
           image: category.image || null,
           priority: category.priority || 1,
@@ -143,7 +141,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
       // Remove fields that backend doesn't allow
       // eslint-disable-next-line no-unused-vars
-      const { slug: _slug, image: _image, ...apiData } = formData;
+      const { image: _image, ...apiData } = formData;
 
       let response;
       if (isEditMode) {
@@ -164,7 +162,6 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         // Reset form for both create and edit modes
         setFormData({
           name: '',
-          slug: '',
           description: '',
           image: null,
           metaTitle: '',
@@ -201,7 +198,6 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const handleCancel = () => {
     setFormData({
       name: '',
-      slug: '',
       description: '',
       image: null,
       metaTitle: '',
@@ -237,15 +233,6 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
             onChange={handleInputChange}
             placeholder="Enter category name"
             error={formErrors?.name}
-          />
-
-          <InputTextField
-            label="Slug"
-            name="slug"
-            value={formData.slug}
-            onChange={handleInputChange}
-            placeholder="Enter slug (auto-generated if empty)"
-            error={formErrors?.slug}
           />
 
           <TextAreaField
