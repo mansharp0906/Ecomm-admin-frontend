@@ -139,6 +139,10 @@ function App() {
               path="products/attribute/add"
               element={<AttributeformPage />}
             />
+            <Route
+              path="/products/attributes/edit/:id"
+              element={<AttributeformPage />}
+            />
             <Route path="/products/inhouse" element={<ProductInHouse />} />
             <Route path="/products/vendors" element={<Vendors />} />
             <Route path="/products/import" element={<BulkImpor />} />
