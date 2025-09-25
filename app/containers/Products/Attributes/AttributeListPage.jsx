@@ -16,10 +16,12 @@ import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 import DataNotFound from '@/components/custom-pages/DataNotFound';
 import { SearchBarContainer } from '@/components/custom-search';
 import TableContainer from '@/components/custom-pages/TableContainer';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const AttributeListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const categoryId = new URLSearchParams(location.search).get('categoryId');
   const [attributes, setAttributes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -54,21 +56,41 @@ const AttributeListPage = ({ refreshTrigger }) => {
           ...(search && { search }),
         };
 
-        const response = await attributeService.getAll(params);
-        if (response?.data?.success) {
-          setAttributes(response.data.data || []);
+        const response = categoryId
+          ? await attributeService.getByCategory(categoryId, params)
+          : await attributeService.getAll(params);
+        const payload = response?.data;
+        let items = [];
+        let totalItems = 0;
+        let totalPages = 0;
+        let currentPage = page;
+
+        if (payload?.success) {
+          items = payload.data || [];
+          totalItems = payload.total || (Array.isArray(payload.data) ? payload.data.length : 0);
+          totalPages = payload.totalPages || Math.ceil(totalItems / pagination.itemsPerPage);
+          currentPage = payload.page || page;
+        } else if (Array.isArray(payload)) {
+          items = payload;
+          totalItems = payload.length;
+          totalPages = Math.max(1, Math.ceil(totalItems / pagination.itemsPerPage));
+        } else if (payload?.data && Array.isArray(payload.data)) {
+          items = payload.data;
+          totalItems = payload.total || payload.data.length;
+          totalPages = payload.totalPages || Math.ceil(totalItems / pagination.itemsPerPage);
+          currentPage = payload.page || page;
+        }
+
+        if (!Array.isArray(items)) {
+          setError('Failed to fetch attributes');
+        } else {
+          setAttributes(items);
           setPagination((prev) => ({
             ...prev,
-            currentPage: response.data.page || page,
-            totalPages:
-              response.data.totalPages ||
-              Math.ceil(response.data.total / pagination.itemsPerPage),
-            totalItems:
-              response.data.total ||
-              (response.data.data ? response.data.data.length : 0),
+            currentPage,
+            totalPages,
+            totalItems,
           }));
-        } else {
-          setError('Failed to fetch attributes');
         }
       } catch (err) {
         console.error('Error fetching attributes:', err);
@@ -84,7 +106,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
   // Load attributes on mount and when dependencies change
   useEffect(() => {
     fetchAttributes(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchAttributes, pagination.currentPage, searchTerm]);
+  }, [refreshTrigger, fetchAttributes, pagination.currentPage, searchTerm, categoryId]);
 
   // Handle page change
   const handlePageChange = (page) => {

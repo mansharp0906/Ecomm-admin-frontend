@@ -19,6 +19,22 @@ const attributeService = {
     return api.get(url);
   },
 
+  // Get attributes for a specific category with pagination/search
+  getByCategory: (categoryId, params = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    if (params.search) queryParams.append('search', params.search);
+    if (params.status) queryParams.append('status', params.status);
+    if (params.type) queryParams.append('type', params.type);
+
+    const queryString = queryParams.toString();
+    const url = queryString
+      ? `/attributes/category/${categoryId}?${queryString}`
+      : `/attributes/category/${categoryId}`;
+    return api.get(url);
+  },
+
   getById: (id) => api.get(`/attributes/${id}`),
   create: (data) => api.post('/attributes', data),
   update: (id, data) => api.put(`/attributes/${id}`, data),
