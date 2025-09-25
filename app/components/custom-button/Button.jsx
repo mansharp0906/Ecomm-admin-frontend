@@ -10,11 +10,11 @@ const Button = ({
   disabled = false,
 }) => {
   const baseStyle =
-    'px-4 py-2 rounded-lg font-medium transition duration-200 focus:outline-none focus:ring-2';
+    'px-4 py-2 rounded-lg transition duration-200 focus:outline-none focus:ring-2 uppercase text-sm ';
 
   const variants = {
     primary:
-      'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500',
+      'bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-400',
     secondary:
       'bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-400',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',

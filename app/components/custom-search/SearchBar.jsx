@@ -1,3 +1,4 @@
+// SearchBar.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@/components/custom-button';
@@ -35,22 +36,15 @@ const SearchBar = ({
   }, [value]);
 
   const handleInputChange = (e) => {
-    const newValue = e.target.value;
-    setInternalValue(newValue);
+    setInternalValue(e.target.value);
   };
 
   const handleClear = useCallback(() => {
     setInternalValue('');
-    if (onChange) {
-      onChange('');
-    }
-    if (onClear) {
-      onClear();
-    }
+    if (onChange) onChange('');
+    if (onClear) onClear();
   }, [onChange, onClear]);
 
-
-  // Size variants
   const sizeClasses = {
     sm: 'px-3 py-2 text-sm',
     md: 'px-4 py-2 text-base',
@@ -67,20 +61,25 @@ const SearchBar = ({
     <div className={`relative ${className}`}>
       <div
         className={`
-          relative flex items-center border rounded-lg transition-all duration-200
-          ${isFocused ? 'ring-2 ring-blue-500 border-blue-500' : 'border-gray-300'}
+          relative  flex items-center border rounded-lg transition-all duration-200
+          ${
+            isFocused
+              ? 'ring-2 ring-blue-500 border-blue-500'
+              : 'border-gray-300'
+          }
           ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
-          ${sizeClasses[size]}
         `}
       >
         {/* Search Icon */}
         {showSearchIcon && (
-          <div className="flex-shrink-0 mr-3">
+          <div className="flex-shrink-0 ml-3 mr-2 text-gray-400">
             {loading ? (
-              <div className={`animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 ${iconSizes[size]}`}></div>
+              <div
+                className={`animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 ${iconSizes[size]}`}
+              ></div>
             ) : (
               <svg
-                className={`text-gray-400 ${iconSizes[size]}`}
+                className={iconSizes[size]}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -105,15 +104,22 @@ const SearchBar = ({
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
           disabled={disabled}
-          className={`
-            flex-1 bg-transparent border-none outline-none placeholder-gray-400
-            ${disabled ? 'cursor-not-allowed' : 'cursor-text'}
-            ${sizeClasses[size]}
-          `}
+          className={`flex-1 bg-transparent border-none outline-none placeholder-gray-400 ${
+            disabled ? 'cursor-not-allowed' : 'cursor-text'
+          } ${sizeClasses[size]}`}
         />
 
+        {/* Clear Button */}
+        {showClearButton && internalValue && !disabled && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className={`absolute right-2 text-gray-400 hover:text-gray-600`}
+          >
+            &#x2715;
+          </button>
+        )}
       </div>
-
     </div>
   );
 };

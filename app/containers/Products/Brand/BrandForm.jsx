@@ -2,7 +2,7 @@ import { Button } from '@/components/custom-button';
 import InputTextField from '@/components/custom-input-field/InputTextField';
 import SelectField from '@/components/custom-forms/SelectField';
 import TextAreaField from '@/components/custom-forms/TextAreaField';
-import categoryService from '@/api/service/categoryService';
+import brandService from '@/api/service/brandService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
@@ -36,59 +36,29 @@ const validationSchema = Yup.object({
   status: Yup.string()
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
-  parentId: Yup.string().required('Parent category is required'),
-  // isFeatured: Yup.boolean(),
 });
 
-const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
+const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
     metaTitle: '',
     metaDescription: '',
     image: null,
+    banner: null,
     priority: 1,
     status: 'active',
-    parentId: '',
-    isFeatured: false,
   });
 
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
 
-  // Fetch all categories for dropdown
-  const fetchCategories = async () => {
-    setLoadingCategories(true);
-    try {
-      const response = await categoryService.getTree();
-      if (response?.data) {
-        // Filter only Level 0 categories (main categories) for dropdown
-        const mainCategories = response.data.filter((cat) => cat.level === 0);
-
-        const formattedCategories = mainCategories.map((cat) => ({
-          ...cat,
-          displayName: `${cat.name} (Level ${cat.level})`,
-        }));
-
-        setCategories(formattedCategories);
-      }
-    } catch (error) {
-      toast.error('Failed to load categories');
-    } finally {
-      setLoadingCategories(false);
-    }
-  };
-
-  // Fetch category data for edit mode
   const fetchCategoryData = useCallback(async () => {
     try {
       setIsLoadingData(true);
 
-      // Use categoryService instead of direct fetch
-      let response = await categoryService.getById(categoryId);
+      // Use BandsServices instead of direct fetch
+      let response = await brandService.getById(bandId);
 
       // Check if response is HTML (error page)
       if (
@@ -100,120 +70,56 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       }
 
       // Determine the correct data structure
-      let category;
+      let brand;
       if (response?.data?.success) {
-        category = response.data.data;
+        brand = response.data.data;
       } else if (response?.data) {
         // If response.data exists but no success field, assume data is directly in response.data
-        category = response.data;
+        brand = response.data;
       } else {
-        toast.error('Failed to fetch sub category data');
+        toast.error('Failed to fetch brand data');
         return;
       }
 
-      if (category) {
-        // Handle parentId - it might be an object, string, or null
-
-        console.log(
-          'ParentId type:',
-          typeof category.parentId,
-          category.parentId,
-        );
-
-        let parentId = '';
-        if (category.parentId) {
-          if (typeof category.parentId === 'object' && category.parentId._id) {
-            parentId = category.parentId._id;
-            console.log('Extracted parentId from object:', parentId);
-          } else if (typeof category.parentId === 'string') {
-            parentId = category.parentId;
-          }
-        } else if (category.parentId === null) {
-          // If parentId is null, check if there's a parent field or if we need to use path
-          console.log('ParentId is null, checking for parent field...');
-          if (category.parent && category.parent._id) {
-            parentId = category.parent._id;
-            console.log('Found parent field, using parent._id:', parentId);
-          } else if (category.path) {
-            // Try to find a category that matches the path
-            console.log('Using path to find parent:', category.path);
-            console.log(
-              'Available category IDs:',
-              categories.map((cat) => cat._id),
-            );
-
-            const parentExists = categories.find(
-              (cat) => cat._id === category.path,
-            );
-            if (parentExists) {
-              parentId = category.path;
-            } else {
-              console.log('Path does not match any available category');
-              console.log('Path ID:', category.path);
-              console.log(
-                'Available IDs:',
-                categories.map((cat) => cat._id),
-              );
-
-              // For now, leave it empty so user can select the correct parent
-              parentId = '';
-
-              // Show a warning to the user
-              toast.warning(
-                'Parent category not found. Please select the correct parent category.',
-              );
-            }
-          } else {
-            parentId = '';
-          }
-        }
-
+      if (brand) {
         const newFormData = {
-          name: category.name || '',
-          description: category.description || '',
-          image: category.image || null,
-          priority: category.priority || 1,
-          status: category.status || 'active',
-          isFeatured: category.isFeatured || false,
-          metaTitle: category.metaTitle || '',
-          metaDescription: category.metaDescription || '',
-          parentId: parentId,
+          name: brand.name || '',
+          image: brand.image || null,
+          banner: brand.image || null,
+          priority: brand.priority || 1,
+          status: brand.status || 'active',
+          isFeatured: brand.isFeatured || false,
+          metaTitle: brand.metaTitle || '',
+          metaDescription: brand.metaDescription || '',
         };
 
         setFormData(newFormData);
-        s;
-        console.log('Available categories:', categories);
       } else {
-        toast.error('No sub category data found');
+        toast.error('No brand data found');
       }
     } catch (error) {
       // Check if it's a JSON parsing error
       if (error.message.includes('Unexpected token')) {
         toast.error('Server returned invalid response format');
       } else {
-        toast.error('Failed to fetch sub category data: ' + error.message);
+        toast.error('Failed to fetch brand data: ' + error.message);
       }
     } finally {
       setIsLoadingData(false);
     }
-  }, [categoryId]);
-
-  // Load categories on component mount
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  }, [bandId]);
 
   useEffect(() => {
-    if (isEditMode && categoryId && categories.length > 0) {
+    if (isEditMode && bandId) {
       fetchCategoryData();
     }
-  }, [isEditMode, categoryId, fetchCategoryData, categories.length]);
+  }, [isEditMode, bandId, fetchCategoryData]);
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
     });
 
     // Clear error for this field when user starts typing
@@ -235,13 +141,14 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       await validationSchema.validate(formData, { abortEarly: false });
 
       // Remove fields that backend doesn't allow
+      // eslint-disable-next-line no-unused-vars
       const { image: _image, ...apiData } = formData;
 
       let response;
       if (isEditMode) {
-        response = await categoryService.update(categoryId, apiData);
+        response = await brandService.update(bandId, apiData);
       } else {
-        response = await categoryService.create(apiData);
+        response = await brandService.create(apiData);
       }
 
       const isSuccess =
@@ -250,20 +157,18 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
       if (isSuccess) {
         toast.success(
-          `Sub Category ${isEditMode ? 'updated' : 'added'} successfully!`,
+          `Category ${isEditMode ? 'updated' : 'added'} successfully!`,
         );
 
         // Reset form for both create and edit modes
         setFormData({
           name: '',
-          description: '',
           image: null,
+          banner: null,
           metaTitle: '',
           metaDescription: '',
           priority: 1,
           status: 'active',
-          parentId: '',
-          isFeatured: false,
         });
         setFormErrors({});
 
@@ -272,7 +177,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           onSuccess(response.data.data || response.data);
         }
       } else {
-        toast.error('Failed to save sub category');
+        toast.error('Failed to save Bands');
       }
     } catch (error) {
       if (error.name === 'ValidationError') {
@@ -283,20 +188,8 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         });
         setFormErrors(validationErrors);
         toast.error('Please fix the validation errors');
-      } else if (
-        error.response?.status === 500 &&
-        error.response?.data?.error?.includes('duplicate key')
-      ) {
-        // Handle duplicate slug error
-        toast.error(
-          'A category with this name already exists. Please choose a different name.',
-        );
       } else {
-        // Handle other API errors
-        const errorMessage =
-          error.response?.data?.message ||
-          `Failed to ${isEditMode ? 'update' : 'add'} sub category`;
-        toast.error(errorMessage);
+        toast.error(error.response?.data?.message || 'Failed to add Brands');
       }
     } finally {
       setLoading(false);
@@ -306,14 +199,12 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const handleCancel = () => {
     setFormData({
       name: '',
-      description: '',
       image: null,
+      banner: null,
       metaTitle: '',
       metaDescription: '',
       priority: 1,
       status: 'active',
-      parentId: '',
-      isFeatured: false,
     });
     setFormErrors({});
     if (onCancel) {
@@ -325,64 +216,21 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     <>
       {/* Form */}
       <div className="bg-white rounded-lg shadow">
-        {isEditMode && loadingCategories ? (
-          <LoadingData message="Loading data..." />
+        {isEditMode && isLoadingData ? (
+          <LoadingData message="Loading data..." size="50px" />
         ) : (
-          <form
-            style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
+          <form style={{ minHeight: '400px', overflowY: 'auto' ,height: '450px'}}
             onSubmit={handleSubmit}
             className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2"
           >
-            <SelectField
-              label="Category"
-              name="parentId"
-              value={formData.parentId}
-              onChange={handleInputChange}
-              options={(() => {
-                const options = [
-                  { value: '', label: 'Select Category' },
-                  ...categories.map((cat) => ({
-                    value: cat._id,
-                    label: cat.displayName,
-                  })),
-                ];
-                console.log('Dropdown options:', options);
-                console.log(
-                  'Looking for parentId in options:',
-                  formData.parentId,
-                );
-                const foundOption = options.find(
-                  (opt) => opt.value === formData.parentId,
-                );
-
-                return options;
-              })()}
-              error={formErrors?.parentId}
-              disabled={loadingCategories}
-            />
-
             <InputTextField
-              label="Sub Category Name"
+              label="Brand Name"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="Enter sub category"
+              placeholder="Enter Brand name"
               error={formErrors?.name}
             />
-
-            {/* {loadingCategories && <LoadingData message="Loading categories" />} */}
-
-            <TextAreaField
-              label="Description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Enter sub category description"
-              rows={2}
-              error={formErrors?.description}
-              className="sm:col-span-2"
-            />
-
             <InputTextField
               label="Image URL"
               type="url"
@@ -391,6 +239,15 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               onChange={handleInputChange}
               placeholder="https://example.com/image.jpg"
               error={formErrors?.image}
+            />
+            <InputTextField
+              label="Banner URL"
+              type="url"
+              name="banner"
+              value={formData.banner || ''}
+              onChange={handleInputChange}
+              placeholder="https://example.com/image.jpg"
+              error={formErrors?.banner}
             />
 
             <InputTextField
@@ -457,8 +314,8 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                     ? 'Updating...'
                     : 'Adding...'
                   : isEditMode
-                  ? 'Update Sub Category'
-                  : 'Add Sub Category'}
+                  ? 'Update Band'
+                  : 'Add Band'}
               </Button>
             </div>
           </form>
@@ -468,11 +325,4 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   );
 };
 
-SubCategoryForm.propTypes = {
-  onSuccess: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  categoryId: PropTypes.string,
-  isEditMode: PropTypes.bool,
-};
-
-export default SubCategoryForm;
+export default BrandForm;

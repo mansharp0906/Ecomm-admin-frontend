@@ -15,13 +15,19 @@ import ForgotPasswordPage from './containers/Auth/ForgotPasswordPage';
 import NotFound from './containers/NotFound';
 import CategoryForm from './Pages/CategoryForm';
 import CategoryPage from './containers/Products/category/CategoryPage';
+import CategoryFormPage from './containers/Products/category/CategoryFormPage';
+import CategoryView from './containers/Products/category/CategoryView';
 import SubCategory from './containers/Products/sub category/SubCategory';
+import SubCategoryFormPage from './containers/Products/sub category/SubCategoryFormPage';
+import SubCategoryView from './containers/Products/sub category/SubCategoryView';
 import { SubSubCategoryPage } from './containers/Products/sub sub category';
-import Brand from './containers/Products/Brand';
-import Attributes from './containers/Products/Attributes';
-import ProductInHouse from './containers/Products/ProductInHouse';
-import Vendors from './containers/Products/Vendors';
-import BulkImpor from './containers/Products/BulkImpor';
+import SubSubCategoryFormPage from './containers/Products/sub sub category/SubSubCategoryFormPage';
+import SubSubCategoryView from './containers/Products/sub sub category/SubSubCategoryView';
+import Brand from './containers/Products/Brand/BrandPage';
+import Attributes from './containers/Products/Attributes/AttributePage';
+import ProductInHouse from './containers/Products/Product/ProductInHouse';
+import Vendors from './containers/Products/Ventors/Vendors';
+import BulkImpor from './containers/Products/Bulk/BulkImpor';
 import Pos from './containers/Products/Pos';
 import Pos_report from './containers/Products/Pos_report';
 import AllOrders from './containers/Orders/AllOrders';
@@ -52,6 +58,10 @@ import Payment_method from './containers/Business_Setting/Payment_method';
 import Seo_setting from './containers/Business_Setting/Seo_setting';
 import './styles/toast.css';
 import 'react-toastify/dist/ReactToastify.css';
+import AttributeformPage from './containers/Products/Attributes/AttributeformPage';
+import BrandFormPage from './containers/Products/Brand/BrandFormPage';
+import BrandView from './containers/Products/Brand/BrandView';
+import AttributeView from './containers/Products/Attributes/AttributeView';
 // import './styles/toast.css';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -83,15 +93,69 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             {/* products */}
             <Route path="products/categories" element={<CategoryPage />} />
+            <Route
+              path="products/categories/add"
+              element={<CategoryFormPage />}
+            />
+            <Route
+              path="products/categories/edit/:id"
+              element={<CategoryFormPage />}
+            />
+            <Route
+              path="products/categories/view/:id"
+              element={<CategoryView />}
+            />
             <Route path="/pos" element={<Pos />} />
             <Route path="/pos/report" element={<Pos_report />} />
             <Route path="/products/subcategories" element={<SubCategory />} />
             <Route
+              path="/products/subcategories/add"
+              element={<SubCategoryFormPage />}
+            />
+            <Route
+              path="/products/subcategories/edit/:id"
+              element={<SubCategoryFormPage />}
+            />
+            <Route
+              path="/products/subcategories/view/:id"
+              element={<SubCategoryView />}
+            />
+            <Route
               path="/products/subsubcategories"
               element={<SubSubCategoryPage />}
             />
+            <Route
+              path="/products/subsubcategories/add"
+              element={<SubSubCategoryFormPage />}
+            />
+            <Route
+              path="/products/subsubcategories/edit/:id"
+              element={<SubSubCategoryFormPage />}
+            />
+            <Route
+              path="/products/subsubcategories/view/:id"
+              element={<SubSubCategoryView />}
+            />
             <Route path="/products/brands" element={<Brand />} />
+            <Route path="products/brands/add" element={<BrandFormPage />} />
+            <Route
+              path="products/brands/edit/:id"
+              element={<BrandFormPage />}
+            />
+            <Route path="/products/brands/view/:id" element={<BrandView />} />
             <Route path="/products/attributes" element={<Attributes />} />
+            <Route
+              path="products/attributes/add"
+              element={<AttributeformPage />}
+            />
+            <Route
+              path="products/attributes/edit/:id"
+              element={<AttributeformPage />}
+            />
+            <Route
+              path="/products/attributes/view/:id"
+              element={<AttributeView />}
+            />
             <Route path="/products/inhouse" element={<ProductInHouse />} />
             <Route path="/products/vendors" element={<Vendors />} />
             <Route path="/products/import" element={<BulkImpor />} />

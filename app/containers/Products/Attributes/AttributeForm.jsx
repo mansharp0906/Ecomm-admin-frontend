@@ -1,10 +1,8 @@
 import { Button } from '@/components/custom-button';
 import InputTextField from '@/components/custom-input-field/InputTextField';
 import SelectField from '@/components/custom-forms/SelectField';
-import TextAreaField from '@/components/custom-forms/TextAreaField';
-import categoryService from '@/api/service/categoryService';
-import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import React, { useState, useEffect, useCallback } from 'react';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
 import { LoadingData } from '@/components/custom-pages';
@@ -12,22 +10,9 @@ import { LoadingData } from '@/components/custom-pages';
 // Validation schema
 const validationSchema = Yup.object({
   name: Yup.string()
-    .required('Category name is required')
-    .min(2, 'Category name must be at least 2 characters')
-    .max(50, 'Category name must be less than 50 characters'),
-  description: Yup.string()
-    .required('Description is required')
-    .min(10, 'Description must be at least 10 characters')
-    .max(500, 'Description must be less than 500 characters'),
-  metaTitle: Yup.string()
-    .required('Meta title is required')
-    .min(10, 'Meta title must be at least 10 characters')
-    .max(60, 'Meta title must be less than 60 characters'),
-  metaDescription: Yup.string()
-    .required('Meta description is required')
-    .min(20, 'Meta description must be at least 20 characters')
-    .max(160, 'Meta description must be less than 160 characters'),
-  image: Yup.string().url('Please enter a valid URL').nullable(),
+    .required('Atrribute name is required')
+    .min(2, 'Attribute name must be at least 2 characters')
+    .max(50, 'Attribute name must be less than 50 characters'),
   priority: Yup.number()
     .required('Priority is required')
     .min(1, 'Priority must be at least 1')
@@ -38,27 +23,21 @@ const validationSchema = Yup.object({
     .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
 });
 
-const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
+const AttributeForm = ({ onSuccess, onCancel, AttributeId, isEditMode }) => {
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
-    metaTitle: '',
-    metaDescription: '',
-    image: null,
     priority: 1,
     status: 'active',
   });
-
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
-
   const fetchCategoryData = useCallback(async () => {
     try {
       setIsLoadingData(true);
 
       // Use categoryService instead of direct fetch
-      let response = await categoryService.getById(categoryId);
+      let response = await categoryService.getById(AttributeId);
 
       // Check if response is HTML (error page)
       if (
@@ -84,13 +63,8 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       if (category) {
         const newFormData = {
           name: category.name || '',
-          description: category.description || '',
-          image: category.image || null,
           priority: category.priority || 1,
           status: category.status || 'active',
-          isFeatured: category.isFeatured || false,
-          metaTitle: category.metaTitle || '',
-          metaDescription: category.metaDescription || '',
         };
 
         setFormData(newFormData);
@@ -107,13 +81,13 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     } finally {
       setIsLoadingData(false);
     }
-  }, [categoryId]);
+  }, [AttributeId]);
 
   useEffect(() => {
-    if (isEditMode && categoryId) {
+    if (isEditMode && AttributeId) {
       fetchCategoryData();
     }
-  }, [isEditMode, categoryId, fetchCategoryData]);
+  }, [isEditMode, AttributeId, fetchCategoryData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -142,11 +116,11 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
       // Remove fields that backend doesn't allow
       // eslint-disable-next-line no-unused-vars
-      const { image: _image, ...apiData } = formData;
+      // const { slug: _slug, image: _image, ...apiData } = formData;
 
       let response;
       if (isEditMode) {
-        response = await categoryService.update(categoryId, apiData);
+        response = await categoryService.update(AttributeId, apiData);
       } else {
         response = await categoryService.create(apiData);
       }
@@ -163,10 +137,6 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         // Reset form for both create and edit modes
         setFormData({
           name: '',
-          description: '',
-          image: null,
-          metaTitle: '',
-          metaDescription: '',
           priority: 1,
           status: 'active',
         });
@@ -199,10 +169,6 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const handleCancel = () => {
     setFormData({
       name: '',
-      description: '',
-      image: null,
-      metaTitle: '',
-      metaDescription: '',
       priority: 1,
       status: 'active',
     });
@@ -217,7 +183,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       {/* Form */}
       <div className="bg-white rounded-lg shadow">
         {isEditMode && isLoadingData ? (
-          <LoadingData message="Loading data..." size="50px" />
+          <LoadingData message="Loading data..." />
         ) : (
           <form
             style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
@@ -225,53 +191,12 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
             className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2"
           >
             <InputTextField
-              label="Category Name"
+              label="Attribute Name"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="Enter category name"
+              placeholder="Enter Attribute Name"
               error={formErrors?.name}
-            />
-
-            <TextAreaField
-              label="Description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Enter category description"
-              rows={2}
-              error={formErrors?.description}
-              className="sm:col-span-2"
-            />
-
-            <InputTextField
-              label="Image URL"
-              type="url"
-              name="image"
-              value={formData.image || ''}
-              onChange={handleInputChange}
-              placeholder="https://example.com/image.jpg"
-              error={formErrors?.image}
-            />
-
-            <InputTextField
-              label="Meta Title"
-              name="metaTitle"
-              value={formData.metaTitle}
-              onChange={handleInputChange}
-              placeholder="Enter meta title"
-              error={formErrors?.metaTitle}
-            />
-
-            <TextAreaField
-              label="Meta Description"
-              name="metaDescription"
-              value={formData.metaDescription}
-              onChange={handleInputChange}
-              placeholder="Enter meta description"
-              rows={2}
-              error={formErrors?.metaDescription}
-              className="sm:col-span-2"
             />
 
             <InputTextField
@@ -282,6 +207,17 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               onChange={handleInputChange}
               placeholder="e.g. 1"
               error={formErrors?.priority}
+            />
+            <SelectField
+              label="Value"
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              options={[
+                { value: 'active', label: 'Black' },
+                { value: 'inactive', label: 'white' },
+              ]}
+              error={formErrors?.status}
             />
 
             <SelectField
@@ -318,8 +254,8 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                     ? 'Updating...'
                     : 'Adding...'
                   : isEditMode
-                  ? 'Update Category'
-                  : 'Add Category'}
+                  ? 'Update Attribute'
+                  : 'Add Attribute'}
               </Button>
             </div>
           </form>
@@ -329,11 +265,4 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   );
 };
 
-CategoryForm.propTypes = {
-  onSuccess: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  categoryId: PropTypes.string,
-  isEditMode: PropTypes.bool,
-};
-
-export default CategoryForm;
+export default AttributeForm;
