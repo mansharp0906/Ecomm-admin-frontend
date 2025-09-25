@@ -17,6 +17,7 @@ import DataNotFound from '@/components/custom-pages/DataNotFound';
 import { SearchBarContainer } from '@/components/custom-search';
 import TableContainer from '@/components/custom-pages/TableContainer';
 import { useNavigate } from 'react-router-dom';
+import { LoadingData } from '@/components/custom-pages';
 
 const AttributeListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();
@@ -132,7 +133,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
         toast.error(response?.data?.message || 'Failed to delete attribute');
       }
     } catch (err) {
-      console.error('Error deleting attribute:', err);
+      // console.error('Error deleting attribute:', err);
       toast.error(err?.response?.data?.message || 'Failed to delete attribute');
     } finally {
       setDeleteModal({
@@ -167,20 +168,11 @@ const AttributeListPage = ({ refreshTrigger }) => {
 
   // View handler
   const handleView = (attribute) => {
-    toast.info('View functionality will be implemented soon');
-    console.log('View attribute:', attribute);
-  };
-
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-600 mb-4">{error}</p>
-        <Button onClick={() => fetchAttributes()} variant="primary">
-          Retry
-        </Button>
-      </div>
-    );
-  }
+      const finalId = attribute.id || attribute._id;
+      navigate(`/products/attributes/view/${finalId}`);
+    };
+  
+ 
 
   return (
     <TableContainer>
@@ -195,10 +187,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
       </SearchBarContainer>
 
       {loading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2">Loading attributes...</span>
-        </div>
+        <LoadingData message='loadind data...'/>
       )}
 
       {!loading && attributes.length === 0 && <DataNotFound />}

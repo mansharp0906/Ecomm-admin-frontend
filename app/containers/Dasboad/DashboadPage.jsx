@@ -263,11 +263,11 @@ function DashboardPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 ">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8  ">
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="bg-white shadow rounded-lg p-4 relative hover:shadow-md transition-shadow font-bold"
+            className="bg-white border-t shadow rounded-lg p-4 relative hover:shadow-md transition-shadow font-bold"
           >
             <div className="absolute top-3 right-3 bg-gray-100 p-2 rounded-full">
               {stat.icon}
