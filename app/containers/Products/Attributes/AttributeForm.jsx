@@ -11,42 +11,42 @@ import { toast } from 'react-toastify';
 import LoadingData from '@/components/custom-pages/LoadingData';
 
 // Validation schema for Attribute payload
-const validationSchema = Yup.object({
-  name: Yup.string()
-    .required('Attribute name is required')
-    .min(2, 'Attribute name must be at least 2 characters')
-    .max(50, 'Attribute name must be less than 50 characters'),
-  displayType: Yup.string()
-    .required('Display type is required')
-    .oneOf(['color', 'text', 'image'], 'Invalid display type'),
-  isFilterable: Yup.boolean().required(),
-  isRequired: Yup.boolean().required(),
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
-  parentId: Yup.string().trim().required('Category is required'),
-  values: Yup.array()
-    .of(
-      Yup.object({
-        value: Yup.string().trim().required('Value is required'),
-        color: Yup.string().when('$displayType', {
-          is: 'color',
-          then: (schema) => schema.required('Color is required for color type'),
-          otherwise: (schema) => schema.notRequired(),
-        }),
-        image: Yup.string()
-          .url('Please enter a valid URL')
-          .when('$displayType', {
-            is: 'image',
-            then: (schema) => schema.required('Image URL is required for image type'),
-            otherwise: (schema) => schema.notRequired().nullable(),
-          }),
-        isDefault: Yup.boolean().required(),
-      }),
-    )
-    .min(1, 'Add at least one value')
-    .required('Values are required'),
-});
+// const validationSchema = Yup.object({
+//   name: Yup.string()
+//     .required('Attribute name is required')
+//     .min(2, 'Attribute name must be at least 2 characters')
+//     .max(50, 'Attribute name must be less than 50 characters'),
+//   displayType: Yup.string()
+//     .required('Display type is required')
+//     .oneOf(['color', 'text', 'image'], 'Invalid display type'),
+//   isFilterable: Yup.boolean().required(),
+//   isRequired: Yup.boolean().required(),
+//   status: Yup.string()
+//     .required('Status is required')
+//     .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
+//   parentId: Yup.string().trim().required('Category is required'),
+//   values: Yup.array()
+//     .of(
+//       Yup.object({
+//         value: Yup.string().trim().required('Value is required'),
+//         color: Yup.string().when('$displayType', {
+//           is: 'color',
+//           then: (schema) => schema.required('Color is required for color type'),
+//           otherwise: (schema) => schema.notRequired(),
+//         }),
+//         image: Yup.string()
+//           .url('Please enter a valid URL')
+//           .when('$displayType', {
+//             is: 'image',
+//             then: (schema) => schema.required('Image URL is required for image type'),
+//             otherwise: (schema) => schema.notRequired().nullable(),
+//           }),
+//         isDefault: Yup.boolean().required(),
+//       }),
+//     )
+//     .min(1, 'Add at least one value')
+//     .required('Values are required'),
+// });
 
 const displayTypes = [
   { label: 'Color', value: 'color' },
@@ -181,11 +181,11 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     setFormErrors({});
 
     try {
-      // Validate form data with context for conditional fields
-      await validationSchema.validate(formData, {
-        abortEarly: false,
-        context: { displayType: formData.displayType },
-      });
+      // Validation temporarily disabled
+      // await validationSchema.validate(formData, {
+      //   abortEarly: false,
+      //   context: { displayType: formData.displayType },
+      // });
 
       const apiData = {
         name: formData.name,
@@ -386,8 +386,8 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                     ? 'Updating...'
                     : 'Adding...'
                   : isEditMode
-                  ? 'Update Attribute'
-                  : 'Add Attribute'}
+                  ? 'Update'
+                  : 'Add'}
               </Button>
             </div>
           </div>
