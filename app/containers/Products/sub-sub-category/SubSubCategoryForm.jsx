@@ -8,38 +8,9 @@ import {
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import * as Yup from 'yup';
+import { useValidation } from '@/validations';
+import { subSubCategoryCreateSchema, subSubCategoryUpdateSchema } from '@/validations';
 import PropTypes from 'prop-types';
-
-// Validation schema
-const validationSchema = Yup.object({
-  name: Yup.string()
-    .required('Sub Sub Category name is required')
-    .min(2, 'Sub Sub Category name must be at least 2 characters')
-    .max(50, 'Sub Sub Category name must be less than 50 characters'),
-  description: Yup.string()
-    .required('Description is required')
-    .min(10, 'Description must be at least 10 characters')
-    .max(500, 'Description must be less than 500 characters'),
-  metaTitle: Yup.string()
-    .required('Meta title is required')
-    .min(10, 'Meta title must be at least 10 characters')
-    .max(60, 'Meta title must be less than 60 characters'),
-  metaDescription: Yup.string()
-    .required('Meta description is required')
-    .min(20, 'Meta description must be at least 20 characters')
-    .max(160, 'Meta description must be less than 160 characters'),
-  image: Yup.string().url('Please enter a valid URL').nullable(),
-  priority: Yup.number()
-    .required('Priority is required')
-    .min(1, 'Priority must be at least 1')
-    .max(100, 'Priority must be less than 100')
-    .integer('Priority must be a whole number'),
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
-  parentId: Yup.string().required('Parent sub category is required'),
-});
 
 const SubSubCategoryForm = ({
   onSuccess,
@@ -57,13 +28,17 @@ const SubSubCategoryForm = ({
     status: 'active',
     parentId: '',
     isFeatured: false,
+    level: 2, // Add level field for sub-sub-category
   });
 
-  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [subCategories, setSubCategories] = useState([]);
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
+
+  // Use validation hook
+  const validationSchema = isEditMode ? subSubCategoryUpdateSchema : subSubCategoryCreateSchema;
+  const { validate, errors, setErrors } = useValidation(validationSchema);
 
   // Fetch all sub categories (level 1) for dropdown
   const fetchSubCategories = async () => {
@@ -210,9 +185,9 @@ const SubSubCategoryForm = ({
     });
 
     // Clear error for this field when user starts typing
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
+    if (errors[name]) {
+      setErrors({
+        ...errors,
         [name]: '',
       });
     }
@@ -221,11 +196,15 @@ const SubSubCategoryForm = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setFormErrors({});
+    setErrors({});
 
     try {
-      // Validate form data
-      await validationSchema.validate(formData, { abortEarly: false });
+      // Validate form data using validation hook
+      const isValid = await validate(formData);
+      if (!isValid) {
+        setLoading(false);
+        return;
+      }
 
       // Remove fields that backend doesn't allow
       // eslint-disable-next-line no-unused-vars
@@ -259,7 +238,7 @@ const SubSubCategoryForm = ({
           parentId: '',
           isFeatured: false,
         });
-        setFormErrors({});
+        setErrors({});
 
         // Notify parent component (this will trigger navigation)
         if (onSuccess) {
@@ -275,7 +254,7 @@ const SubSubCategoryForm = ({
         error.inner.forEach((err) => {
           validationErrors[err.path] = err.message;
         });
-        setFormErrors(validationErrors);
+        setErrors(validationErrors);
         toast.error('Please fix the validation errors');
       } else if (
         error.response?.status === 500 &&
@@ -309,7 +288,7 @@ const SubSubCategoryForm = ({
       parentId: '',
       isFeatured: false,
     });
-    setFormErrors({});
+    setErrors({});
     if (onCancel) {
       onCancel();
     }
@@ -338,7 +317,7 @@ const SubSubCategoryForm = ({
                   label: cat.displayName,
                 })),
               ]}
-              error={formErrors?.parentId}
+              error={errors?.parentId}
               disabled={loadingSubCategories}
             />
 
@@ -348,7 +327,7 @@ const SubSubCategoryForm = ({
               value={formData.name}
               onChange={handleInputChange}
               placeholder="Enter sub sub category name"
-              error={formErrors?.name}
+              error={errors?.name}
             />
 
             <TextAreaField
@@ -358,7 +337,7 @@ const SubSubCategoryForm = ({
               onChange={handleInputChange}
               placeholder="Enter sub sub category description"
               rows={2}
-              error={formErrors?.description}
+              error={errors?.description}
               className="sm:col-span-2"
             />
 
@@ -369,7 +348,7 @@ const SubSubCategoryForm = ({
               value={formData.image || ''}
               onChange={handleInputChange}
               placeholder="https://example.com/image.jpg"
-              error={formErrors?.image}
+              error={errors?.image}
             />
 
             <InputTextField
@@ -378,7 +357,7 @@ const SubSubCategoryForm = ({
               value={formData.metaTitle}
               onChange={handleInputChange}
               placeholder="Enter meta title"
-              error={formErrors?.metaTitle}
+              error={errors?.metaTitle}
             />
 
             <TextAreaField
@@ -388,7 +367,7 @@ const SubSubCategoryForm = ({
               onChange={handleInputChange}
               placeholder="Enter meta description"
               rows={2}
-              error={formErrors?.metaDescription}
+              error={errors?.metaDescription}
               className="sm:col-span-2"
             />
 
@@ -399,7 +378,7 @@ const SubSubCategoryForm = ({
               value={formData.priority}
               onChange={handleInputChange}
               placeholder="e.g. 1"
-              error={formErrors?.priority}
+              error={errors?.priority}
             />
 
             <SelectField
@@ -411,7 +390,7 @@ const SubSubCategoryForm = ({
                 { value: 'active', label: 'Active' },
                 { value: 'inactive', label: 'Inactive' },
               ]}
-              error={formErrors?.status}
+              error={errors?.status}
             />
 
             {/* Buttons should span full width */}

@@ -83,124 +83,124 @@ function App() {
       <BrowserRouter>
         <ErrorBoundary>
           <Routes>
-          {/* Auth pages without Layout */}
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            {/* Auth pages without Layout */}
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-          {/* Protected pages with Layout */}
-          <Route path="/" element={<Layout />}>
-            <Route path="dashboard" element={<Dashboard />} />
-            {/* products */}
-            <Route path="products/categories" element={<CategoryPage />} />
-            <Route
-              path="products/categories/add"
-              element={<CategoryFormPage />}
-            />
-            <Route
-              path="products/categories/edit/:id"
-              element={<CategoryFormPage />}
-            />
-            <Route
-              path="products/categories/view/:id"
-              element={<CategoryView />}
-            />
-            <Route path="/pos" element={<Pos />} />
-            <Route path="/pos/report" element={<Pos_report />} />
-            <Route path="/products/subcategories" element={<SubCategory />} />
-            <Route
-              path="/products/subcategories/add"
-              element={<SubCategoryFormPage />}
-            />
-            <Route
-              path="/products/subcategories/edit/:id"
-              element={<SubCategoryFormPage />}
-            />
-            <Route
-              path="/products/subcategories/view/:id"
-              element={<SubCategoryView />}
-            />
-            <Route
-              path="/products/subsubcategories"
-              element={<SubSubCategoryPage />}
-            />
-            <Route
-              path="/products/subsubcategories/add"
-              element={<SubSubCategoryFormPage />}
-            />
-            <Route
-              path="/products/subsubcategories/edit/:id"
-              element={<SubSubCategoryFormPage />}
-            />
-            <Route
-              path="/products/subsubcategories/view/:id"
-              element={<SubSubCategoryView />}
-            />
-            <Route path="/products/brands" element={<Brand />} />
-            <Route path="products/brands/add" element={<BrandFormPage />} />
-            <Route
-              path="products/brands/edit/:id"
-              element={<BrandFormPage />}
-            />
-            <Route path="/products/brands/view/:id" element={<BrandView />} />
-            <Route path="/products/attributes" element={<Attributes />} />
-            <Route
-              path="products/attributes/add"
-              element={<AttributeformPage />}
-            />
-            <Route
-              path="/products/attributes/edit/:id"
-              element={<AttributeformPage />}
-            />
-            <Route
-              path="/products/attributes/view/:id"
-              element={<AttributeView />}
-            />
-            <Route path="/products/inhouse" element={<ProductInHouse />} />
-            <Route path="/products/vendors" element={<Vendors />} />
-            <Route path="/products/import" element={<BulkImpor />} />
+            {/* Protected pages with Layout */}
+            <Route path="/" element={<Layout />}>
+              <Route path="dashboard" element={<Dashboard />} />
+              {/* products */}
+              <Route path="products/categories" element={<CategoryPage />} />
+              <Route
+                path="products/categories/add"
+                element={<CategoryFormPage />}
+              />
+              <Route
+                path="products/categories/edit/:id"
+                element={<CategoryFormPage />}
+              />
+              <Route
+                path="products/categories/view/:id"
+                element={<CategoryView />}
+              />
+              <Route path="/pos" element={<Pos />} />
+              <Route path="/pos/report" element={<Pos_report />} />
+              <Route path="/products/subcategories" element={<SubCategory />} />
+              <Route
+                path="/products/subcategories/add"
+                element={<SubCategoryFormPage />}
+              />
+              <Route
+                path="/products/subcategories/edit/:id"
+                element={<SubCategoryFormPage />}
+              />
+              <Route
+                path="/products/subcategories/view/:id"
+                element={<SubCategoryView />}
+              />
+              <Route
+                path="/products/subsubcategories"
+                element={<SubSubCategoryPage />}
+              />
+              <Route
+                path="/products/subsubcategories/add"
+                element={<SubSubCategoryFormPage />}
+              />
+              <Route
+                path="/products/subsubcategories/edit/:id"
+                element={<SubSubCategoryFormPage />}
+              />
+              <Route
+                path="/products/subsubcategories/view/:id"
+                element={<SubSubCategoryView />}
+              />
+              <Route path="/products/brands" element={<Brand />} />
+              <Route path="products/brands/add" element={<BrandFormPage />} />
+              <Route
+                path="products/brands/edit/:id"
+                element={<BrandFormPage />}
+              />
+              <Route path="/products/brands/view/:id" element={<BrandView />} />
+              <Route path="/products/attributes" element={<Attributes />} />
+              <Route
+                path="products/attributes/add"
+                element={<AttributeformPage />}
+              />
+              <Route
+                path="/products/attributes/edit/:id"
+                element={<AttributeformPage />}
+              />
+              <Route
+                path="/products/attributes/view/:id"
+                element={<AttributeView />}
+              />
+              <Route path="/products/inhouse" element={<ProductInHouse />} />
+              <Route path="/products/vendors" element={<Vendors />} />
+              <Route path="/products/import" element={<BulkImpor />} />
 
-            {/* order */}
-            <Route path="/orders/all" element={<AllOrders />} />
-            <Route path="/orders/pending" element={<PendingOrders />} />
-            <Route path="/orders/confirmed" element={<ConfirmOrders />} />
-            <Route path="/orders/delivered" element={<DeliveredOrders />} />
-            <Route path="/orders/canceled" element={<CanceledOrders />} />
-            <Route path="/orders/return" element={<ReturnOrders />} />
-            <Route path="/orders/refund" element={<RefundRequestOrders />} />
+              {/* order */}
+              <Route path="/orders/all" element={<AllOrders />} />
+              <Route path="/orders/pending" element={<PendingOrders />} />
+              <Route path="/orders/confirmed" element={<ConfirmOrders />} />
+              <Route path="/orders/delivered" element={<DeliveredOrders />} />
+              <Route path="/orders/canceled" element={<CanceledOrders />} />
+              <Route path="/orders/return" element={<ReturnOrders />} />
+              <Route path="/orders/refund" element={<RefundRequestOrders />} />
 
-            {/* User_Mangement */}
-            <Route path="/users/customers" element={<Customers />} />
-            <Route path="/users/delivery-men" element={<Deleivery_man />} />
-            <Route path="/users/employees" element={<Employess />} />
-            <Route path="/users/vendors" element={<Ventors />} />
+              {/* User_Mangement */}
+              <Route path="/users/customers" element={<Customers />} />
+              <Route path="/users/delivery-men" element={<Deleivery_man />} />
+              <Route path="/users/employees" element={<Employess />} />
+              <Route path="/users/vendors" element={<Ventors />} />
 
-            {/* Promotion */}
-            <Route path="/promotions/banners" element={<Bannners />} />
-            <Route path="/promotions/coupons" element={<Coupons />} />
-            <Route path="/promotions/featured" element={<Featured />} />
-            <Route path="/promotions/flash-deals" element={<Flash_deals />} />
+              {/* Promotion */}
+              <Route path="/promotions/banners" element={<Bannners />} />
+              <Route path="/promotions/coupons" element={<Coupons />} />
+              <Route path="/promotions/featured" element={<Featured />} />
+              <Route path="/promotions/flash-deals" element={<Flash_deals />} />
 
-            {/* Report Analysis */}
-            <Route path="/reports/earnings" element={<Earning_report />} />
-            <Route path="/reports/orders" element={<Orde_report />} />
-            <Route path="/reports/products" element={<Product_report />} />
-            <Route path="/reports/sales" element={<Sales_report />} />
-            {/* Business Setting */}
-            <Route path="/settings/business" element={<Business_setup />} />
-            <Route path="/settings/pages" element={<Pages_media />} />
-            <Route path="/settings/payments" element={<Payment_method />} />
-            <Route path="/settings/seo" element={<Seo_setting />} />
-            {/* System_setting */}
-            <Route path="/system/integrations" element={<Third_party />} />
-            <Route path="/system/emails" element={<Login_Setting />} />
-            <Route path="/system/login" element={<Email_template />} />
-            <Route path="category" element={<CategoryFormPage />} />
-          </Route>
+              {/* Report Analysis */}
+              <Route path="/reports/earnings" element={<Earning_report />} />
+              <Route path="/reports/orders" element={<Orde_report />} />
+              <Route path="/reports/products" element={<Product_report />} />
+              <Route path="/reports/sales" element={<Sales_report />} />
+              {/* Business Setting */}
+              <Route path="/settings/business" element={<Business_setup />} />
+              <Route path="/settings/pages" element={<Pages_media />} />
+              <Route path="/settings/payments" element={<Payment_method />} />
+              <Route path="/settings/seo" element={<Seo_setting />} />
+              {/* System_setting */}
+              <Route path="/system/integrations" element={<Third_party />} />
+              <Route path="/system/emails" element={<Login_Setting />} />
+              <Route path="/system/login" element={<Email_template />} />
+              <Route path="category" element={<CategoryFormPage />} />
+            </Route>
 
-          {/* 404 page */}
-          <Route path="*" element={<NotFound />} />
+            {/* 404 page */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </ErrorBoundary>
       </BrowserRouter>
