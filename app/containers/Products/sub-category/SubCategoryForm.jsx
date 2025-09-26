@@ -10,7 +10,10 @@ import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { useValidation } from '@/validations';
-import { subCategoryCreateSchema, subCategoryUpdateSchema } from '@/validations';
+import {
+  subCategoryCreateSchema,
+  subCategoryUpdateSchema,
+} from '@/validations';
 import PropTypes from 'prop-types';
 
 const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
@@ -33,7 +36,9 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [loadingCategories, setLoadingCategories] = useState(false);
 
   // Use validation hook
-  const validationSchema = isEditMode ? subCategoryUpdateSchema : subCategoryCreateSchema;
+  const validationSchema = isEditMode
+    ? subCategoryUpdateSchema
+    : subCategoryCreateSchema;
   const { validate, errors, setErrors } = useValidation(validationSchema);
 
   // Fetch all categories for dropdown
@@ -89,52 +94,27 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       }
 
       if (category) {
-        // Handle parentId - it might be an object, string, or null
-
-        console.log(
-          'ParentId type:',
-          typeof category.parentId,
-          category.parentId,
-        );
-
         let parentId = '';
         if (category.parentId) {
           if (typeof category.parentId === 'object' && category.parentId._id) {
             parentId = category.parentId._id;
-            console.log('Extracted parentId from object:', parentId);
           } else if (typeof category.parentId === 'string') {
             parentId = category.parentId;
           }
         } else if (category.parentId === null) {
           // If parentId is null, check if there's a parent field or if we need to use path
-          console.log('ParentId is null, checking for parent field...');
           if (category.parent && category.parent._id) {
             parentId = category.parent._id;
-            console.log('Found parent field, using parent._id:', parentId);
           } else if (category.path) {
             // Try to find a category that matches the path
-            console.log('Using path to find parent:', category.path);
-            console.log(
-              'Available category IDs:',
-              categories.map((cat) => cat._id),
-            );
-
             const parentExists = categories.find(
               (cat) => cat._id === category.path,
             );
             if (parentExists) {
               parentId = category.path;
             } else {
-              console.log('Path does not match any available category');
-              console.log('Path ID:', category.path);
-              console.log(
-                'Available IDs:',
-                categories.map((cat) => cat._id),
-              );
-
               // For now, leave it empty so user can select the correct parent
               parentId = '';
-
               // Show a warning to the user
               toast.warning(
                 'Parent category not found. Please select the correct parent category.',
@@ -159,7 +139,6 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
         setFormData(newFormData);
         s;
-        console.log('Available categories:', categories);
       } else {
         toast.error('No sub category data found');
       }
@@ -327,15 +306,6 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                     label: cat.displayName,
                   })),
                 ];
-                console.log('Dropdown options:', options);
-                console.log(
-                  'Looking for parentId in options:',
-                  formData.parentId,
-                );
-                const foundOption = options.find(
-                  (opt) => opt.value === formData.parentId,
-                );
-
                 return options;
               })()}
               error={errors?.parentId}

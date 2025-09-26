@@ -1,4 +1,4 @@
-import { Container, Breadcrumb, PageHeader } from '@/components';
+import { Container, PageHeader } from '@/components';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SubCategoryForm from './SubCategoryForm';
@@ -9,12 +9,10 @@ const SubCategoryFormPage = () => {
   const isEditMode = !!id;
 
   const handleFormSuccess = () => {
-    // Navigate back to sub categories list after successful creation/update
     navigate('/products/subcategories');
   };
 
   const handleFormCancel = () => {
-    // Navigate back to sub categories list when cancelled
     navigate('/products/subcategories');
   };
 

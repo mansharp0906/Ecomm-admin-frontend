@@ -9,7 +9,10 @@ import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { useValidation } from '@/validations';
-import { subSubCategoryCreateSchema, subSubCategoryUpdateSchema } from '@/validations';
+import {
+  subSubCategoryCreateSchema,
+  subSubCategoryUpdateSchema,
+} from '@/validations';
 import PropTypes from 'prop-types';
 
 const SubSubCategoryForm = ({
@@ -37,7 +40,9 @@ const SubSubCategoryForm = ({
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
 
   // Use validation hook
-  const validationSchema = isEditMode ? subSubCategoryUpdateSchema : subSubCategoryCreateSchema;
+  const validationSchema = isEditMode
+    ? subSubCategoryUpdateSchema
+    : subSubCategoryCreateSchema;
   const { validate, errors, setErrors } = useValidation(validationSchema);
 
   // Fetch all sub categories (level 1) for dropdown
@@ -114,13 +119,6 @@ const SubSubCategoryForm = ({
 
       if (category) {
         // Handle parentId - it might be an object, string, or null
-
-        console.log(
-          'ParentId type:',
-          typeof category.parentId,
-          category.parentId,
-        );
-
         let parentId = '';
         if (category.parentId) {
           if (typeof category.parentId === 'object' && category.parentId._id) {
@@ -133,7 +131,6 @@ const SubSubCategoryForm = ({
           parentId = category.path;
         } else if (category.parentId === null) {
           // If parentId is null and no path, this sub-sub-category has no parent
-          console.log('ParentId is null - this sub-sub-category has no parent');
         }
 
         const newFormData = {
@@ -147,10 +144,7 @@ const SubSubCategoryForm = ({
           metaDescription: category.metaDescription || '',
           parentId: parentId,
         };
-
         setFormData(newFormData);
-
-        console.log('Available sub categories:', subCategories);
       } else {
         toast.error('No sub sub category data found');
       }
@@ -207,7 +201,6 @@ const SubSubCategoryForm = ({
       }
 
       // Remove fields that backend doesn't allow
-      // eslint-disable-next-line no-unused-vars
       const { image: _image, ...apiData } = formData;
 
       let response;

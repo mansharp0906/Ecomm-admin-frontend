@@ -2,7 +2,6 @@ import {
   Button,
   LoadingData,
   Container,
-  Breadcrumb,
   CustomIcon,
   PageHeaderWithActions,
 } from '@/components';

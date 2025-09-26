@@ -1,11 +1,31 @@
-import { Button, Pagination, SearchBar, DeleteConfirmationModal, SearchBarContainer, LoadingData, Container, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableContainer, DataNotFound, CustomIcon } from '@/components';
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import {
+  Button,
+  Pagination,
+  SearchBar,
+  DeleteConfirmationModal,
+  SearchBarContainer,
+  LoadingData,
+  Container,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableContainer,
+  DataNotFound,
+  CustomIcon,
+} from '@/components';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
-
-
-
 import { useNavigate } from 'react-router-dom';
 
 const SubSubCategoryList = ({ refreshTrigger }) => {
@@ -36,8 +56,8 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   // Memoize filtered sub sub categories
   const filteredSubSubCategories = useMemo(() => {
     if (!searchTerm) return subSubCategories;
-    return subSubCategories.filter(category => 
-      category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    return subSubCategories.filter((category) =>
+      category.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [subSubCategories, searchTerm]);
 
@@ -66,7 +86,6 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
           ...(search && { search: search }),
         };
 
-       
         const response = await categoryService.getAll(params);
         if (response?.data?.success) {
           // Use data directly from API (backend should return only level 2 categories)
@@ -85,7 +104,6 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
           setError('Failed to fetch sub sub categories');
         }
       } catch (err) {
-       
         setError('Failed to fetch sub sub categories');
         toast.error('Failed to load sub sub categories');
       } finally {
@@ -113,25 +131,28 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   };
 
   // Handle search - throttled API call
-  const handleSearch = useCallback((term) => {
-    setSearchTerm(term);
-    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  const handleSearch = useCallback(
+    (term) => {
+      setSearchTerm(term);
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
 
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
+      // Clear previous timeout
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
 
-    // Set new timeout for throttled search (700ms delay)
-    searchTimeoutRef.current = setTimeout(() => {
-      fetchSubSubCategories(1, term);
-    }, 700);
-  }, [fetchSubSubCategories]);
+      // Set new timeout for throttled search (700ms delay)
+      searchTimeoutRef.current = setTimeout(() => {
+        fetchSubSubCategories(1, term);
+      }, 700);
+    },
+    [fetchSubSubCategories],
+  );
 
   // Initial load effect - only for refreshTrigger
   useEffect(() => {
     fetchSubSubCategories(pagination.currentPage, searchTerm);
-  }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]);
 
   // Get parent sub category name by ID
   const getParentSubCategoryName = (parentId) => {
@@ -189,7 +210,6 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
         );
       }
     } catch (err) {
-    
       toast.error(
         err?.response?.data?.message || 'Failed to delete sub sub category',
       );
@@ -216,8 +236,6 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
 
   // Handle edit sub sub category - navigate to form page with sub sub category ID
   const handleEdit = (subSubCategory) => {
-   
-    // Only allow editing of sub sub categories (level 2)
     if (subSubCategory.level !== 2) {
       toast.error('Only sub sub categories can be edited from this page');
       return;
@@ -232,8 +250,6 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
     const finalId = subSubCategory.id || subSubCategory._id;
     navigate(`/products/subsubcategories/view/${finalId}`);
   };
-
-
 
   return (
     <TableContainer>

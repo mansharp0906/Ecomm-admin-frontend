@@ -1,11 +1,30 @@
-import { Button, Pagination, SearchBar, DeleteConfirmationModal, SearchBarContainer, LoadingData, Container, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableContainer, DataNotFound, CustomIcon } from '@/components';
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import {
+  Button,
+  Pagination,
+  SearchBar,
+  DeleteConfirmationModal,
+  SearchBarContainer,
+  LoadingData,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableContainer,
+  DataNotFound,
+  CustomIcon,
+} from '@/components';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
-
-
-
 import { useNavigate } from 'react-router-dom';
 
 const SubCategoryList = ({ refreshTrigger }) => {
@@ -36,8 +55,8 @@ const SubCategoryList = ({ refreshTrigger }) => {
   // Memoize filtered subcategories
   const filteredSubCategories = useMemo(() => {
     if (!searchTerm) return subCategories;
-    return subCategories.filter(category => 
-      category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    return subCategories.filter((category) =>
+      category.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [subCategories, searchTerm]);
 
@@ -107,21 +126,24 @@ const SubCategoryList = ({ refreshTrigger }) => {
   };
 
   // Handle search - throttled API call
-  const handleSearch = useCallback((term) => {
-    console.log('Search term:', term); // Debug log
-    setSearchTerm(term);
-    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  const handleSearch = useCallback(
+    (term) => {
+      console.log('Search term:', term); // Debug log
+      setSearchTerm(term);
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
 
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
+      // Clear previous timeout
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
 
-    // Set new timeout for throttled search (700ms delay)
-    searchTimeoutRef.current = setTimeout(() => {
-      fetchSubCategories(1, term);
-    }, 700);
-  }, [fetchSubCategories]);
+      // Set new timeout for throttled search (700ms delay)
+      searchTimeoutRef.current = setTimeout(() => {
+        fetchSubCategories(1, term);
+      }, 700);
+    },
+    [fetchSubCategories],
+  );
 
   // Initial load effect - only for refreshTrigger
   useEffect(() => {
@@ -178,7 +200,6 @@ const SubCategoryList = ({ refreshTrigger }) => {
         toast.error(response?.data?.message || 'Failed to delete sub category');
       }
     } catch (err) {
-    
       toast.error(
         err?.response?.data?.message || 'Failed to delete sub category',
       );
@@ -220,8 +241,6 @@ const SubCategoryList = ({ refreshTrigger }) => {
     const finalId = subCategory.id || subCategory._id;
     navigate(`/products/subcategories/view/${finalId}`);
   };
-
- 
 
   return (
     <TableContainer>

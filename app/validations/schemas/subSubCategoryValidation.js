@@ -17,10 +17,14 @@ export const subSubCategoryCreateSchema = Yup.object({
 
   parentId: Yup.string()
     .required('Parent sub-category is required')
-    .test('parent-exists', 'Please select a valid parent sub-category', function (value) {
-      if (!value) return false;
-      return value.length > 0;
-    }),
+    .test(
+      'parent-exists',
+      'Please select a valid parent sub-category',
+      function (value) {
+        if (!value) return false;
+        return value.length > 0;
+      },
+    ),
 
   level: Yup.number()
     .integer('Level must be a whole number')
@@ -55,9 +59,7 @@ export const subSubCategoryCreateSchema = Yup.object({
 
   isFeatured: Yup.boolean().nullable(),
 
-  image: Yup.string()
-    .url('Please enter a valid URL')
-    .nullable(),
+  image: Yup.string().url('Please enter a valid URL').nullable(),
 
   metaTitle: Yup.string()
     .max(60, 'Meta title must not exceed 60 characters')
@@ -110,10 +112,14 @@ export const subSubCategoryUpdateSchema = Yup.object({
 
   parentId: Yup.string()
     .required('Parent sub-category is required')
-    .test('parent-exists', 'Please select a valid parent sub-category', function (value) {
-      if (!value) return false;
-      return value.length > 0;
-    }),
+    .test(
+      'parent-exists',
+      'Please select a valid parent sub-category',
+      function (value) {
+        if (!value) return false;
+        return value.length > 0;
+      },
+    ),
 
   level: Yup.number()
     .integer('Level must be a whole number')
@@ -148,9 +154,7 @@ export const subSubCategoryUpdateSchema = Yup.object({
 
   isFeatured: Yup.boolean().nullable(),
 
-  image: Yup.string()
-    .url('Please enter a valid URL')
-    .nullable(),
+  image: Yup.string().url('Please enter a valid URL').nullable(),
 
   metaTitle: Yup.string()
     .max(60, 'Meta title must not exceed 60 characters')
