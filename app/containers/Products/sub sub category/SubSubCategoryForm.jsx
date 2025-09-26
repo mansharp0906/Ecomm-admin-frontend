@@ -1,7 +1,10 @@
-import { Button, LoadingData, InputTextField, SelectField, TextAreaField } from '@/components';
-
-
-
+import {
+  Button,
+  LoadingData,
+  InputTextField,
+  SelectField,
+  TextAreaField,
+} from '@/components';
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
@@ -316,136 +319,129 @@ const SubSubCategoryForm = ({
     <>
       {/* Form */}
       <div className="bg-white rounded-lg shadow">
-        {isEditMode && loadingSubCategories && (
+        {isEditMode && loadingSubCategories ? (
           <LoadingData message="Loading data..." />
-        )}
+        ) : (
+          <form
+            onSubmit={handleSubmit}
+            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 "
+          >
+            <SelectField
+              label="Sub Category"
+              name="parentId"
+              value={formData.parentId}
+              onChange={handleInputChange}
+              options={[
+                { value: '', label: 'Select Sub Category' },
+                ...subCategories.map((cat) => ({
+                  value: cat._id,
+                  label: cat.displayName,
+                })),
+              ]}
+              error={formErrors?.parentId}
+              disabled={loadingSubCategories}
+            />
 
-        <form 
-          style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
-          onSubmit={handleSubmit}
-          className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 "
-        >
-          <SelectField
-            label="Sub Category"
-            name="parentId"
-            value={formData.parentId}
-            onChange={handleInputChange}
-            options={[
-              { value: '', label: 'Select Sub Category' },
-              ...subCategories.map((cat) => ({
-                value: cat._id,
-                label: cat.displayName,
-              })),
-            ]}
-            error={formErrors?.parentId}
-            disabled={loadingSubCategories}
-          />
+            <InputTextField
+              label="Sub Sub Category Name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="Enter sub sub category name"
+              error={formErrors?.name}
+            />
 
-          <InputTextField
-            label="Sub Sub Category Name"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="Enter sub sub category name"
-            error={formErrors?.name}
-          />
+            <TextAreaField
+              label="Description"
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="Enter sub sub category description"
+              rows={2}
+              error={formErrors?.description}
+              className="sm:col-span-2"
+            />
 
-          {/* {loadingSubCategories && (
-            <div className="sm:col-span-2 text-sm text-gray-500 text-center">
-              Loading sub categories...
+            <InputTextField
+              label="Image URL"
+              type="url"
+              name="image"
+              value={formData.image || ''}
+              onChange={handleInputChange}
+              placeholder="https://example.com/image.jpg"
+              error={formErrors?.image}
+            />
+
+            <InputTextField
+              label="Meta Title"
+              name="metaTitle"
+              value={formData.metaTitle}
+              onChange={handleInputChange}
+              placeholder="Enter meta title"
+              error={formErrors?.metaTitle}
+            />
+
+            <TextAreaField
+              label="Meta Description"
+              name="metaDescription"
+              value={formData.metaDescription}
+              onChange={handleInputChange}
+              placeholder="Enter meta description"
+              rows={2}
+              error={formErrors?.metaDescription}
+              className="sm:col-span-2"
+            />
+
+            <InputTextField
+              label="Priority"
+              type="number"
+              name="priority"
+              value={formData.priority}
+              onChange={handleInputChange}
+              placeholder="e.g. 1"
+              error={formErrors?.priority}
+            />
+
+            <SelectField
+              label="Status"
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              options={[
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+              ]}
+              error={formErrors?.status}
+            />
+
+            {/* Buttons should span full width */}
+            <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleCancel}
+                className="px-8"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="px-8"
+              >
+                {loading
+                  ? isEditMode
+                    ? 'Updating...'
+                    : 'Adding...'
+                  : isEditMode
+                  ? 'Update'
+                  : 'Add'}
+              </Button>
             </div>
-          )} */}
-
-          <TextAreaField
-            label="Description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            placeholder="Enter sub sub category description"
-            rows={2}
-            error={formErrors?.description}
-            className="sm:col-span-2"
-          />
-
-          <InputTextField
-            label="Image URL"
-            type="url"
-            name="image"
-            value={formData.image || ''}
-            onChange={handleInputChange}
-            placeholder="https://example.com/image.jpg"
-            error={formErrors?.image}
-          />
-
-          <InputTextField
-            label="Meta Title"
-            name="metaTitle"
-            value={formData.metaTitle}
-            onChange={handleInputChange}
-            placeholder="Enter meta title"
-            error={formErrors?.metaTitle}
-          />
-
-          <TextAreaField
-            label="Meta Description"
-            name="metaDescription"
-            value={formData.metaDescription}
-            onChange={handleInputChange}
-            placeholder="Enter meta description"
-            rows={2}
-            error={formErrors?.metaDescription}
-            className="sm:col-span-2"
-          />
-
-          <InputTextField
-            label="Priority"
-            type="number"
-            name="priority"
-            value={formData.priority}
-            onChange={handleInputChange}
-            placeholder="e.g. 1"
-            error={formErrors?.priority}
-          />
-
-          <SelectField
-            label="Status"
-            name="status"
-            value={formData.status}
-            onChange={handleInputChange}
-            options={[
-              { value: 'active', label: 'Active' },
-              { value: 'inactive', label: 'Inactive' },
-            ]}
-            error={formErrors?.status}
-          />
-
-          {/* Buttons should span full width */}
-          <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleCancel}
-              className="px-8"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="px-8"
-            >
-              {loading
-                ? isEditMode
-                  ? 'Updating...'
-                  : 'Adding...'
-                : isEditMode
-                ? 'Update Sub Sub Category'
-                : 'Add Sub Sub Category'}
-            </Button>
-          </div>
-        </form>
+          </form>
+        )}
       </div>
     </>
   );

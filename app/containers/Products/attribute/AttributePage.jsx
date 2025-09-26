@@ -2,30 +2,31 @@ import { Button, Container, Breadcrumb, PageHeader } from '@/components';
 import React, { useState } from 'react';
 import { MdAdd } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
-import SubCategoryList from './SubCategoryList';
 
-const SubCategory = () => {
+import AttributeListPage from './AttributeListPage';
+
+const AttributePage = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
-  const handleAddSubCategory = () => {
-    navigate('/products/subcategories/add');
+  const handleAddattributes = () => {
+    navigate('/products/attributes/add');
   };
 
   return (
     <Container>
       <PageHeader
-        title="Sub Category"
+        title="Attribute"
         breadcrumbItems={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Sub Categories' },
+          { label: 'Attribute' },
         ]}
-        onAddClick={handleAddSubCategory}
-        addButtonLabel="Add Sub Category"
+        onAddClick={handleAddattributes}
+        addButtonLabel="Add Attribute"
       />
-      <SubCategoryList refreshTrigger={refreshTrigger} />
+      <AttributeListPage refreshTrigger={refreshTrigger} />
     </Container>
   );
 };
 
-export default SubCategory;
+export default AttributePage;

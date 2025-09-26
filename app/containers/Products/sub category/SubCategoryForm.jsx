@@ -1,6 +1,10 @@
-import { Button, LoadingData, InputTextField, SelectField, TextAreaField } from '@/components';
-
-
+import {
+  Button,
+  LoadingData,
+  InputTextField,
+  SelectField,
+  TextAreaField,
+} from '@/components';
 
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -328,7 +332,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           <LoadingData message="Loading data..." />
         ) : (
           <form
-            style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
+            // style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
             onSubmit={handleSubmit}
             className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2"
           >
@@ -456,8 +460,8 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                     ? 'Updating...'
                     : 'Adding...'
                   : isEditMode
-                  ? 'Update Sub Category'
-                  : 'Add Sub Category'}
+                  ? 'Update'
+                  : 'Add'}
               </Button>
             </div>
           </form>

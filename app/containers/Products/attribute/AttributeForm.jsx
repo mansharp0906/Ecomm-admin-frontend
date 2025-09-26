@@ -10,6 +10,7 @@ import {
   attributeCreateSchema,
   attributeUpdateSchema,
 } from '@/validations';
+import ScrollContainer from '@/components/custom-scrollbar/ScrollContainer';
 
 // Validation schemas are now imported from validations directory
 
@@ -249,151 +250,153 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       {isEditMode && (loadingCategories || isLoadingData) ? (
         <LoadingData message="Loading data..." />
       ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 bg-white p-4 rounded-lg shadow"
-          style={{ minHeight: '600px', overflowY: 'auto', height: '600px' }}
-        >
-          <SelectField
-            label="Category"
-            name="parentId"
-            value={formData.parentId}
-            onChange={handleInputChange}
-            options={(() => [
-              { value: '', label: 'Select Category' },
-              ...categories.map((cat) => ({
-                value: cat._id,
-                label: cat.displayName,
-              })),
-            ])()}
-            error={errors?.parentId}
-            disabled={loadingCategories}
-          />
-          <InputTextField
-            label="Attribute Name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            error={errors?.name}
-          />
-          <SelectField
-            label="Display Type"
-            name="displayType"
-            value={formData.displayType}
-            onChange={handleChange}
-            options={displayTypes}
-            error={errors?.displayType}
-          />
-
-          <div className="flex gap-4 items-center">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                name="isFilterable"
-                checked={formData.isFilterable}
-                onChange={handleInputChange}
-              />
-              <span>Filterable</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                name="isRequired"
-                checked={formData.isRequired}
-                onChange={handleInputChange}
-              />
-              <span>Required</span>
-            </label>
+        <ScrollContainer maxHeight="600px">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 bg-white p-4 rounded-lg shadow"
+            // style={{ minHeight: '600px', overflowY: 'auto', height: '600px' }}
+          >
             <SelectField
-              label="Status"
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              options={[
-                { label: 'Active', value: 'active' },
-                { label: 'Inactive', value: 'inactive' },
-              ]}
-              error={errors?.status}
+              label="Category"
+              name="parentId"
+              value={formData.parentId}
+              onChange={handleInputChange}
+              options={(() => [
+                { value: '', label: 'Select Category' },
+                ...categories.map((cat) => ({
+                  value: cat._id,
+                  label: cat.displayName,
+                })),
+              ])()}
+              error={errors?.parentId}
+              disabled={loadingCategories}
             />
-          </div>
+            <InputTextField
+              label="Attribute Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              error={errors?.name}
+            />
+            <SelectField
+              label="Display Type"
+              name="displayType"
+              value={formData.displayType}
+              onChange={handleChange}
+              options={displayTypes}
+              error={errors?.displayType}
+            />
 
-          <div className="space-y-3">
-            <h3 className="font-semibold">Values</h3>
-            {errors?.values && (
-              <div className="text-red-600 text-sm">{errors.values}</div>
-            )}
-            {formData.values.map((val, idx) => (
-              <div key={idx} className="flex gap-2">
-                <InputTextField
-                  label="Value"
-                  value={val.value}
-                  onChange={(e) =>
-                    handleValueChange(idx, 'value', e.target.value)
-                  }
-                  error={errors?.[`values.${idx}.value`]}
+            <div className="flex gap-4 items-center">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="isFilterable"
+                  checked={formData.isFilterable}
+                  onChange={handleInputChange}
                 />
-                {formData.displayType === 'color' && (
-                  <input
-                    type="color"
-                    value={val.color}
-                    onChange={(e) =>
-                      handleValueChange(idx, 'color', e.target.value)
-                    }
-                  />
-                )}
-                {formData.displayType === 'image' && (
-                  <InputTextField
-                    label="Image URL"
-                    value={val.image}
-                    onChange={(e) =>
-                      handleValueChange(idx, 'image', e.target.value)
-                    }
-                    error={errors?.[`values.${idx}.image`]}
-                  />
-                )}
-                <label>
-                  Default
-                  <input
-                    type="checkbox"
-                    checked={val.isDefault}
-                    onChange={(e) =>
-                      handleValueChange(idx, 'isDefault', e.target.checked)
-                    }
-                  />
-                </label>
-              </div>
-            ))}
-            <Button type="button" onClick={addValue}>
-              + Add Value
-            </Button>
-            {/* Buttons should span full width */}
-            <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleCancel}
-                className="px-8"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                onClick={handleSubmit}
-                disabled={loading}
-                className="px-8"
-              >
-                {loading
-                  ? isEditMode
-                    ? 'Updating...'
-                    : 'Adding...'
-                  : isEditMode
-                  ? 'Update'
-                  : 'Add'}
-              </Button>
+                <span>Filterable</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="isRequired"
+                  checked={formData.isRequired}
+                  onChange={handleInputChange}
+                />
+                <span>Required</span>
+              </label>
+              <SelectField
+                label="Status"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                options={[
+                  { label: 'Active', value: 'active' },
+                  { label: 'Inactive', value: 'inactive' },
+                ]}
+                error={errors?.status}
+              />
             </div>
-          </div>
-        </form>
+
+            <div className="space-y-3">
+              <h3 className="font-semibold">Values</h3>
+              {errors?.values && (
+                <div className="text-red-600 text-sm">{errors.values}</div>
+              )}
+              {formData.values.map((val, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <InputTextField
+                    label="Value"
+                    value={val.value}
+                    onChange={(e) =>
+                      handleValueChange(idx, 'value', e.target.value)
+                    }
+                    error={errors?.[`values.${idx}.value`]}
+                  />
+                  {formData.displayType === 'color' && (
+                    <input
+                      type="color"
+                      value={val.color}
+                      onChange={(e) =>
+                        handleValueChange(idx, 'color', e.target.value)
+                      }
+                    />
+                  )}
+                  {formData.displayType === 'image' && (
+                    <InputTextField
+                      label="Image URL"
+                      value={val.image}
+                      onChange={(e) =>
+                        handleValueChange(idx, 'image', e.target.value)
+                      }
+                      error={errors?.[`values.${idx}.image`]}
+                    />
+                  )}
+                  <label>
+                    Default
+                    <input
+                      type="checkbox"
+                      checked={val.isDefault}
+                      onChange={(e) =>
+                        handleValueChange(idx, 'isDefault', e.target.checked)
+                      }
+                    />
+                  </label>
+                </div>
+              ))}
+              <Button type="button" onClick={addValue}>
+                + Add Value
+              </Button>
+              {/* Buttons should span full width */}
+              <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleCancel}
+                  className="px-8"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="px-8"
+                >
+                  {loading
+                    ? isEditMode
+                      ? 'Updating...'
+                      : 'Adding...'
+                    : isEditMode
+                    ? 'Update'
+                    : 'Add'}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </ScrollContainer>
       )}
     </div>
   );

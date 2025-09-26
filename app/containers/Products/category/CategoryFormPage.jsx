@@ -1,9 +1,7 @@
-import { Container, Breadcrumb } from '@/components';
+import { Container, Breadcrumb, PageHeader } from '@/components';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import CategoryForm from './CategoryForm';
-
-
 
 const CategoryFormPage = () => {
   const navigate = useNavigate();
@@ -22,22 +20,14 @@ const CategoryFormPage = () => {
 
   return (
     <Container>
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {isEditMode ? 'Edit Category' : 'Add Category'}
-            </h1>
-          </div>
-        </div>
-        <Breadcrumb
-          items={[
-            { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Categories', href: '/products/categories' },
-            { label: isEditMode ? 'Edit Category' : 'Add New Category' },
-          ]}
-        />
-      </div>
+      <PageHeader
+        title={isEditMode ? 'Edit Category' : 'Add Category'}
+        breadcrumbItems={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Categories', href: '/products/categories' },
+          { label: isEditMode ? 'Edit Category' : 'Add New Category' },
+        ]}
+      />
 
       <CategoryForm
         key={id || 'new'}

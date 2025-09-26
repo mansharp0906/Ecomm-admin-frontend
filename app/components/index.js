@@ -38,6 +38,8 @@ export { default as Container } from './custom-pages/Container';
 export { default as DataNotFound } from './custom-pages/DataNotFound';
 export { default as LoadingData } from './custom-pages/LoadingData';
 export { default as TableContainer } from './custom-pages/TableContainer';
+export { default as PageHeader } from './custom-pages/PageHeader';
+export { default as PageHeaderWithActions } from './custom-pages/PageHeaderWithActions';
 
 // Custom Pagination component
 export { default as Pagination } from './custom-pagination/Pagination';

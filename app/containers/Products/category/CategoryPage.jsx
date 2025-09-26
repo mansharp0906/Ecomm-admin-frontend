@@ -1,10 +1,8 @@
-import { Button, Container, Breadcrumb } from '@/components';
+import { Button, Container, Breadcrumb, PageHeader } from '@/components';
 import React, { useState } from 'react';
 import { MdAdd } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import CategoryListPage from './CategoryListPage';
-
-
 
 const CategoryPage = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -16,28 +14,16 @@ const CategoryPage = () => {
 
   return (
     <Container>
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Category</h1>
-          </div>
-          <Button
-            variant="primary"
-            onClick={handleAddCategory}
-            className="flex items-center space-x-2"
-          >
-            <MdAdd className="text-xl" />
-            <span>Add Category</span>
-          </Button>
-        </div>
-        <Breadcrumb
-          items={[
-            { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Categories' },
-          ]}
-        />
-      </div>
-
+      <PageHeader
+        title="Category"
+        breadcrumbItems={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Categories' },
+        ]}
+        onAddClick={handleAddCategory}
+        addButtonLabel="Add Category"
+        variant="outline"
+      />
       <CategoryListPage refreshTrigger={refreshTrigger} />
     </Container>
   );
