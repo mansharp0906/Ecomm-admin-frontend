@@ -149,12 +149,8 @@ function App() {
               element={<AttributeformPage />}
             />
             <Route
-              path="products/attributes/edit/:id"
+              path="/products/attributes/edit/:id"
               element={<AttributeformPage />}
-            />
-            <Route
-              path="/products/attributes/view/:id"
-              element={<AttributeView />}
             />
             <Route path="/products/inhouse" element={<ProductInHouse />} />
             <Route path="/products/vendors" element={<Vendors />} />
