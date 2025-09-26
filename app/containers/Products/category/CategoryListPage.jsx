@@ -1,11 +1,31 @@
-import { Button, Pagination, SearchBar, DeleteConfirmationModal, SearchBarContainer, LoadingData, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableContainer, DataNotFound, CustomIcon, Container } from '@/components';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Button,
+  Pagination,
+  SearchBar,
+  DeleteConfirmationModal,
+  SearchBarContainer,
+  LoadingData,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableContainer,
+  DataNotFound,
+  CustomIcon,
+  Container,
+} from '@/components';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
-
-
-
 import { useNavigate } from 'react-router-dom';
 
 const CategoryListPage = ({ refreshTrigger }) => {
@@ -31,6 +51,14 @@ const CategoryListPage = ({ refreshTrigger }) => {
     itemName: '',
     isLoading: false,
   });
+
+  // Memoize filtered categories
+  const filteredCategories = useMemo(() => {
+    if (!searchTerm) return categories;
+    return categories.filter((category) =>
+      category.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [categories, searchTerm]);
 
   // Fetch categories from API with pagination and search
   const fetchCategories = useCallback(
@@ -85,20 +113,23 @@ const CategoryListPage = ({ refreshTrigger }) => {
   };
 
   // Handle search - throttled API call
-  const handleSearch = (term) => { // Debug log
-    setSearchTerm(term);
-    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  const handleSearch = useCallback(
+    (term) => {
+      setSearchTerm(term);
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
 
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
+      // Clear previous timeout
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
 
-    // Set new timeout for throttled search (300ms delay)
-    searchTimeoutRef.current = setTimeout(() => {
-      fetchCategories(1, term);
-    }, 700);
-  };
+      // Set new timeout for throttled search (300ms delay)
+      searchTimeoutRef.current = setTimeout(() => {
+        fetchCategories(1, term);
+      }, 700);
+    },
+    [fetchCategories],
+  );
 
   // Initial load effect - only for refreshTrigger
   useEffect(() => {
@@ -106,14 +137,14 @@ const CategoryListPage = ({ refreshTrigger }) => {
   }, [refreshTrigger]);
 
   // Handle delete category
-  const handleDelete = (id, name) => {
+  const handleDelete = useCallback((id, name) => {
     setDeleteModal({
       isOpen: true,
       itemId: id,
       itemName: name,
       isLoading: false,
     });
-  };
+  }, []);
 
   // Confirm delete
   const confirmDelete = async () => {
@@ -170,7 +201,6 @@ const CategoryListPage = ({ refreshTrigger }) => {
       toast.error('Only main categories can be edited from this page');
       return;
     }
-
     const finalId = category.id || category._id;
     navigate(`/products/categories/edit/${finalId}`);
   };
@@ -180,8 +210,6 @@ const CategoryListPage = ({ refreshTrigger }) => {
     const finalId = category.id || category._id;
     navigate(`/products/categories/view/${finalId}`);
   };
-
- 
 
   return (
     <TableContainer>
@@ -327,7 +355,6 @@ const CategoryListPage = ({ refreshTrigger }) => {
         itemName={deleteModal.itemName}
         isLoading={deleteModal.isLoading}
       />
-      
     </TableContainer>
   );
 };
@@ -336,4 +363,4 @@ CategoryListPage.propTypes = {
   refreshTrigger: PropTypes.number.isRequired,
 };
 
-export default CategoryListPage;
+export default React.memo(CategoryListPage);

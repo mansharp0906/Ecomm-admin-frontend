@@ -1,5 +1,5 @@
 import { Button, Pagination, SearchBar, DeleteConfirmationModal, SearchBarContainer, LoadingData, Container, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableContainer, DataNotFound, CustomIcon } from '@/components';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import brandService from '@/api/service/brandService'; // Adjust this import path
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
@@ -31,6 +31,14 @@ const BrandListPage = ({ refreshTrigger }) => {
     itemName: '',
     isLoading: false,
   });
+
+  // Memoize filtered brands
+  const filteredBrands = useMemo(() => {
+    if (!searchTerm) return brands;
+    return brands.filter(brand => 
+      brand.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [brands, searchTerm]);
 
   // Fetch brands from API with pagination and search
   const fetchBrands = useCallback(
@@ -80,7 +88,7 @@ const BrandListPage = ({ refreshTrigger }) => {
   };
 
   // Handle search - debounced API call
-  const handleSearch = (term) => {
+  const handleSearch = useCallback((term) => {
     setSearchTerm(term);
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
     if (searchTimeoutRef.current) {
@@ -89,17 +97,17 @@ const BrandListPage = ({ refreshTrigger }) => {
     searchTimeoutRef.current = setTimeout(() => {
       fetchBrands(1, term);
     }, 700);
-  };
+  }, [fetchBrands]);
 
   // Handle delete brand
-  const handleDelete = (id, name) => {
+  const handleDelete = useCallback((id, name) => {
     setDeleteModal({
       isOpen: true,
       itemId: id,
       itemName: name,
       isLoading: false,
     });
-  };
+  }, []);
 
   // Confirm delete
   const confirmDelete = async () => {
@@ -282,4 +290,4 @@ BrandListPage.propTypes = {
   refreshTrigger: PropTypes.number.isRequired,
 };
 
-export default BrandListPage;
+export default React.memo(BrandListPage);

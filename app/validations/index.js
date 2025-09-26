@@ -30,3 +30,13 @@ export {
   passwordResetSchema,
   changePasswordSchema,
 } from './schemas/userValidation';
+
+export {
+  subCategoryCreateSchema,
+  subCategoryUpdateSchema,
+} from './schemas/subCategoryValidation';
+
+export {
+  subSubCategoryCreateSchema,
+  subSubCategoryUpdateSchema,
+} from './schemas/subSubCategoryValidation';

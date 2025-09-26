@@ -14,9 +14,6 @@ import {
   categoryCreateSchema,
   categoryUpdateSchema,
 } from '@/validations';
-import ScrollContainer from '@/components/custom-scrollbar/ScrollContainer';
-
-// Validation schemas are now imported from validations directory
 
 const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [formData, setFormData] = useState({
@@ -42,15 +39,8 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const fetchCategoryData = useCallback(async () => {
     try {
       setIsLoadingData(true);
-
-      // Use categoryService instead of direct fetch
       let response = await categoryService.getById(categoryId);
-
-      // Check if response is HTML (error page)
-      if (
-        typeof response?.data === 'string' &&
-        response.data.includes('<!DOCTYPE')
-      ) {
+      if (typeof response?.data === 'string') {
         toast.error('Server error: API returned HTML instead of JSON');
         return;
       }

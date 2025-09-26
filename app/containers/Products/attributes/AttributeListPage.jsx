@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { 
   Button, 
   Container, 
@@ -47,6 +47,14 @@ const AttributeListPage = ({ refreshTrigger }) => {
     itemName: '',
     isLoading: false,
   });
+
+  // Memoize filtered attributes
+  const filteredAttributes = useMemo(() => {
+    if (!searchTerm) return attributes;
+    return attributes.filter(attr => 
+      attr.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [attributes, searchTerm]);
 
   // Fetch attributes from API with pagination and search
   const fetchAttributes = useCallback(
@@ -118,7 +126,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
   };
 
   // Handle search - debounced API call
-  const handleSearch = (term) => {
+  const handleSearch = useCallback((term) => {
     setSearchTerm(term);
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
     if (searchTimeoutRef.current) {
@@ -127,17 +135,17 @@ const AttributeListPage = ({ refreshTrigger }) => {
     searchTimeoutRef.current = setTimeout(() => {
       fetchAttributes(1, term);
     }, 700);
-  };
+  }, [fetchAttributes]);
 
   // Handle delete attribute
-  const handleDelete = (id, name) => {
+  const handleDelete = useCallback((id, name) => {
     setDeleteModal({
       isOpen: true,
       itemId: id,
       itemName: name,
       isLoading: false,
     });
-  };
+  }, []);
 
   // Confirm delete
   const confirmDelete = async () => {
@@ -384,4 +392,4 @@ AttributeListPage.propTypes = {
   refreshTrigger: PropTypes.number.isRequired,
 };
 
-export default AttributeListPage;
+export default React.memo(AttributeListPage);

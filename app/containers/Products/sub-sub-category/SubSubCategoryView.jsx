@@ -2,31 +2,30 @@ import {
   Button,
   LoadingData,
   Container,
-  Breadcrumb,
   CustomIcon,
   PageHeaderWithActions,
 } from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
 
-const SubCategoryView = () => {
+const SubSubCategoryView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [subCategory, setSubCategory] = useState(null);
+  const [subSubCategory, setSubSubCategory] = useState(null);
   const [parentCategory, setParentCategory] = useState(null);
+  const [grandParentCategory, setGrandParentCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (id) {
-      fetchSubCategoryData();
+      fetchSubSubCategoryData();
     }
   }, [id]);
 
-  const fetchSubCategoryData = async () => {
+  const fetchSubSubCategoryData = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -39,11 +38,11 @@ const SubCategoryView = () => {
       } else if (response?.data) {
         categoryData = response.data;
       } else {
-        setError('Failed to fetch sub-category data');
+        setError('Failed to fetch sub-sub-category data');
         return;
       }
 
-      setSubCategory(categoryData);
+      setSubSubCategory(categoryData);
 
       // Fetch parent category if parentId exists
       if (categoryData.parentId) {
@@ -55,7 +54,32 @@ const SubCategoryView = () => {
 
           const parentResponse = await categoryService.getById(parentId);
           if (parentResponse?.data?.success) {
-            setParentCategory(parentResponse.data.data);
+            const parentData = parentResponse.data.data;
+            setParentCategory(parentData);
+
+            // Fetch grandparent category if parent has a parentId
+            if (parentData.parentId) {
+              try {
+                let grandParentId = parentData.parentId;
+                if (typeof grandParentId === 'object' && grandParentId._id) {
+                  grandParentId = grandParentId._id;
+                }
+
+                const grandParentResponse = await categoryService.getById(
+                  grandParentId,
+                );
+                if (grandParentResponse?.data?.success) {
+                  setGrandParentCategory(grandParentResponse.data.data);
+                } else if (grandParentResponse?.data) {
+                  setGrandParentCategory(grandParentResponse.data);
+                }
+              } catch (grandParentErr) {
+                console.warn(
+                  'Could not fetch grandparent category:',
+                  grandParentErr,
+                );
+              }
+            }
           } else if (parentResponse?.data) {
             setParentCategory(parentResponse.data);
           }
@@ -64,36 +88,42 @@ const SubCategoryView = () => {
         }
       }
     } catch (err) {
-      setError('Failed to load sub-category details');
-      toast.error('Failed to load sub-category details');
+      setError('Failed to load sub-sub-category details');
+      toast.error('Failed to load sub-sub-category details');
     } finally {
       setLoading(false);
     }
   };
 
   const handleEdit = () => {
-    navigate(`/products/subcategories/edit/${id}`);
+    navigate(`/products/subsubcategories/edit/${id}`);
   };
 
   const handleBack = () => {
-    navigate('/products/subcategories');
+    navigate('/products/subsubcategories');
   };
 
   const handleViewParent = () => {
     if (parentCategory) {
-      navigate(`/products/categories/view/${parentCategory._id}`);
+      navigate(`/products/subcategories/view/${parentCategory._id}`);
+    }
+  };
+
+  const handleViewGrandParent = () => {
+    if (grandParentCategory) {
+      navigate(`/products/categories/view/${grandParentCategory._id}`);
     }
   };
 
   if (loading) {
     return (
       <Container>
-        <LoadingData message="Loading subcatgeories details" />
+        <LoadingData message="Loading data..." />
       </Container>
     );
   }
 
-  if (error || !subCategory) {
+  if (error || !subSubCategory) {
     return (
       <Container>
         <div className="text-center py-12">
@@ -101,17 +131,17 @@ const SubCategoryView = () => {
             <CustomIcon type="error" size={8} />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Error Loading Sub-Category
+            Error Loading Sub-Sub-Category
           </h2>
           <p className="text-gray-600 mb-6">
-            {error || 'Sub-category not found'}
+            {error || 'Sub-sub-category not found'}
           </p>
           <div className="space-x-4">
-            <Button onClick={fetchSubCategoryData} variant="primary">
+            <Button onClick={fetchSubSubCategoryData} variant="primary">
               Retry
             </Button>
             <Button onClick={handleBack} variant="secondary">
-              Back to Sub-Categories
+              Back to Sub-Sub-Categories
             </Button>
           </div>
         </div>
@@ -121,51 +151,16 @@ const SubCategoryView = () => {
 
   return (
     <Container>
-      {/* <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Sub-Category Details
-            </h1>
-          </div>
-          <div className="flex space-x-3">
-            <Button
-              variant="outline"
-              onClick={handleEdit}
-              className="flex items-center space-x-2"
-            >
-              <CustomIcon type="edit" size={4} />
-              <span>Edit Sub-Category</span>
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={handleBack}
-              className="flex items-center space-x-2"
-            >
-              <CustomIcon type="arrow-left" size={4} />
-              <span>Back to Sub-Categories</span>
-            </Button>
-          </div>
-        </div>
-        <Breadcrumb
-          items={[
-            { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Sub-Categories', href: '/products/subcategories' },
-            { label: subCategory.name },
-          ]}
-        />
-      </div> */}
-
       <PageHeaderWithActions
-        title="Sub Category Details"
+        title="Sub Sub Category Details"
         breadcrumbItems={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Sub-Categories', href: '/products/subcategories' },
-          { label: subCategory.name },
+          { label: 'Sub-Sub-Categories', href: '/products/subsubcategories' },
+          { label: subSubCategory.name },
         ]}
         actions={[
           {
-            label: 'Edit',
+            label: 'Edit Sub Sub Category',
             onClick: handleEdit,
             variant: 'outline',
             icon: <CustomIcon type="edit" size={4} />,
@@ -178,14 +173,13 @@ const SubCategoryView = () => {
           },
         ]}
       />
-
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
-            {subCategory.name}
+            {subSubCategory.name}
           </h2>
           <p className="text-sm text-gray-500">
-            Sub-Category ID: {subCategory._id}
+            Sub-Sub-Category ID: {subSubCategory._id}
           </p>
         </div>
 
@@ -201,7 +195,9 @@ const SubCategoryView = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Name
                 </label>
-                <p className="mt-1 text-sm text-gray-900">{subCategory.name}</p>
+                <p className="mt-1 text-sm text-gray-900">
+                  {subSubCategory.name}
+                </p>
               </div>
 
               <div>
@@ -209,7 +205,7 @@ const SubCategoryView = () => {
                   Slug
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {subCategory.slug || 'N/A'}
+                  {subSubCategory.slug || 'N/A'}
                 </p>
               </div>
 
@@ -218,7 +214,7 @@ const SubCategoryView = () => {
                   Description
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {subCategory.description || 'N/A'}
+                  {subSubCategory.description || 'N/A'}
                 </p>
               </div>
 
@@ -227,7 +223,7 @@ const SubCategoryView = () => {
                   Level
                 </label>
                 <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                  Level {subCategory.level || 1}
+                  Level {subSubCategory.level || 2}
                 </span>
               </div>
 
@@ -236,15 +232,15 @@ const SubCategoryView = () => {
                   Priority
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {subCategory.priority || 'N/A'}
+                  {subSubCategory.priority || 'N/A'}
                 </p>
               </div>
             </div>
 
-            {/* Parent Category & Status */}
+            {/* Parent Categories & Status */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">
-                Parent Category & Status
+                Parent Categories & Status
               </h3>
 
               <div>
@@ -274,16 +270,41 @@ const SubCategoryView = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
+                  Grandparent Category
+                </label>
+                {grandParentCategory ? (
+                  <div className="mt-1 flex items-center space-x-2">
+                    <p className="text-sm text-gray-900">
+                      {grandParentCategory.name}
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleViewGrandParent}
+                      className="text-xs"
+                    >
+                      View Grandparent
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-sm text-gray-500">
+                    No grandparent category
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
                   Status
                 </label>
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    subCategory.status === 'active'
+                    subSubCategory.status === 'active'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}
                 >
-                  {subCategory.status || 'N/A'}
+                  {subSubCategory.status || 'N/A'}
                 </span>
               </div>
 
@@ -293,12 +314,12 @@ const SubCategoryView = () => {
                 </label>
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    subCategory.isFeatured
+                    subSubCategory.isFeatured
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {subCategory.isFeatured ? 'Yes' : 'No'}
+                  {subSubCategory.isFeatured ? 'Yes' : 'No'}
                 </span>
               </div>
 
@@ -306,11 +327,11 @@ const SubCategoryView = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Image
                 </label>
-                {subCategory.image ? (
+                {subSubCategory.image ? (
                   <div className="mt-2">
                     <img
-                      src={subCategory.image}
-                      alt={subCategory.name}
+                      src={subSubCategory.image}
+                      alt={subSubCategory.name}
                       className="h-20 w-20 object-cover rounded-lg"
                       onError={(e) => {
                         e.target.style.display = 'none';
@@ -335,7 +356,7 @@ const SubCategoryView = () => {
                   Meta Title
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {subCategory.metaTitle || 'N/A'}
+                  {subSubCategory.metaTitle || 'N/A'}
                 </p>
               </div>
               <div>
@@ -343,7 +364,7 @@ const SubCategoryView = () => {
                   Meta Description
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {subCategory.metaDescription || 'N/A'}
+                  {subSubCategory.metaDescription || 'N/A'}
                 </p>
               </div>
             </div>
@@ -360,14 +381,17 @@ const SubCategoryView = () => {
                   Created At
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {subCategory.createdAt
-                    ? new Date(subCategory.createdAt).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
+                  {subSubCategory.createdAt
+                    ? new Date(subSubCategory.createdAt).toLocaleString(
+                        'en-US',
+                        {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        },
+                      )
                     : 'N/A'}
                 </p>
               </div>
@@ -376,14 +400,17 @@ const SubCategoryView = () => {
                   Updated At
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {subCategory.updatedAt
-                    ? new Date(subCategory.updatedAt).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
+                  {subSubCategory.updatedAt
+                    ? new Date(subSubCategory.updatedAt).toLocaleString(
+                        'en-US',
+                        {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        },
+                      )
                     : 'N/A'}
                 </p>
               </div>
@@ -395,4 +422,4 @@ const SubCategoryView = () => {
   );
 };
 
-export default SubCategoryView;
+export default SubSubCategoryView;

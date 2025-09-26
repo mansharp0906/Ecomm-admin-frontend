@@ -9,12 +9,10 @@ const CategoryFormPage = () => {
   const isEditMode = !!id;
 
   const handleFormSuccess = () => {
-    // Navigate back to categories list after successful creation/update
     navigate('/products/categories');
   };
 
   const handleFormCancel = () => {
-    // Navigate back to categories list when cancelled
     navigate('/products/categories');
   };
 
