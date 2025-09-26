@@ -14,10 +14,10 @@ import {
 import CustomIcon from '@/components/custom-icon/CustomIcon';
 import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 import DataNotFound from '@/components/custom-pages/DataNotFound';
-import { LoadingData } from '@/components/custom-pages';
 import { SearchBarContainer } from '@/components/custom-search';
 import TableContainer from '@/components/custom-pages/TableContainer';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { LoadingData } from '@/components/custom-pages';
 
 const AttributeListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();
@@ -144,21 +144,36 @@ const AttributeListPage = ({ refreshTrigger }) => {
       const response = await attributeService.delete(deleteModal.itemId);
       if (response?.data?.success) {
         toast.success('Attribute deleted successfully!');
+
+        // Remove locally for snappy UI
         setAttributes((prev) =>
-          prev.filter((attribute) => attribute._id !== deleteModal.itemId),
+          prev.filter(
+            (attribute) =>
+              String(attribute?._id || attribute?.id) !==
+              String(deleteModal.itemId),
+          ),
         );
+
+        // Recalculate pagination and refetch the correct page from server
         const newTotalItems = pagination.totalItems - 1;
         const newTotalPages = Math.max(
           1,
           Math.ceil(newTotalItems / pagination.itemsPerPage),
         );
+        const nextPage =
+          pagination.currentPage > newTotalPages
+            ? newTotalPages
+            : pagination.currentPage;
+
         setPagination((prev) => ({
           ...prev,
           totalItems: newTotalItems,
           totalPages: newTotalPages,
-          currentPage:
-            prev.currentPage > newTotalPages ? newTotalPages : prev.currentPage,
+          currentPage: nextPage,
         }));
+
+        // Ensure UI matches server (handles empty-page edge case)
+        await fetchAttributes(nextPage, searchTerm);
       } else {
         toast.error(response?.data?.message || 'Failed to delete attribute');
       }
@@ -217,7 +232,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
       </SearchBarContainer>
 
       {loading && (
-        <LoadingData message="Loading data..." />
+       <LoadingData message='Loading data...'/>
       )}
 
       {!loading && attributes.length === 0 && <DataNotFound />}
@@ -227,12 +242,16 @@ const AttributeListPage = ({ refreshTrigger }) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-center">S.No</TableHead>
-                <TableHead>Attribute Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created Date</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
+                <TableHead className="text-center whitespace-nowrap">S.No</TableHead>
+                <TableHead className="whitespace-nowrap">Attribute Name</TableHead>
+                <TableHead className="whitespace-nowrap">Display Type</TableHead>
+                <TableHead className="whitespace-nowrap">Categories</TableHead>
+                <TableHead className="whitespace-nowrap">Values</TableHead>
+                <TableHead className="whitespace-nowrap">Filterable</TableHead>
+                <TableHead className="whitespace-nowrap">Required</TableHead>
+                <TableHead className="whitespace-nowrap">Status</TableHead>
+                <TableHead className="whitespace-nowrap">Created Date</TableHead>
+                <TableHead className="text-center whitespace-nowrap">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -244,13 +263,39 @@ const AttributeListPage = ({ refreshTrigger }) => {
                       1}
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">
-                    {attribute.name}
+                    {attribute?.name}
                   </TableCell>
                   <TableCell className="text-gray-500 max-w-xs">
                     <div className="break-words whitespace-normal">
-                      {attribute.description}
+                      {attribute?.displayType}
                     </div>
                   </TableCell>
+                
+                  <TableCell className="text-gray-500 max-w-xs">
+                    <div className="break-words whitespace-normal">
+                      {Array.isArray(attribute?.categories)
+                        ? attribute.categories
+                            .map((c) => (typeof c === 'object' ? c?.name || c?._id : c))
+                            .join(', ')
+                        : ''}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-gray-500 max-w-xs">
+                    <div className="break-words whitespace-normal">
+                      {Array.isArray(attribute?.values)
+                        ? attribute.values
+                            .map((v) => (typeof v === 'object' ? v?.value : String(v)))
+                            .join(', ')
+                        : ''}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-gray-500 max-w-xs">
+                    {attribute?.isFilterable ? 'Yes' : 'No'}
+                  </TableCell>
+                  <TableCell className="text-gray-500 max-w-xs">
+                    {attribute?.isRequired ? 'Yes' : 'No'}
+                  </TableCell>
+                  
                   <TableCell>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -259,11 +304,11 @@ const AttributeListPage = ({ refreshTrigger }) => {
                           : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {attribute.status}
+                      {attribute?.status}
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-500">
-                    {new Date(attribute.createdAt).toLocaleDateString('en-US', {
+                    {new Date(attribute?.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'short',
                       day: 'numeric',
