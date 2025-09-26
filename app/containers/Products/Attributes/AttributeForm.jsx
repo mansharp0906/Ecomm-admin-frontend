@@ -81,21 +81,25 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         return;
       }
 
-      const firstCategoryId = Array.isArray(data.categories) && data.categories.length > 0
-        ? (typeof data.categories[0] === 'object' ? data.categories[0]._id : data.categories[0])
-        : '';
+      const firstCategoryId =
+        Array.isArray(data.categories) && data.categories.length > 0
+          ? typeof data.categories[0] === 'object'
+            ? data.categories[0]._id
+            : data.categories[0]
+          : '';
 
       setFormData((prev) => ({
         ...prev,
         name: data.name || '',
-        values: Array.isArray(data.values) && data.values.length > 0
-          ? data.values.map((v) => ({
-              value: v.value || '',
-              color: v.color || '',
-              image: v.image || '',
-              isDefault: Boolean(v.isDefault),
-            }))
-          : [{ value: '', color: '', image: '', isDefault: false }],
+        values:
+          Array.isArray(data.values) && data.values.length > 0
+            ? data.values.map((v) => ({
+                value: v.value || '',
+                color: v.color || '',
+                image: v.image || '',
+                isDefault: Boolean(v.isDefault),
+              }))
+            : [{ value: '', color: '', image: '', isDefault: false }],
         isFilterable: Boolean(data.isFilterable),
         isRequired: Boolean(data.isRequired),
         displayType: data.displayType || 'text',
@@ -114,14 +118,13 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     if (onCancel) onCancel();
   };
 
- const handleInputChange = (e) => {
-  const { name, value, type, checked } = e.target;
-  setFormData({
-    ...formData,
-    [name]: type === 'checkbox' ? checked : value,
-  });
-};
-
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value,
+    });
+  };
 
   useEffect(() => {
     // Load category options on mount
@@ -208,7 +211,9 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         (response?.status >= 200 && response?.status < 300);
 
       if (isSuccess) {
-        toast.success(`Attribute ${isEditMode ? 'updated' : 'added'} successfully!`);
+        toast.success(
+          `Attribute ${isEditMode ? 'updated' : 'added'} successfully!`,
+        );
 
         // Reset form for both create and edit modes
         setFormData({
@@ -259,8 +264,9 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         <LoadingData message="Loading data..." />
       ) : (
         <form
+          style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
           onSubmit={handleSubmit}
-          className="space-y-4 bg-white p-4 rounded-lg shadow"
+          className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
         >
           <SelectField
             label="Category"
@@ -269,7 +275,10 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
             onChange={handleInputChange}
             options={(() => [
               { value: '', label: 'Select Category' },
-              ...categories.map((cat) => ({ value: cat._id, label: cat.displayName })),
+              ...categories.map((cat) => ({
+                value: cat._id,
+                label: cat.displayName,
+              })),
             ])()}
             error={formErrors?.parentId}
             disabled={loadingCategories}
