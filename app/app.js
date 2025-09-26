@@ -23,7 +23,7 @@ import SubCategoryView from './containers/Products/sub category/SubCategoryView'
 import { SubSubCategoryPage } from './containers/Products/sub sub category';
 import SubSubCategoryFormPage from './containers/Products/sub sub category/SubSubCategoryFormPage';
 import SubSubCategoryView from './containers/Products/sub sub category/SubSubCategoryView';
-import Brand from './containers/Products/Brand';
+import Brand from './containers/Products/Brand/BrandPage';
 import Attributes from './containers/Products/Attributes/AttributePage';
 import ProductInHouse from './containers/Products/Product/ProductInHouse';
 import Vendors from './containers/Products/Ventors/Vendors';
@@ -59,6 +59,8 @@ import Seo_setting from './containers/Business_Setting/Seo_setting';
 import './styles/toast.css';
 import 'react-toastify/dist/ReactToastify.css';
 import AttributeformPage from './containers/Products/Attributes/AttributeformPage';
+import BrandFormPage from './containers/Products/Brand/BrandFormPage';
+import BrandView from './containers/Products/Brand/BrandView';
 // import './styles/toast.css';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -134,9 +136,15 @@ function App() {
               element={<SubSubCategoryView />}
             />
             <Route path="/products/brands" element={<Brand />} />
+            <Route path="products/brands/add" element={<BrandFormPage />} />
+            <Route
+              path="products/brands/edit/:id"
+              element={<BrandFormPage />}
+            />
+            <Route path="/products/brands/view/:id" element={<BrandView />} />
             <Route path="/products/attributes" element={<Attributes />} />
             <Route
-              path="products/attribute/add"
+              path="products/attributes/add"
               element={<AttributeformPage />}
             />
             <Route

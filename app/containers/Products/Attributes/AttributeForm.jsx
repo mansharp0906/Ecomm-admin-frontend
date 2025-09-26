@@ -6,9 +6,8 @@ import attributeService from '@/api/service/attributeService';
 import categoryService from '@/api/service/categoryService';
 import PropTypes from 'prop-types';
 import * as Yup from 'yup';
-
+import { LoadingData } from '@/components/custom-pages';
 import { toast } from 'react-toastify';
-import LoadingData from '@/components/custom-pages/LoadingData';
 
 // Validation schema for Attribute payload
 // const validationSchema = Yup.object({

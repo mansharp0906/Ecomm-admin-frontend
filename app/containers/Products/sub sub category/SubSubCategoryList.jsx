@@ -69,7 +69,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
           ...(search && { search: search }),
         };
 
-        console.log('API Request Params:', params); // Debug log
+       
         const response = await categoryService.getAll(params);
         if (response?.data?.success) {
           // Use data directly from API (backend should return only level 2 categories)
@@ -88,7 +88,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
           setError('Failed to fetch sub sub categories');
         }
       } catch (err) {
-        console.error('Error fetching sub sub categories:', err);
+       
         setError('Failed to fetch sub sub categories');
         toast.error('Failed to load sub sub categories');
       } finally {
@@ -117,7 +117,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
 
   // Handle search - throttled API call
   const handleSearch = (term) => {
-    console.log('Search term:', term); // Debug log
+   
     setSearchTerm(term);
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
 
@@ -193,7 +193,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
         );
       }
     } catch (err) {
-      console.error('Error deleting sub sub category:', err);
+    
       toast.error(
         err?.response?.data?.message || 'Failed to delete sub sub category',
       );
@@ -220,7 +220,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
 
   // Handle edit sub sub category - navigate to form page with sub sub category ID
   const handleEdit = (subSubCategory) => {
-    console.log(subSubCategory, 'sub sub category');
+   
     // Only allow editing of sub sub categories (level 2)
     if (subSubCategory.level !== 2) {
       toast.error('Only sub sub categories can be edited from this page');
@@ -237,18 +237,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
     navigate(`/products/subsubcategories/view/${finalId}`);
   };
 
-  // Use data directly from API (backend handles filtering and pagination)
 
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-600 mb-4">{error}</p>
-        <Button onClick={fetchSubSubCategories} variant="primary">
-          Retry
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <TableContainer>

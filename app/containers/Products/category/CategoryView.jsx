@@ -36,7 +36,7 @@ const CategoryView = () => {
         setError('Failed to fetch category data');
       }
     } catch (err) {
-      console.error('Error fetching category:', err);
+     
       setError('Failed to load category details');
       toast.error('Failed to load category details');
     } finally {

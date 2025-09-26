@@ -49,7 +49,7 @@ const Layout = () => {
           <div
             className={`${
               isAuthPage ? 'flex-1 h-full' : 'flex-1 h-full'
-            } overflow-y-auto`}
+            } overflow-hidden `}
           >
             <Outlet />
           </div>

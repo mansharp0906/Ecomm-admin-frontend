@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/custom-button';
-import categoryService from '@/api/service/categoryService';
+import brandService from '@/api/service/brandService'; // Adjust this import path
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import {
@@ -19,9 +19,9 @@ import TableContainer from '@/components/custom-pages/TableContainer';
 import { useNavigate } from 'react-router-dom';
 import { LoadingData } from '@/components/custom-pages';
 
-const CategoryListPage = ({ refreshTrigger }) => {
+const BrandListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -43,8 +43,8 @@ const CategoryListPage = ({ refreshTrigger }) => {
     isLoading: false,
   });
 
-  // Fetch categories from API with pagination and search
-  const fetchCategories = useCallback(
+  // Fetch brands from API with pagination and search
+  const fetchBrands = useCallback(
     async (page = 1, search = '') => {
       setLoading(true);
       setError(null);
@@ -52,71 +52,57 @@ const CategoryListPage = ({ refreshTrigger }) => {
         const params = {
           page,
           limit: pagination.itemsPerPage,
-          level: 0, // Only main categories
-          ...(search && { search: search }),
+          ...(search && { search }),
         };
 
-        const response = await categoryService.getAll(params);
+        const response = await brandService.getAll(params);
         if (response?.data?.success) {
-          // Use data directly from API (backend should return only level 0 categories)
-          setCategories(response.data.data);
-
-          // Update pagination state from API response (backend handles pagination)
+          setBrands(response.data.data || []);
           setPagination((prev) => ({
             ...prev,
             currentPage: response.data.page || page,
             totalPages:
               response.data.totalPages ||
               Math.ceil(response.data.total / pagination.itemsPerPage),
-            totalItems: response.data.total || response.data.data.length,
+            totalItems: response.data.total || (response.data.data ? response.data.data.length : 0),
           }));
         } else {
-          setError('Failed to fetch categories');
+          setError('Failed to fetch brands');
         }
       } catch (err) {
-        console.error('Error fetching categories:', err);
-        setError('Failed to fetch categories');
-        toast.error('Failed to load categories');
+        console.error('Error fetching brands:', err);
+        setError('Failed to fetch brands');
+        toast.error('Failed to load brands');
       } finally {
         setLoading(false);
       }
     },
-    [pagination.itemsPerPage],
+    [pagination.itemsPerPage]
   );
 
-  // Load categories on component mount and when refreshTrigger changes
+  // Load brands on mount and when dependencies change
   useEffect(() => {
-    fetchCategories(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchCategories, pagination.currentPage, searchTerm]);
+    fetchBrands(pagination.currentPage, searchTerm);
+  }, [refreshTrigger, fetchBrands, pagination.currentPage, searchTerm]);
 
   // Handle page change
   const handlePageChange = (page) => {
     setPagination((prev) => ({ ...prev, currentPage: page }));
-    fetchCategories(page, searchTerm);
   };
 
-  // Handle search - throttled API call
-  const handleSearch = (term) => { // Debug log
+  // Handle search - debounced API call
+  const handleSearch = (term) => {
     setSearchTerm(term);
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
-
-    // Clear previous timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-
-    // Set new timeout for throttled search (300ms delay)
     searchTimeoutRef.current = setTimeout(() => {
-      fetchCategories(1, term);
+      fetchBrands(1, term);
     }, 700);
   };
 
-  // Initial load effect - only for refreshTrigger
-  useEffect(() => {
-    fetchCategories(pagination.currentPage, searchTerm);
-  }, [refreshTrigger]);
-
-  // Handle delete category
+  // Handle delete brand
   const handleDelete = (id, name) => {
     setDeleteModal({
       isOpen: true,
@@ -129,32 +115,26 @@ const CategoryListPage = ({ refreshTrigger }) => {
   // Confirm delete
   const confirmDelete = async () => {
     if (!deleteModal.itemId) return;
-
     setDeleteModal((prev) => ({ ...prev, isLoading: true }));
-
     try {
-      const response = await categoryService.delete(deleteModal.itemId);
+      const response = await brandService.delete(deleteModal.itemId);
       if (response?.data?.success) {
-        toast.success('Category deleted successfully!');
-
-        // Remove item from frontend state immediately
-        setCategories((prev) =>
-          prev.filter((category) => category._id !== deleteModal.itemId),
-        );
-
-        // Update pagination if needed
+        toast.success('Brand deleted successfully!');
+        setBrands((prev) => prev.filter((brand) => brand._id !== deleteModal.itemId));
+        const newTotalItems = pagination.totalItems - 1;
+        const newTotalPages = Math.max(1, Math.ceil(newTotalItems / pagination.itemsPerPage));
         setPagination((prev) => ({
           ...prev,
-          totalItems: prev.totalItems - 1,
-          totalPages: Math.ceil((prev.totalItems - 1) / prev.itemsPerPage),
+          totalItems: newTotalItems,
+          totalPages: newTotalPages,
+          currentPage: prev.currentPage > newTotalPages ? newTotalPages : prev.currentPage,
         }));
       } else {
-        toast.error(response?.data?.message || 'Failed to delete category');
+        toast.error(response?.data?.message || 'Failed to delete brand');
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Failed to delete category');
+      toast.error(err?.response?.data?.message || 'Failed to delete brand');
     } finally {
-      // Always close modal after operation (success or error)
       setDeleteModal({
         isOpen: false,
         itemId: null,
@@ -174,31 +154,29 @@ const CategoryListPage = ({ refreshTrigger }) => {
     });
   };
 
-  // Handle edit category - navigate to form page with category ID
-  const handleEdit = (category) => {
-    // Only allow editing of main categories (level 0)
-    if (category.level !== 0) {
-      toast.error('Only main categories can be edited from this page');
+  // Edit handler
+  const handleEdit = (brand) => {
+    if (brand.level !== undefined && brand.level !== 0) {
+      toast.error('Only main brands can be edited from this page');
       return;
     }
-
-    const finalId = category.id || category._id;
-    navigate(`/products/categories/edit/${finalId}`);
+    const finalId = brand.id || brand._id;
+    navigate(`/products/brands/edit/${finalId}`);
   };
 
-  // Handle view category details
-  const handleView = (category) => {
-    const finalId = category.id || category._id;
-    navigate(`/products/categories/view/${finalId}`);
-  };
-
+  // View handler
+   const handleView = (brand) => {
+     const finalId = brand.id || brand._id;
+     navigate(`/products/brands/view/${finalId}`);
+   };
  
+
 
   return (
     <TableContainer>
       <SearchBarContainer>
         <SearchBar
-          placeholder="Search categories..."
+          placeholder="Search brands..."
           value={searchTerm}
           onChange={handleSearch}
           size="sm"
@@ -208,69 +186,44 @@ const CategoryListPage = ({ refreshTrigger }) => {
 
       {loading && <LoadingData message="Loading data..." />}
 
-      {loading === false && categories.length === 0 && <DataNotFound />}
+      {!loading && brands.length === 0 && <DataNotFound />}
 
-      {loading === false && categories.length > 0 && (
+      {!loading && brands.length > 0 && (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center">S.No</TableHead>
-                <TableHead>Category Name</TableHead>
+                <TableHead>Brand Name</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Level</TableHead>
-                <TableHead>Featured</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created Date</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
-
             <TableBody>
-              {categories.map((category, index) => (
-                <TableRow key={category._id}>
+              {brands.map((brand, index) => (
+                <TableRow key={brand._id}>
                   <TableCell className="text-center font-medium text-gray-900">
-                    {(pagination.currentPage - 1) * pagination.itemsPerPage +
-                      index +
-                      1}
+                    {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
                   </TableCell>
-                  <TableCell className="font-medium text-gray-900">
-                    {category.name}
-                  </TableCell>
+                  <TableCell className="font-medium text-gray-900">{brand.name}</TableCell>
                   <TableCell className="text-gray-500 max-w-xs">
-                    <div className="break-words whitespace-normal">
-                      {category.description}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                      Level {category.level || 0}
-                    </span>
+                    <div className="break-words whitespace-normal">{brand.description}</div>
                   </TableCell>
                   <TableCell>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        category.isFeatured
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {category.isFeatured ? 'Yes' : 'No'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        category.status === 'active'
+                        brand.status === 'active'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {category.status}
+                      {brand.status}
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-500">
-                    {new Date(category.createdAt).toLocaleDateString('en-US', {
+                    {new Date(brand.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'short',
                       day: 'numeric',
@@ -281,27 +234,23 @@ const CategoryListPage = ({ refreshTrigger }) => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleView(category)}
+                        onClick={() => handleView(brand)}
                         title="View"
                       >
                         <CustomIcon type="view" size={4} />
                       </Button>
-
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleEdit(category)}
+                        onClick={() => handleEdit(brand)}
                         title="Edit"
                       >
                         <CustomIcon type="edit" size={4} />
                       </Button>
-
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() =>
-                          handleDelete(category._id, category.name)
-                        }
+                        onClick={() => handleDelete(brand._id, brand.name)}
                         title="Delete"
                       >
                         <CustomIcon type="delete" size={4} />
@@ -315,7 +264,6 @@ const CategoryListPage = ({ refreshTrigger }) => {
         </div>
       )}
 
-      {/* Pagination */}
       {pagination.totalPages > 1 && (
         <div className="px-6 py-4 border-t border-gray-200">
           <Pagination
@@ -328,23 +276,21 @@ const CategoryListPage = ({ refreshTrigger }) => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
-        title="Delete Category"
+        title="Delete Brand"
         message={`Are you sure you want to delete "${deleteModal.itemName}"?`}
         itemName={deleteModal.itemName}
         isLoading={deleteModal.isLoading}
       />
-      
     </TableContainer>
   );
 };
 
-CategoryListPage.propTypes = {
+BrandListPage.propTypes = {
   refreshTrigger: PropTypes.number.isRequired,
 };
 
-export default CategoryListPage;
+export default BrandListPage;

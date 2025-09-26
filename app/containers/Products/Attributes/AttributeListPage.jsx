@@ -178,7 +178,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
         toast.error(response?.data?.message || 'Failed to delete attribute');
       }
     } catch (err) {
-      console.error('Error deleting attribute:', err);
+      // console.error('Error deleting attribute:', err);
       toast.error(err?.response?.data?.message || 'Failed to delete attribute');
     } finally {
       setDeleteModal({
@@ -213,20 +213,11 @@ const AttributeListPage = ({ refreshTrigger }) => {
 
   // View handler
   const handleView = (attribute) => {
-    toast.info('View functionality will be implemented soon');
-    console.log('View attribute:', attribute);
-  };
-
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-600 mb-4">{error}</p>
-        <Button onClick={() => fetchAttributes()} variant="primary">
-          Retry
-        </Button>
-      </div>
-    );
-  }
+      const finalId = attribute.id || attribute._id;
+      navigate(`/products/attributes/view/${finalId}`);
+    };
+  
+ 
 
   return (
     <TableContainer>

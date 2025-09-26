@@ -220,8 +220,9 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           <LoadingData message="Loading data..." size="50px" />
         ) : (
           <form
+            style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
             onSubmit={handleSubmit}
-            className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
+            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2"
           >
             <InputTextField
               label="Category Name"

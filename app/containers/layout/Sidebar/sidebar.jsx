@@ -67,7 +67,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <ToggleIcon
           onClick={() => setSidebarOpen(!sidebarOpen)}
           isOpen={sidebarOpen}
-          className="mb-4 mr-5"
+          className="mb-4 mr-6"
         />
 
         <nav className="pt-6 space-y-2 flex-1 overflow-y-auto no-scrollbar">
