@@ -32,6 +32,9 @@ export { default as InputTextField } from './custom-input-field/InputTextField';
 // Custom Modal components
 export { default as DeleteConfirmationModal } from './custom-modal/DeleteConfirmationModal';
 
+// Error Boundary component
+export { default as ErrorBoundary } from './ErrorBoundary';
+
 // Custom Page components
 export { default as Breadcrumb } from './custom-pages/Breadcrumb';
 export { default as Container } from './custom-pages/Container';

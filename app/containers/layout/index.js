@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import SideBar from './Sidebar/sidebar';
 import Navbar from './Navbar/Navbar';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const LAYOUT_CONSTANTS = {
   HEADER_HEIGHT: 'h-16',
@@ -77,9 +78,11 @@ const Layout = () => {
         )}
 
         <main className={getMainClassName(isAuthPage, sidebarOpen)}>
-          <div className="flex-1 h-full overflow-hidden">
-            <Outlet />
-          </div>
+          <ErrorBoundary>
+            <div className="flex-1 h-full overflow-hidden">
+              <Outlet />
+            </div>
+          </ErrorBoundary>
         </main>
       </div>
     </>

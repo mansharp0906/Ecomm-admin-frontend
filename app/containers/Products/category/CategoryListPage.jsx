@@ -1,5 +1,5 @@
 import { Button, Pagination, SearchBar, DeleteConfirmationModal, SearchBarContainer, LoadingData, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableContainer, DataNotFound, CustomIcon, Container } from '@/components';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
@@ -31,6 +31,14 @@ const CategoryListPage = ({ refreshTrigger }) => {
     itemName: '',
     isLoading: false,
   });
+
+  // Memoize filtered categories
+  const filteredCategories = useMemo(() => {
+    if (!searchTerm) return categories;
+    return categories.filter(category => 
+      category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [categories, searchTerm]);
 
   // Fetch categories from API with pagination and search
   const fetchCategories = useCallback(
@@ -85,7 +93,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
   };
 
   // Handle search - throttled API call
-  const handleSearch = (term) => { // Debug log
+  const handleSearch = useCallback((term) => {
     setSearchTerm(term);
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
 
@@ -98,7 +106,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
     searchTimeoutRef.current = setTimeout(() => {
       fetchCategories(1, term);
     }, 700);
-  };
+  }, [fetchCategories]);
 
   // Initial load effect - only for refreshTrigger
   useEffect(() => {
@@ -106,14 +114,14 @@ const CategoryListPage = ({ refreshTrigger }) => {
   }, [refreshTrigger]);
 
   // Handle delete category
-  const handleDelete = (id, name) => {
+  const handleDelete = useCallback((id, name) => {
     setDeleteModal({
       isOpen: true,
       itemId: id,
       itemName: name,
       isLoading: false,
     });
-  };
+  }, []);
 
   // Confirm delete
   const confirmDelete = async () => {
@@ -336,4 +344,4 @@ CategoryListPage.propTypes = {
   refreshTrigger: PropTypes.number.isRequired,
 };
 
-export default CategoryListPage;
+export default React.memo(CategoryListPage);

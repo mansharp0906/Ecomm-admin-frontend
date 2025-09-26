@@ -8,6 +8,7 @@ import createSagaMiddleware from 'redux-saga';
 import createReducer from './redux/reducers';
 import rootSaga from './redux/rootSaga';
 import Layout from './containers/layout';
+import ErrorBoundary from './components/ErrorBoundary';
 import Dashboard from './containers/Home';
 import LoginPage from './containers/Auth/LoginPage';
 import RegisterPage from './containers/Auth/RegisterPage';
@@ -80,7 +81,8 @@ function App() {
   return (
     <Provider store={store}>
       <BrowserRouter>
-        <Routes>
+        <ErrorBoundary>
+          <Routes>
           {/* Auth pages without Layout */}
           <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -199,7 +201,8 @@ function App() {
 
           {/* 404 page */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
+          </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
       <ToastContainer
         position="top-right"

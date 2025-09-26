@@ -1,5 +1,5 @@
 import { Button, Pagination, SearchBar, DeleteConfirmationModal, SearchBarContainer, LoadingData, Container, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableContainer, DataNotFound, CustomIcon } from '@/components';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
@@ -32,6 +32,14 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
     itemName: '',
     isLoading: false,
   });
+
+  // Memoize filtered sub sub categories
+  const filteredSubSubCategories = useMemo(() => {
+    if (!searchTerm) return subSubCategories;
+    return subSubCategories.filter(category => 
+      category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [subSubCategories, searchTerm]);
 
   // Fetch all sub categories to get parent names
   const fetchAllSubCategories = async () => {
@@ -105,8 +113,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   };
 
   // Handle search - throttled API call
-  const handleSearch = (term) => {
-   
+  const handleSearch = useCallback((term) => {
     setSearchTerm(term);
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
 
@@ -119,7 +126,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
     searchTimeoutRef.current = setTimeout(() => {
       fetchSubSubCategories(1, term);
     }, 700);
-  };
+  }, [fetchSubSubCategories]);
 
   // Initial load effect - only for refreshTrigger
   useEffect(() => {
@@ -143,14 +150,14 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
   };
 
   // Handle delete sub sub category
-  const handleDelete = (id, name) => {
+  const handleDelete = useCallback((id, name) => {
     setDeleteModal({
       isOpen: true,
       itemId: id,
       itemName: name,
       isLoading: false,
     });
-  };
+  }, []);
 
   // Confirm delete
   const confirmDelete = async () => {
@@ -375,4 +382,4 @@ SubSubCategoryList.propTypes = {
   refreshTrigger: PropTypes.number.isRequired,
 };
 
-export default SubSubCategoryList;
+export default React.memo(SubSubCategoryList);
