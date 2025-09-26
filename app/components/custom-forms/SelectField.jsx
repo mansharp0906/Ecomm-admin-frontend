@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const SelectField = ({ label, name, value, onChange, options, error }) => {
+const SelectField = ({ label, name, value, onChange, options, error, multiple = false }) => {
   return (
     <div className="flex flex-col mb-4">
       {label && (
@@ -31,7 +31,7 @@ const SelectField = ({ label, name, value, onChange, options, error }) => {
 SelectField.propTypes = {
   label: PropTypes.string,
   name: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]).isRequired,
   onChange: PropTypes.func.isRequired,
   options: PropTypes.arrayOf(
     PropTypes.shape({
@@ -40,6 +40,7 @@ SelectField.propTypes = {
     }),
   ).isRequired,
   error: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
+  multiple: PropTypes.bool,
 };
 
 export default SelectField;

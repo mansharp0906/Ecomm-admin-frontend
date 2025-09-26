@@ -1,7 +1,7 @@
 // SearchBar.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@/components/custom-button';
+import { Button } from '@/components';
 
 const SearchBar = ({
   placeholder = 'Search...',

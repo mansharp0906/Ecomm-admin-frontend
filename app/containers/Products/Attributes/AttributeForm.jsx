@@ -1,128 +1,192 @@
-import { Button } from '@/components/custom-button';
-import InputTextField from '@/components/custom-input-field/InputTextField';
-import SelectField from '@/components/custom-forms/SelectField';
-import { toast } from 'react-toastify';
+import { Button, LoadingData, InputTextField, SelectField } from '@/components';
 import React, { useState, useEffect, useCallback } from 'react';
-import * as Yup from 'yup';
+
+import attributeService from '@/api/service/attributeService';
+import categoryService from '@/api/service/categoryService';
 import PropTypes from 'prop-types';
-import { LoadingData } from '@/components/custom-pages';
+import { toast } from 'react-toastify';
+import {
+  useValidation,
+  attributeCreateSchema,
+  attributeUpdateSchema,
+} from '@/validations';
 
-// Validation schema
-const validationSchema = Yup.object({
-  name: Yup.string()
-    .required('Atrribute name is required')
-    .min(2, 'Attribute name must be at least 2 characters')
-    .max(50, 'Attribute name must be less than 50 characters'),
-  priority: Yup.number()
-    .required('Priority is required')
-    .min(1, 'Priority must be at least 1')
-    .max(100, 'Priority must be less than 100')
-    .integer('Priority must be a whole number'),
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
-});
+// Validation schemas are now imported from validations directory
 
-const AttributeForm = ({ onSuccess, onCancel, AttributeId, isEditMode }) => {
+const displayTypes = [
+  { label: 'Color', value: 'color' },
+  { label: 'Text', value: 'text' },
+  { label: 'Image', value: 'image' },
+];
+
+const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [formData, setFormData] = useState({
     name: '',
-    priority: 1,
+    values: [{ value: '', color: '', image: '', isDefault: false }],
+    isFilterable: false,
+    isRequired: false,
+    displayType: 'text',
     status: 'active',
+    categories: [],
+    parentId: '',
   });
-  const [formErrors, setFormErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+
+  // Use validation hook
+  const validationSchema = isEditMode
+    ? attributeUpdateSchema
+    : attributeCreateSchema;
+  const { errors, validate, clearErrors, setFieldError } = useValidation(
+    validationSchema,
+    {
+      context: { displayType: formData.displayType },
+    },
+  );
+
   const fetchCategoryData = useCallback(async () => {
     try {
       setIsLoadingData(true);
-
-      // Use categoryService instead of direct fetch
-      let response = await categoryService.getById(AttributeId);
-
-      // Check if response is HTML (error page)
-      if (
-        typeof response?.data === 'string' &&
-        response.data.includes('<!DOCTYPE')
-      ) {
-        toast.error('Server error: API returned HTML instead of JSON');
+      const response = await attributeService.getById(categoryId);
+      const data = response?.data?.data || response?.data;
+      if (!data) {
+        toast.error('Failed to load attribute');
         return;
       }
 
-      // Determine the correct data structure
-      let category;
-      if (response?.data?.success) {
-        category = response.data.data;
-      } else if (response?.data) {
-        // If response.data exists but no success field, assume data is directly in response.data
-        category = response.data;
-      } else {
-        toast.error('Failed to fetch category data');
-        return;
-      }
+      const firstCategoryId =
+        Array.isArray(data.categories) && data.categories.length > 0
+          ? typeof data.categories[0] === 'object'
+            ? data.categories[0]._id
+            : data.categories[0]
+          : '';
 
-      if (category) {
-        const newFormData = {
-          name: category.name || '',
-          priority: category.priority || 1,
-          status: category.status || 'active',
-        };
-
-        setFormData(newFormData);
-      } else {
-        toast.error('No category data found');
-      }
-    } catch (error) {
-      // Check if it's a JSON parsing error
-      if (error.message.includes('Unexpected token')) {
-        toast.error('Server returned invalid response format');
-      } else {
-        toast.error('Failed to fetch category data: ' + error.message);
-      }
+      setFormData((prev) => ({
+        ...prev,
+        name: data.name || '',
+        values:
+          Array.isArray(data.values) && data.values.length > 0
+            ? data.values.map((v) => ({
+                value: v.value || '',
+                color: v.color || '',
+                image: v.image || '',
+                isDefault: Boolean(v.isDefault),
+              }))
+            : [{ value: '', color: '', image: '', isDefault: false }],
+        isFilterable: Boolean(data.isFilterable),
+        isRequired: Boolean(data.isRequired),
+        displayType: data.displayType || 'text',
+        status: data.status || 'active',
+        parentId: firstCategoryId,
+      }));
+    } catch (err) {
+      console.error('Failed to fetch attribute by id:', err);
+      toast.error('Failed to load attribute');
     } finally {
       setIsLoadingData(false);
     }
-  }, [AttributeId]);
+  }, [categoryId]);
 
-  useEffect(() => {
-    if (isEditMode && AttributeId) {
-      fetchCategoryData();
-    }
-  }, [isEditMode, AttributeId, fetchCategoryData]);
+  const handleCancel = () => {
+    if (onCancel) onCancel();
+  };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value,
     });
+  };
 
-    // Clear error for this field when user starts typing
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: '',
-      });
+  useEffect(() => {
+    // Load category options on mount
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    if (isEditMode && categoryId && categories.length > 0) {
+      fetchCategoryData();
     }
+  }, [isEditMode, categoryId, fetchCategoryData, categories.length]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleValueChange = (index, field, value) => {
+    const updated = [...formData.values];
+    updated[index][field] = value;
+    setFormData({ ...formData, values: updated });
+  };
+
+  const fetchCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      const response = await categoryService.getTree();
+      if (response?.data) {
+        const mainCategories = response.data.filter((cat) => cat.level === 0);
+        const formattedCategories = mainCategories.map((cat) => ({
+          ...cat,
+          displayName: `${cat.name} (Level ${cat.level})`,
+        }));
+        setCategories(formattedCategories);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast.error('Failed to load categories');
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  const addValue = () => {
+    setFormData({
+      ...formData,
+      values: [
+        ...formData.values,
+        { value: '', color: '', image: '', isDefault: false },
+      ],
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setFormErrors({});
+    clearErrors();
 
     try {
-      // Validate form data
-      await validationSchema.validate(formData, { abortEarly: false });
+      // Prepare data for validation
+      const validationData = {
+        ...formData,
+        id: isEditMode ? categoryId : undefined,
+        categories: formData.parentId ? [formData.parentId] : [],
+      };
 
-      // Remove fields that backend doesn't allow
-      // eslint-disable-next-line no-unused-vars
-      // const { slug: _slug, image: _image, ...apiData } = formData;
+      // Validate form data
+      const isValid = await validate(validationData);
+      if (!isValid) {
+        setLoading(false);
+        return;
+      }
+
+      const apiData = {
+        name: formData.name,
+        values: formData.values,
+        isFilterable: formData.isFilterable,
+        isRequired: formData.isRequired,
+        displayType: formData.displayType,
+        status: formData.status,
+        categories: formData.parentId ? [formData.parentId] : [],
+      };
 
       let response;
-      if (isEditMode) {
-        response = await categoryService.update(AttributeId, apiData);
+      if (isEditMode && categoryId) {
+        response = await attributeService.update(categoryId, apiData);
       } else {
-        response = await categoryService.create(apiData);
+        response = await attributeService.create(apiData);
       }
 
       const isSuccess =
@@ -131,107 +195,177 @@ const AttributeForm = ({ onSuccess, onCancel, AttributeId, isEditMode }) => {
 
       if (isSuccess) {
         toast.success(
-          `Category ${isEditMode ? 'updated' : 'added'} successfully!`,
+          `Attribute ${isEditMode ? 'updated' : 'added'} successfully!`,
         );
 
         // Reset form for both create and edit modes
         setFormData({
           name: '',
-          priority: 1,
+          values: [{ value: '', color: '', image: '', isDefault: false }],
+          isFilterable: false,
+          isRequired: false,
+          displayType: 'text',
           status: 'active',
+          categories: [],
+          parentId: '',
         });
-        setFormErrors({});
+        clearErrors();
 
         // Notify parent component (this will trigger navigation)
         if (onSuccess) {
           onSuccess(response.data.data || response.data);
         }
       } else {
-        toast.error('Failed to save category');
+        toast.error('Failed to save attribute');
       }
     } catch (error) {
+      console.error('API Error Details:', error.response?.data); // Debug log
+
       if (error.name === 'ValidationError') {
         // Handle validation errors
         const validationErrors = {};
         error.inner.forEach((err) => {
           validationErrors[err.path] = err.message;
         });
-        setFormErrors(validationErrors);
+        // Set errors using validation hook
+        Object.keys(validationErrors).forEach((key) => {
+          setFieldError(key, validationErrors[key]);
+        });
         toast.error('Please fix the validation errors');
       } else {
-        toast.error(error.response?.data?.message || 'Failed to add category');
+        // Handle other API errors
+        const errorMessage =
+          error.response?.data?.message ||
+          `Failed to ${isEditMode ? 'update' : 'add'} attribute`;
+        toast.error(errorMessage);
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    setFormData({
-      name: '',
-      priority: 1,
-      status: 'active',
-    });
-    setFormErrors({});
-    if (onCancel) {
-      onCancel();
-    }
-  };
-
   return (
-    <>
-      {/* Form */}
-      <div className="bg-white rounded-lg shadow">
-        {isEditMode && isLoadingData ? (
-          <LoadingData message="Loading data..." />
-        ) : (
-          <form
-            style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
-            onSubmit={handleSubmit}
-            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2"
-          >
-            <InputTextField
-              label="Attribute Name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Enter Attribute Name"
-              error={formErrors?.name}
-            />
+    <div className="bg-white rounded-lg shadow">
+      {isEditMode && (loadingCategories || isLoadingData) ? (
+        <LoadingData message="Loading data..." />
+      ) : (
+        <form
+          style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
+          onSubmit={handleSubmit}
+          className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
+        >
+          <SelectField
+            label="Category"
+            name="parentId"
+            value={formData.parentId}
+            onChange={handleInputChange}
+            options={(() => [
+              { value: '', label: 'Select Category' },
+              ...categories.map((cat) => ({
+                value: cat._id,
+                label: cat.displayName,
+              })),
+            ])()}
+            error={errors?.parentId}
+            disabled={loadingCategories}
+          />
+          <InputTextField
+            label="Attribute Name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            error={errors?.name}
+          />
+          <SelectField
+            label="Display Type"
+            name="displayType"
+            value={formData.displayType}
+            onChange={handleChange}
+            options={displayTypes}
+            error={errors?.displayType}
+          />
 
-            <InputTextField
-              label="Priority"
-              type="number"
-              name="priority"
-              value={formData.priority}
-              onChange={handleInputChange}
-              placeholder="e.g. 1"
-              error={formErrors?.priority}
-            />
-            <SelectField
-              label="Value"
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-              options={[
-                { value: 'active', label: 'Black' },
-                { value: 'inactive', label: 'white' },
-              ]}
-              error={formErrors?.status}
-            />
-
+          <div className="flex gap-4 items-center">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="isFilterable"
+                checked={formData.isFilterable}
+                onChange={handleInputChange}
+              />
+              <span>Filterable</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="isRequired"
+                checked={formData.isRequired}
+                onChange={handleInputChange}
+              />
+              <span>Required</span>
+            </label>
             <SelectField
               label="Status"
               name="status"
               value={formData.status}
-              onChange={handleInputChange}
+              onChange={handleChange}
               options={[
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
+                { label: 'Active', value: 'active' },
+                { label: 'Inactive', value: 'inactive' },
               ]}
-              error={formErrors?.status}
+              error={errors?.status}
             />
+          </div>
 
+          <div className="space-y-3">
+            <h3 className="font-semibold">Values</h3>
+            {errors?.values && (
+              <div className="text-red-600 text-sm">{errors.values}</div>
+            )}
+            {formData.values.map((val, idx) => (
+              <div key={idx} className="flex gap-2">
+                <InputTextField
+                  label="Value"
+                  value={val.value}
+                  onChange={(e) =>
+                    handleValueChange(idx, 'value', e.target.value)
+                  }
+                  error={errors?.[`values.${idx}.value`]}
+                />
+                {formData.displayType === 'color' && (
+                  <input
+                    type="color"
+                    value={val.color}
+                    onChange={(e) =>
+                      handleValueChange(idx, 'color', e.target.value)
+                    }
+                  />
+                )}
+                {formData.displayType === 'image' && (
+                  <InputTextField
+                    label="Image URL"
+                    value={val.image}
+                    onChange={(e) =>
+                      handleValueChange(idx, 'image', e.target.value)
+                    }
+                    error={errors?.[`values.${idx}.image`]}
+                  />
+                )}
+                <label>
+                  Default
+                  <input
+                    type="checkbox"
+                    checked={val.isDefault}
+                    onChange={(e) =>
+                      handleValueChange(idx, 'isDefault', e.target.checked)
+                    }
+                  />
+                </label>
+              </div>
+            ))}
+            <Button type="button" onClick={addValue}>
+              + Add Value
+            </Button>
             {/* Buttons should span full width */}
             <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
               <Button
@@ -254,15 +388,20 @@ const AttributeForm = ({ onSuccess, onCancel, AttributeId, isEditMode }) => {
                     ? 'Updating...'
                     : 'Adding...'
                   : isEditMode
-                  ? 'Update Attribute'
-                  : 'Add Attribute'}
+                  ? 'Update'
+                  : 'Add'}
               </Button>
             </div>
-          </form>
-        )}
-      </div>
-    </>
+          </div>
+        </form>
+      )}
+    </div>
   );
 };
-
+AttributeForm.propTypes = {
+  onSuccess: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  categoryId: PropTypes.string,
+  isEditMode: PropTypes.bool,
+};
 export default AttributeForm;

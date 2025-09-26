@@ -29,8 +29,8 @@ const Layout = () => {
       <div className="flex min-h-screen">
         {!isAuthPage && (
           <aside
-            className={`fixed top-16 left-0 h-[calc(100vh-4rem)] z-40 transition-all duration-300 ease-in-out 
-              ${sidebarOpen ? 'w-64' : 'w-16'}`}
+            className={`fixed top-16 left-0 h-[calc(100vh-4rem)] z-40 transition-all duration-300 ease-in-out bg-white border-r border-gray-200
+              ${sidebarOpen ? 'w-72' : 'w-16'}`}
           >
             <SideBar
               sidebarOpen={sidebarOpen}
@@ -40,11 +40,17 @@ const Layout = () => {
         )}
 
         <main
-          className={`flex-1 bg-gray-100 transition-all duration-300 pt-16 ${
-            sidebarOpen ? 'ml-64' : 'ml-16'
-          }`}
+          className={`flex-1 bg-gray-100 transition-all duration-300 ${
+            isAuthPage
+              ? 'pt-0 ml-0 h-screen'
+              : `pt-16 ${sidebarOpen ? 'ml-72' : 'ml-16'} h-[calc(100vh-4rem)]`
+          } flex flex-col`}
         >
-          <div className="h-[calc(100vh-4rem)] overflow-hidden ">
+          <div
+            className={`${
+              isAuthPage ? 'flex-1 h-full' : 'flex-1 h-full'
+            } overflow-hidden `}
+          >
             <Outlet />
           </div>
         </main>

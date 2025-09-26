@@ -1,8 +1,9 @@
+import { Container, Breadcrumb } from '@/components';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SubCategoryForm from './SubCategoryForm';
-import Container from '@/components/custom-pages/Container';
-import Breadcrumb from '@/components/custom-pages/Breadcrumb';
+
+
 
 const SubCategoryFormPage = () => {
   const navigate = useNavigate();

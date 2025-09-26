@@ -3,28 +3,52 @@ import { Link, useNavigate } from 'react-router-dom';
 import authService from '@/api/service/authService';
 import { showSuccessToast, showErrorToast } from '@/utils/toast'; // 👈 custom toast utils
 import LoadingOverlay from '@/components/Loading/index';
+import { useValidation, userCreateSchema } from '@/validations';
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [name, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('');
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: '',
+  });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Use validation hook
+  const { errors, validate, clearErrors } = useValidation(userCreateSchema);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    setLoading(true); // start loading
+    setLoading(true);
+    clearErrors();
 
     try {
+      // Validate form data
+      const isValid = await validate(formData);
+      if (!isValid) {
+        setLoading(false);
+        return;
+      }
+
       await authService.register({
-        name,
-        email,
-        password,
-        role,
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
       });
 
       showSuccessToast('Registration successful!');
@@ -36,7 +60,7 @@ export default function RegisterPage() {
     } catch (err) {
       showErrorToast(err.response?.data?.message || 'Registration failed');
     } finally {
-      setLoading(false); // stop loading
+      setLoading(false);
     }
   };
 
@@ -62,45 +86,101 @@ export default function RegisterPage() {
               <div>
                 <input
                   type="text"
-                  placeholder="Full Name"
-                  value={name}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md sm:text-sm"
+                  name="firstName"
+                  placeholder="First Name"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  className={`appearance-none block w-full px-3 py-2 border rounded-md sm:text-sm ${
+                    errors?.firstName ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
-              </div>
-
-              <div>
-                <input
-                  type="email"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md sm:text-sm"
-                />
+                {errors?.firstName && (
+                  <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+                )}
               </div>
 
               <div>
                 <input
                   type="text"
-                  placeholder="Role (admin/member)"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  required
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md sm:text-sm"
+                  name="lastName"
+                  placeholder="Last Name"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  className={`appearance-none block w-full px-3 py-2 border rounded-md sm:text-sm ${
+                    errors?.lastName ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {errors?.lastName && (
+                  <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+                )}
+              </div>
+
+              <div>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email address"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`appearance-none block w-full px-3 py-2 border rounded-md sm:text-sm ${
+                    errors?.email ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors?.email && (
+                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                )}
+              </div>
+
+              <div>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className={`appearance-none block w-full px-3 py-2 border rounded-md sm:text-sm ${
+                    errors?.password ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors?.password && (
+                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                )}
+              </div>
+
+              <div>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className={`appearance-none block w-full px-3 py-2 border rounded-md sm:text-sm ${
+                    errors?.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors?.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                )}
+              </div>
+
+              <div>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
+                  className={`appearance-none block w-full px-3 py-2 border rounded-md sm:text-sm ${
+                    errors?.role ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">Select Role</option>
+                  <option value="admin">Admin</option>
+                  <option value="manager">Manager</option>
+                  <option value="employee">Employee</option>
+                  <option value="customer">Customer</option>
+                </select>
+                {errors?.role && (
+                  <p className="mt-1 text-sm text-red-600">{errors.role}</p>
+                )}
               </div>
 
               {error && <p className="text-red-500 text-sm">{error}</p>}

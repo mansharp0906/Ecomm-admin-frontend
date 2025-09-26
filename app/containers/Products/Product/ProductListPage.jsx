@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Button } from '@/components/custom-button';
-import attributeService from '@/api/service/attributesServices'; // Make sure this is correct!
+import { Button, } from '@/components';
+import productService from '@/api/service/brandService'; // Adjust this import path
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import {
@@ -10,18 +10,18 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from '@/components/custom-table';
+} from '@/components';
 import CustomIcon from '@/components/custom-icon/CustomIcon';
 import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 import DataNotFound from '@/components/custom-pages/DataNotFound';
-import { SearchBarContainer } from '@/components/custom-search';
-import TableContainer from '@/components/custom-pages/TableContainer';
+import { SearchBarContainer } from '@/components';
+// import TableContainer from '@/components';
 import { useNavigate } from 'react-router-dom';
-import { LoadingData } from '@/components/custom-pages';
+import { LoadingData } from '@/components';
 
-const AttributeListPage = ({ refreshTrigger }) => {
+const ProductListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();
-  const [attributes, setAttributes] = useState([]);
+  const [product, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -43,8 +43,8 @@ const AttributeListPage = ({ refreshTrigger }) => {
     isLoading: false,
   });
 
-  // Fetch attributes from API with pagination and search
-  const fetchAttributes = useCallback(
+  // Fetch Products from API with pagination and search
+  const fetchProducts = useCallback(
     async (page = 1, search = '') => {
       setLoading(true);
       setError(null);
@@ -55,35 +55,37 @@ const AttributeListPage = ({ refreshTrigger }) => {
           ...(search && { search }),
         };
 
-        const response = await attributeService.getAll(params);
+        const response = await productService.getAll(params);
         if (response?.data?.success) {
-          setAttributes(response.data.data || []);
+          setProducts(response.data.data || []);
           setPagination((prev) => ({
             ...prev,
             currentPage: response.data.page || page,
             totalPages:
               response.data.totalPages ||
               Math.ceil(response.data.total / pagination.itemsPerPage),
-            totalItems: response.data.total || (response.data.data ? response.data.data.length : 0),
+            totalItems:
+              response.data.total ||
+              (response.data.data ? response.data.data.length : 0),
           }));
         } else {
-          setError('Failed to fetch attributes');
+          setError('Failed to fetch Product');
         }
       } catch (err) {
-        console.error('Error fetching attributes:', err);
-        setError('Failed to fetch attributes');
-        toast.error('Failed to load attributes');
+        console.error('Error fetching Products:', err);
+        setError('Failed to fetch Products');
+        toast.error('Failed to load Products');
       } finally {
         setLoading(false);
       }
     },
-    [pagination.itemsPerPage]
+    [pagination.itemsPerPage],
   );
 
-  // Load attributes on mount and when dependencies change
+  // Load Products on mount and when dependencies change
   useEffect(() => {
-    fetchAttributes(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchAttributes, pagination.currentPage, searchTerm]);
+    fetchProducts(pagination.currentPage, searchTerm);
+  }, [refreshTrigger, fetchProducts, pagination.currentPage, searchTerm]);
 
   // Handle page change
   const handlePageChange = (page) => {
@@ -98,11 +100,11 @@ const AttributeListPage = ({ refreshTrigger }) => {
       clearTimeout(searchTimeoutRef.current);
     }
     searchTimeoutRef.current = setTimeout(() => {
-      fetchAttributes(1, term);
+      fetchProducts(1, term);
     }, 700);
   };
 
-  // Handle delete attribute
+  // Handle delete brand
   const handleDelete = (id, name) => {
     setDeleteModal({
       isOpen: true,
@@ -117,24 +119,27 @@ const AttributeListPage = ({ refreshTrigger }) => {
     if (!deleteModal.itemId) return;
     setDeleteModal((prev) => ({ ...prev, isLoading: true }));
     try {
-      const response = await attributeService.delete(deleteModal.itemId);
+      const response = await productService.delete(deleteModal.itemId);
       if (response?.data?.success) {
-        toast.success('Attribute deleted successfully!');
-        setAttributes((prev) => prev.filter((attribute) => attribute._id !== deleteModal.itemId));
-        const newTotalItems = pagination.totalItems - 1;
-        const newTotalPages = Math.max(1, Math.ceil(newTotalItems / pagination.itemsPerPage));
+        toast.success('Product deleted successfully!');
+          setBrands((prev) => prev.filter((brand) => brand._id !== deleteModal.itemId));
+        newTotalItems = pagination.totalItems - 1;
+        newTotalPages = Math.max(
+          1,
+          Math.ceil(newTotalItems / pagination.itemsPerPage),
+        );
         setPagination((prev) => ({
           ...prev,
           totalItems: newTotalItems,
           totalPages: newTotalPages,
-          currentPage: prev.currentPage > newTotalPages ? newTotalPages : prev.currentPage,
+          currentPage:
+            prev.currentPage > newTotalPages ? newTotalPages : prev.currentPage,
         }));
       } else {
-        toast.error(response?.data?.message || 'Failed to delete attribute');
+        toast.error(response?.data?.message || 'Failed to delete product');
       }
     } catch (err) {
-      // console.error('Error deleting attribute:', err);
-      toast.error(err?.response?.data?.message || 'Failed to delete attribute');
+      toast.error(err?.response?.data?.message || 'Failed to delete product');
     } finally {
       setDeleteModal({
         isOpen: false,
@@ -156,29 +161,26 @@ const AttributeListPage = ({ refreshTrigger }) => {
   };
 
   // Edit handler
-  const handleEdit = (attribute) => {
-    // If your attributes have more levels, check here
-    if (attribute.level !== undefined && attribute.level !== 0) {
-      toast.error('Only main attributes can be edited from this page');
+  const handleEdit = (product) => {
+    if (product.level !== undefined && product.level !== 0) {
+      toast.error('Only main products can be edited from this page');
       return;
     }
-    const finalId = attribute.id || attribute._id;
-    navigate(`/products/attributes/edit/${finalId}`);
+    const finalId = product.id || product._id;
+    navigate(`/products/products/edit/${finalId}`);
   };
 
   // View handler
-  const handleView = (attribute) => {
-      const finalId = attribute.id || attribute._id;
-      navigate(`/products/attributes/view/${finalId}`);
-    };
-  
- 
+  const handleView = (product) => {
+    const finalId = product.id || product._id;
+    navigate(`/products/products/view/${finalId}`);
+  };
 
   return (
     <TableContainer>
       <SearchBarContainer>
         <SearchBar
-          placeholder="Search attributes..."
+          placeholder="Search products..."
           value={searchTerm}
           onChange={handleSearch}
           size="sm"
@@ -186,19 +188,17 @@ const AttributeListPage = ({ refreshTrigger }) => {
         />
       </SearchBarContainer>
 
-      {loading && (
-        <LoadingData message='loadind data...'/>
-      )}
+      {loading && <LoadingData message="Loading data..." />}
 
-      {!loading && attributes.length === 0 && <DataNotFound />}
+      {!loading && product.length === 0 && <DataNotFound />}
 
-      {!loading && attributes.length > 0 && (
+      {!loading && product.length > 0 && (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center">S.No</TableHead>
-                <TableHead>Attribute Name</TableHead>
+                <TableHead>product Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created Date</TableHead>
@@ -206,30 +206,34 @@ const AttributeListPage = ({ refreshTrigger }) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {attributes.map((attribute, index) => (
-                <TableRow key={attribute._id}>
+              {products.map((product, index) => (
+                <TableRow key={product._id}>
                   <TableCell className="text-center font-medium text-gray-900">
-                    {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
+                    {(pagination.currentPage - 1) * pagination.itemsPerPage +
+                      index +
+                      1}
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">
-                    {attribute.name}
+                    {product.name}
                   </TableCell>
                   <TableCell className="text-gray-500 max-w-xs">
-                    <div className="break-words whitespace-normal">{attribute.description}</div>
+                    <div className="break-words whitespace-normal">
+                      {product.description}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        attribute.status === 'active'
+                        product.status === 'active'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {attribute.status}
+                      {product.status}
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-500">
-                    {new Date(attribute.createdAt).toLocaleDateString('en-US', {
+                    {new Date(product.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'short',
                       day: 'numeric',
@@ -240,7 +244,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleView(attribute)}
+                        onClick={() => handleView(product)}
                         title="View"
                       >
                         <CustomIcon type="view" size={4} />
@@ -248,7 +252,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleEdit(attribute)}
+                        onClick={() => handleEdit(product)}
                         title="Edit"
                       >
                         <CustomIcon type="edit" size={4} />
@@ -256,7 +260,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleDelete(attribute._id, attribute.name)}
+                        onClick={() => handleDelete(product._id, product.name)}
                         title="Delete"
                       >
                         <CustomIcon type="delete" size={4} />
@@ -282,12 +286,11 @@ const AttributeListPage = ({ refreshTrigger }) => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
-        title="Delete Attribute"
+        title="Delete product"
         message={`Are you sure you want to delete "${deleteModal.itemName}"?`}
         itemName={deleteModal.itemName}
         isLoading={deleteModal.isLoading}
@@ -296,8 +299,8 @@ const AttributeListPage = ({ refreshTrigger }) => {
   );
 };
 
-AttributeListPage.propTypes = {
+ProductListPage.propTypes = {
   refreshTrigger: PropTypes.number.isRequired,
 };
 
-export default AttributeListPage;
+export default ProductListPage;

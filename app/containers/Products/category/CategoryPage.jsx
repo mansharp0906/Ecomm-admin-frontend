@@ -1,10 +1,10 @@
-import { Button } from '@/components/custom-button';
+import { Button, Container, Breadcrumb } from '@/components';
 import React, { useState } from 'react';
 import { MdAdd } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import CategoryListPage from './CategoryListPage';
-import Container from '@/components/custom-pages/Container';
-import Breadcrumb from '@/components/custom-pages/Breadcrumb';
+
+
 
 const CategoryPage = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);

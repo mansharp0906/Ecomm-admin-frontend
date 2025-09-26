@@ -1,6 +1,6 @@
+import { Button } from '@/components';
 import React from 'react';
-import Container from '@/components/custom-pages/Container';
-import { Button } from '@/components/custom-button';
+
 import { MdAdd } from 'react-icons/md';
 import DashAdminWallet from './DashAdminWallet';
 const stats = [
