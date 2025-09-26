@@ -12,7 +12,7 @@ const AttributePage = () => {
   const navigate = useNavigate();
 
   const handleAddattributes = () => {
-    navigate('/products/attribute/add');
+    navigate('/products/attributes/add');
   };
 
   return (

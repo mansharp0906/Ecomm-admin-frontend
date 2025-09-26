@@ -53,6 +53,13 @@ module.exports = {
       borderRadius: {
         20: '20px',
       },
+      spacing: {
+        70: '16.8rem',
+        72: '18rem',
+        74: '18.5rem',
+        76: '19rem',
+        15: '3rem',
+      },
     },
     screens: {
       sm: '	640px',

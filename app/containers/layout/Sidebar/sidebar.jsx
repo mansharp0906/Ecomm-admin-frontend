@@ -22,21 +22,19 @@ const ToggleIcon = ({ onClick, isOpen }) => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    className={`w-8 h-8 mb-5 cursor-pointer fixed top-20 z-50 transition-transform duration-300
-    ${isOpen ? 'left-72 rotate-180 text-blue-500' : 'left-16 text-gray-700'}`}
+    className={`fixed top-20 w-8 h-8 z-50 transition-transform duration-300 transform
+  ${
+    isOpen
+      ? 'translate-x-70 rotate-180 text-blue-500'
+      : 'translate-x-15 text-gray-700'
+  }`}
   >
     {isOpen ? (
-      <path
-        d="M16 19l-6-7 6-7M12 19l-6-7 6-7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      // Right-facing arrow (>)
+      <path d="M8 5l8 7-8 7" strokeLinecap="round" strokeLinejoin="round" />
     ) : (
-      <path
-        d="M8 5l6 7-6 7M12 5l6 7-6 7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      // Left-facing arrow (<)
+      <path d="M8 5l8 7-8 7s" strokeLinecap="round" strokeLinejoin="round" />
     )}
   </svg>
 );
@@ -62,15 +60,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   return (
     <div>
       <div
-        className={`w-full h-full transition-all duration-300 ${sidebarOpen ? 'w-72' : 'w-16'} flex flex-col`}
+        className={`w-full h-full transition-all duration-300 ${
+          sidebarOpen ? 'w-64' : 'w-16'
+        } flex flex-col`}
       >
         <ToggleIcon
           onClick={() => setSidebarOpen(!sidebarOpen)}
           isOpen={sidebarOpen}
-          className="mb-4 mr-6"
+          style={{ marginTop: '10rem', marginLeft: '-10px' }}
         />
 
-        <nav className="pt-6 space-y-2 flex-1 overflow-y-auto no-scrollbar">
+        <nav className="pt-6  flex-1 overflow-y-auto no-scrollbar">
           {/* Example Dashboard Link */}
           <ul className="list-none">
             <li>
@@ -83,7 +83,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   <DashboardIcon />
 
                   <span
-                    className={`transition-opacity duration-300 ${
+                    className={`transition-opacity ml-2 duration-300 ${
                       sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
                     } truncate`}
                   >
@@ -100,10 +100,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 onClick={() => toggleDropdown('productSection')}
                 aria-expanded={openDropdown === 'productSection'}
               >
-                <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                <div className="flex items-center gap-3 overflow-hidden">
                   <ProductIcon />
                   <span
-                    className={`transition-opacity duration-300 ml-2 ${
+                    className={`transition-opacity ml-4 duration-300  ${
                       sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
                     } truncate`}
                   >
@@ -151,7 +151,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 </span>
 
                 <span
-                  className={`transition-opacity duration-300 mr-12 ${
+                  className={`transition-opacity duration-300 mr-16 ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
                   } truncate`}
                 >
@@ -176,10 +176,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     { label: 'Refund Request', path: '/orders/refund' },
                   ].map(({ label, path }) => (
                     <li key={path}>
-                    <Link
+                      <Link
                         to={path}
                         onClick={handleLinkClick}
-                      className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
                       >
                         {label}
                       </Link>
@@ -192,7 +192,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             {/* Product Management Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2 flex justify-between items-center hover:bg-gray-200 whitespace-nowrap"
+                className="w-full  px-4 py-2 flex justify-between items-center hover:bg-gray-200 whitespace-nowrap"
                 onClick={() => toggleDropdown('productManagement')}
                 aria-expanded={openDropdown === 'productManagement'}
               >
@@ -201,14 +201,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   <ProductManagementIcon />
                 </span>
                 <span
-                  className={`transition-opacity duration-300 ${
+                  className={`transition-opacity duration-300  mr-4 ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
                   } truncate`}
                 >
                   Product Management
                 </span>
+                
                 <MdArrowDropDown
-                  className={`inline ml-2 transform transition-transform ${
+                  className={`inline ml-2  transform transition-transform ${
                     openDropdown === 'productManagement' ? 'rotate-180' : ''
                   }`}
                 />
@@ -281,7 +282,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   <PromotionIcon />
                 </span>
                 <span
-                  className={`transition-opacity duration-300  pl-1 ${
+                  className={`transition-opacity duration-300 text-star mr-1  pl-1 ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
                   } truncate`}
                 >
@@ -302,10 +303,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     { label: 'Featured Deals', path: '/promotions/featured' },
                   ].map(({ label, path }) => (
                     <li key={path}>
-                    <Link
+                      <Link
                         to={path}
                         onClick={handleLinkClick}
-                      className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
                       >
                         {label}
                       </Link>
@@ -328,7 +329,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 </span>
 
                 <span
-                  className={`transition-opacity duration-300 mr-6 ${
+                  className={`transition-opacity text-start  mr-9 duration-300  ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
                   } truncate`}
                 >
@@ -349,10 +350,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     { label: 'Order Report', path: '/reports/orders' },
                   ].map(({ label, path }) => (
                     <li key={path}>
-                    <Link
+                      <Link
                         to={path}
                         onClick={handleLinkClick}
-                      className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
                       >
                         {label}
                       </Link>
@@ -365,7 +366,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             {/* User Management Dropdown */}
             <li>
               <button
-                className="w-full text-left px-4 py-2 flex justify-between items-center hover:bg-gray-200 whitespace-nowrap"
+                className="w-full text-left px-4 py-1 flex justify-between items-center hover:bg-gray-200 whitespace-nowrap"
                 onClick={() => toggleDropdown('userManagement')}
                 aria-expanded={openDropdown === 'userManagement'}
               >
@@ -374,7 +375,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   <UserManagementIcon />
                 </span>
                 <span
-                  className={`transition-opacity duration-300  mr-6 ${
+                  className={`transition-opacity text-start  mr-12  duration-300   ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
                   } truncate`}
                 >
@@ -395,10 +396,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     { label: 'Delivery Men', path: '/users/delivery-men' },
                   ].map(({ label, path }) => (
                     <li key={path}>
-                    <Link
+                      <Link
                         to={path}
                         onClick={handleLinkClick}
-                      className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
                       >
                         {label}
                       </Link>
@@ -420,7 +421,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   <BusinessSettingsIcon />
                 </span>
                 <span
-                  className={`transition-opacity duration-300 mr-6 ${
+                  className={`transition-opacity text-start  mr-11 duration-300  ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
                   } truncate`}
                 >
@@ -442,10 +443,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     { label: 'Pages & Media', path: '/settings/pages' },
                   ].map(({ label, path }) => (
                     <li key={path}>
-                    <Link
+                      <Link
                         to={path}
                         onClick={handleLinkClick}
-                      className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
                       >
                         {label}
                       </Link>
@@ -468,7 +469,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
                 {/* Label */}
                 <span
-                  className={`transition-opacity duration-300  mr-6 ${
+                  className={`transition-opacity duration-300 text-start  mr-12  ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
                   } truncate`}
                 >
@@ -495,10 +496,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     },
                   ].map(({ label, path }) => (
                     <li key={path}>
-                    <Link
+                      <Link
                         to={path}
                         onClick={handleLinkClick}
-                      className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
+                        className="block px-4 py-2 rounded transition-colors duration-200 hover:bg-gray-200 whitespace-nowrap"
                       >
                         {label}
                       </Link>
