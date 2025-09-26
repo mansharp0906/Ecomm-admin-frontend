@@ -100,7 +100,6 @@ const SubSubCategoryForm = ({
         setSubCategories(formattedSubCategories);
       }
     } catch (error) {
-      console.error('Error fetching sub categories:', error);
       toast.error('Failed to load sub categories');
     } finally {
       setLoadingSubCategories(false);
@@ -138,27 +137,23 @@ const SubSubCategoryForm = ({
 
       if (category) {
         // Handle parentId - it might be an object, string, or null
-        console.log('SubSubCategory data for edit:', category);
+
         console.log(
           'ParentId type:',
           typeof category.parentId,
           category.parentId,
         );
-        console.log('Path field:', category.path);
 
         let parentId = '';
         if (category.parentId) {
           if (typeof category.parentId === 'object' && category.parentId._id) {
             parentId = category.parentId._id;
-            console.log('Extracted parentId from object:', parentId);
           } else if (typeof category.parentId === 'string') {
             parentId = category.parentId;
-            console.log('Using parentId as string:', parentId);
           }
         } else if (category.parentId === null && category.path) {
           // If parentId is null but path exists, use path as parentId
           parentId = category.path;
-          console.log('Using path as parentId:', parentId);
         } else if (category.parentId === null) {
           // If parentId is null and no path, this sub-sub-category has no parent
           console.log('ParentId is null - this sub-sub-category has no parent');
@@ -177,7 +172,7 @@ const SubSubCategoryForm = ({
         };
 
         setFormData(newFormData);
-        console.log('SubSubCategory form data set:', newFormData);
+
         console.log('Available sub categories:', subCategories);
       } else {
         toast.error('No sub sub category data found');
@@ -233,7 +228,6 @@ const SubSubCategoryForm = ({
       // Remove fields that backend doesn't allow
       // eslint-disable-next-line no-unused-vars
       const { image: _image, ...apiData } = formData;
-      console.log('Sending data to API:', apiData); // Debug log
 
       let response;
       if (isEditMode) {
@@ -241,7 +235,6 @@ const SubSubCategoryForm = ({
       } else {
         response = await categoryService.create(apiData);
       }
-      console.log('Sub Sub Category Response:', response);
 
       const isSuccess =
         response?.data?.success ||
@@ -274,8 +267,6 @@ const SubSubCategoryForm = ({
         toast.error('Failed to save sub sub category');
       }
     } catch (error) {
-      console.error('API Error Details:', error.response?.data); // Debug log
-
       if (error.name === 'ValidationError') {
         // Handle validation errors
         const validationErrors = {};
@@ -330,9 +321,10 @@ const SubSubCategoryForm = ({
           <LoadingData message="Loading data..." />
         )}
 
-        <form
+        <form 
+          style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
           onSubmit={handleSubmit}
-          className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
+          className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 "
         >
           <SelectField
             label="Sub Category"

@@ -88,7 +88,6 @@ const SubCategoryList = ({ refreshTrigger }) => {
           setError('Failed to fetch subcategories');
         }
       } catch (err) {
-        console.error('Error fetching subcategories:', err);
         setError('Failed to fetch subcategories');
         toast.error('Failed to load subcategories');
       } finally {
@@ -182,7 +181,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
         toast.error(response?.data?.message || 'Failed to delete sub category');
       }
     } catch (err) {
-      console.error('Error deleting subcategory:', err);
+    
       toast.error(
         err?.response?.data?.message || 'Failed to delete sub category',
       );
@@ -209,7 +208,6 @@ const SubCategoryList = ({ refreshTrigger }) => {
 
   // Handle edit subcategory - navigate to form page with subcategory ID
   const handleEdit = (subCategory) => {
-    console.log(subCategory, 'subcategory');
     // Only allow editing of sub categories (level 1)
     if (subCategory.level !== 1) {
       toast.error('Only sub categories can be edited from this page');
@@ -226,16 +224,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
     navigate(`/products/subcategories/view/${finalId}`);
   };
 
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-600 mb-4">{error}</p>
-        <Button onClick={fetchSubCategories} variant="primary">
-          Retry
-        </Button>
-      </div>
-    );
-  }
+ 
 
   return (
     <TableContainer>

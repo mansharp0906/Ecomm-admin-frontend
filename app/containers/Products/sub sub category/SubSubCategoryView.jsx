@@ -86,7 +86,6 @@ const SubSubCategoryView = () => {
         }
       }
     } catch (err) {
-      console.error('Error fetching sub-sub-category:', err);
       setError('Failed to load sub-sub-category details');
       toast.error('Failed to load sub-sub-category details');
     } finally {
