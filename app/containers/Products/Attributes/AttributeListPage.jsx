@@ -1,23 +1,26 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Button } from '@/components/custom-button';
-import attributeService from '@/api/service/attributeService'; // Make sure this is correct!
+import { 
+  Button, 
+  Container, 
+  Table, 
+  TableHeader, 
+  TableBody, 
+  TableRow, 
+  TableHead, 
+  TableCell, 
+  TableContainer, 
+  DataNotFound, 
+  LoadingData, 
+  CustomIcon, 
+  Pagination, 
+  SearchBar, 
+  SearchBarContainer, 
+  DeleteConfirmationModal 
+} from '@/components';
+import attributeService from '@/api/service/attributeService';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '@/components/custom-table';
-import CustomIcon from '@/components/custom-icon/CustomIcon';
-import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
-import DataNotFound from '@/components/custom-pages/DataNotFound';
-import { SearchBarContainer } from '@/components/custom-search';
-import TableContainer from '@/components/custom-pages/TableContainer';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LoadingData } from '@/components/custom-pages';
 
 const AttributeListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();

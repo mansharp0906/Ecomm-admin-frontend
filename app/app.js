@@ -13,7 +13,6 @@ import LoginPage from './containers/Auth/LoginPage';
 import RegisterPage from './containers/Auth/RegisterPage';
 import ForgotPasswordPage from './containers/Auth/ForgotPasswordPage';
 import NotFound from './containers/NotFound';
-import CategoryForm from './Pages/CategoryForm';
 import CategoryPage from './containers/Products/category/CategoryPage';
 import CategoryFormPage from './containers/Products/category/CategoryFormPage';
 import CategoryView from './containers/Products/category/CategoryView';
@@ -59,6 +58,7 @@ import Seo_setting from './containers/Business_Setting/Seo_setting';
 import './styles/toast.css';
 import 'react-toastify/dist/ReactToastify.css';
 import AttributeformPage from './containers/Products/Attributes/AttributeformPage';
+import AttributeView from './containers/Products/Attributes/AttributeView';
 import BrandFormPage from './containers/Products/Brand/BrandFormPage';
 import BrandView from './containers/Products/Brand/BrandView';
 // import './styles/toast.css';
@@ -151,6 +151,10 @@ function App() {
               path="/products/attributes/edit/:id"
               element={<AttributeformPage />}
             />
+            <Route
+              path="/products/attributes/view/:id"
+              element={<AttributeView />}
+            />
             <Route path="/products/inhouse" element={<ProductInHouse />} />
             <Route path="/products/vendors" element={<Vendors />} />
             <Route path="/products/import" element={<BulkImpor />} />
@@ -190,7 +194,7 @@ function App() {
             <Route path="/system/integrations" element={<Third_party />} />
             <Route path="/system/emails" element={<Login_Setting />} />
             <Route path="/system/login" element={<Email_template />} />
-            <Route path="category" element={<CategoryForm />} />
+            <Route path="category" element={<CategoryFormPage />} />
           </Route>
 
           {/* 404 page */}
