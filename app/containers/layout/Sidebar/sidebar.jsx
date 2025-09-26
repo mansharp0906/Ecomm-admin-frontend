@@ -233,7 +233,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     },
                     { label: 'Brands', path: '/products/brands' },
                     { label: 'Attributes', path: '/products/attributes' },
-                    { label: 'Product In House', path: '/products/inhouse' },
+                    { label: 'Product In House', path: '/products/products' },
                     { label: 'Vendors Products', path: '/products/vendors' },
                     { label: 'Bulk import', path: '/products/import' },
                   ].map(({ label, path, subItems }) => (

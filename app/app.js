@@ -25,7 +25,6 @@ import SubSubCategoryFormPage from './containers/Products/sub sub category/SubSu
 import SubSubCategoryView from './containers/Products/sub sub category/SubSubCategoryView';
 import Brand from './containers/Products/Brand/BrandPage';
 import Attributes from './containers/Products/Attributes/AttributePage';
-import ProductInHouse from './containers/Products/Product/ProductInHouse';
 import Vendors from './containers/Products/Ventors/Vendors';
 import BulkImpor from './containers/Products/Bulk/BulkImpor';
 import Pos from './containers/Products/Pos';
@@ -61,6 +60,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import AttributeformPage from './containers/Products/Attributes/AttributeformPage';
 import BrandFormPage from './containers/Products/Brand/BrandFormPage';
 import BrandView from './containers/Products/Brand/BrandView';
+import ProductFormPage from './containers/Products/Product/ProductFormPage';
+import ProductPage from './containers/Products/Product/ProductPage';
+
 // import './styles/toast.css';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -151,7 +153,17 @@ function App() {
               path="/products/attributes/edit/:id"
               element={<AttributeformPage />}
             />
-            <Route path="/products/inhouse" element={<ProductInHouse />} />
+            {/* <Route path="/products/products" element={<Product />} /> */}
+            <Route path="/products/products" element={<ProductPage />} />
+
+            <Route
+              path="/products/products/add"
+              element={<ProductFormPage />}
+            />
+            <Route
+              path="/products/inhouse/edit/:id"
+              element={<ProductFormPage />}
+            />
             <Route path="/products/vendors" element={<Vendors />} />
             <Route path="/products/import" element={<BulkImpor />} />
 
