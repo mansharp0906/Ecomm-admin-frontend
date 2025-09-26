@@ -61,7 +61,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import AttributeformPage from './containers/Products/Attributes/AttributeformPage';
 import BrandFormPage from './containers/Products/Brand/BrandFormPage';
 import BrandView from './containers/Products/Brand/BrandView';
-import AttributeView from './containers/Products/Attributes/AttributeView';
 // import './styles/toast.css';
 
 const sagaMiddleware = createSagaMiddleware();

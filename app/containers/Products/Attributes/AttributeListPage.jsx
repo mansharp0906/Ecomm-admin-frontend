@@ -14,6 +14,7 @@ import {
 import CustomIcon from '@/components/custom-icon/CustomIcon';
 import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 import DataNotFound from '@/components/custom-pages/DataNotFound';
+import { LoadingData } from '@/components/custom-pages';
 import { SearchBarContainer } from '@/components/custom-search';
 import TableContainer from '@/components/custom-pages/TableContainer';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -216,7 +217,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
       </SearchBarContainer>
 
       {loading && (
-        <LoadingData message='loadind data...'/>
+        <LoadingData message="Loading data..." />
       )}
 
       {!loading && attributes.length === 0 && <DataNotFound />}

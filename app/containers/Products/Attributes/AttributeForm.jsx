@@ -5,14 +5,9 @@ import SelectField from '@/components/custom-forms/SelectField';
 import attributeService from '@/api/service/attributeService';
 import categoryService from '@/api/service/categoryService';
 import PropTypes from 'prop-types';
-<<<<<<< HEAD
-import { LoadingData } from '@/components/custom-pages';
-=======
 import * as Yup from 'yup';
->>>>>>> pallavidev
-
+import { LoadingData } from '@/components/custom-pages';
 import { toast } from 'react-toastify';
-import LoadingData from '@/components/custom-pages/LoadingData';
 
 // Validation schema for Attribute payload
 const validationSchema = Yup.object({
@@ -20,19 +15,11 @@ const validationSchema = Yup.object({
     .required('Attribute name is required')
     .min(2, 'Attribute name must be at least 2 characters')
     .max(50, 'Attribute name must be less than 50 characters'),
-<<<<<<< HEAD
-  priority: Yup.number()
-    .required('Priority is required')
-    .min(1, 'Priority must be at least 1')
-    .max(100, 'Priority must be less than 100')
-    .integer('Priority must be a whole number'),
-=======
   displayType: Yup.string()
     .required('Display type is required')
     .oneOf(['color', 'text', 'image'], 'Invalid display type'),
   isFilterable: Yup.boolean().required(),
   isRequired: Yup.boolean().required(),
->>>>>>> pallavidev
   status: Yup.string()
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
