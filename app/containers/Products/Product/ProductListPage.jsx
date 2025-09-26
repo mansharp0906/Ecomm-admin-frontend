@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Button } from '@/components/custom-button';
+import { Button, } from '@/components';
 import productService from '@/api/service/brandService'; // Adjust this import path
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
@@ -10,14 +10,14 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from '@/components/custom-table';
+} from '@/components';
 import CustomIcon from '@/components/custom-icon/CustomIcon';
 import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
 import DataNotFound from '@/components/custom-pages/DataNotFound';
-import { SearchBarContainer } from '@/components/custom-search';
-import TableContainer from '@/components/custom-pages/TableContainer';
+import { SearchBarContainer } from '@/components';
+// import TableContainer from '@/components';
 import { useNavigate } from 'react-router-dom';
-import { LoadingData } from '@/components/custom-pages';
+import { LoadingData } from '@/components';
 
 const ProductListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();

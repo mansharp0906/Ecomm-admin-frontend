@@ -1,4 +1,4 @@
-import { Button } from '@/components/custom-button';
+import { Button } from '@/components';
 import React, { useState } from 'react';
 import { MdAdd } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';

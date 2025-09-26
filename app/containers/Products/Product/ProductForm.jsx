@@ -1,13 +1,12 @@
-import { Button } from '@/components/custom-button';
-import InputTextField from '@/components/custom-input-field/InputTextField';
-import SelectField from '@/components/custom-forms/SelectField';
-import TextAreaField from '@/components/custom-forms/TextAreaField';
+import { Button,InputTextField,SelectField,TextAreaField } from '@/components';
+// import SelectField from '@/components/custom-forms/SelectField';
+// import TextAreaField from '@/components/custom-forms/TextAreaField';
 import productServices from '@/api/service/productServices';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
-import { LoadingData } from '@/components/custom-pages';
+import { LoadingData } from '@/components';
 
 // Validation schema
 const validationSchema = Yup.object({

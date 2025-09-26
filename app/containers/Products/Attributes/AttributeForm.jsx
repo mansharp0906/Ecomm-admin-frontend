@@ -1,51 +1,17 @@
+import { Button, LoadingData, InputTextField, SelectField } from '@/components';
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/custom-button';
-import InputTextField from '@/components/custom-input-field/InputTextField';
-import SelectField from '@/components/custom-forms/SelectField';
+
 import attributeService from '@/api/service/attributeService';
 import categoryService from '@/api/service/categoryService';
 import PropTypes from 'prop-types';
-import * as Yup from 'yup';
-import { LoadingData } from '@/components/custom-pages';
 import { toast } from 'react-toastify';
+import {
+  useValidation,
+  attributeCreateSchema,
+  attributeUpdateSchema,
+} from '@/validations';
 
-// Validation schema for Attribute payload
-// const validationSchema = Yup.object({
-//   name: Yup.string()
-//     .required('Attribute name is required')
-//     .min(2, 'Attribute name must be at least 2 characters')
-//     .max(50, 'Attribute name must be less than 50 characters'),
-//   displayType: Yup.string()
-//     .required('Display type is required')
-//     .oneOf(['color', 'text', 'image'], 'Invalid display type'),
-//   isFilterable: Yup.boolean().required(),
-//   isRequired: Yup.boolean().required(),
-//   status: Yup.string()
-//     .required('Status is required')
-//     .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
-//   parentId: Yup.string().trim().required('Category is required'),
-//   values: Yup.array()
-//     .of(
-//       Yup.object({
-//         value: Yup.string().trim().required('Value is required'),
-//         color: Yup.string().when('$displayType', {
-//           is: 'color',
-//           then: (schema) => schema.required('Color is required for color type'),
-//           otherwise: (schema) => schema.notRequired(),
-//         }),
-//         image: Yup.string()
-//           .url('Please enter a valid URL')
-//           .when('$displayType', {
-//             is: 'image',
-//             then: (schema) => schema.required('Image URL is required for image type'),
-//             otherwise: (schema) => schema.notRequired().nullable(),
-//           }),
-//         isDefault: Yup.boolean().required(),
-//       }),
-//     )
-//     .min(1, 'Add at least one value')
-//     .required('Values are required'),
-// });
+// Validation schemas are now imported from validations directory
 
 const displayTypes = [
   { label: 'Color', value: 'color' },
@@ -66,10 +32,19 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   });
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
-
   const [categories, setCategories] = useState([]);
+
+  // Use validation hook
+  const validationSchema = isEditMode
+    ? attributeUpdateSchema
+    : attributeCreateSchema;
+  const { errors, validate, clearErrors, setFieldError } = useValidation(
+    validationSchema,
+    {
+      context: { displayType: formData.displayType },
+    },
+  );
 
   const fetchCategoryData = useCallback(async () => {
     try {
@@ -180,14 +155,22 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setFormErrors({});
+    clearErrors();
 
     try {
-      // Validation temporarily disabled
-      // await validationSchema.validate(formData, {
-      //   abortEarly: false,
-      //   context: { displayType: formData.displayType },
-      // });
+      // Prepare data for validation
+      const validationData = {
+        ...formData,
+        id: isEditMode ? categoryId : undefined,
+        categories: formData.parentId ? [formData.parentId] : [],
+      };
+
+      // Validate form data
+      const isValid = await validate(validationData);
+      if (!isValid) {
+        setLoading(false);
+        return;
+      }
 
       const apiData = {
         name: formData.name,
@@ -226,7 +209,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           categories: [],
           parentId: '',
         });
-        setFormErrors({});
+        clearErrors();
 
         // Notify parent component (this will trigger navigation)
         if (onSuccess) {
@@ -244,7 +227,10 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         error.inner.forEach((err) => {
           validationErrors[err.path] = err.message;
         });
-        setFormErrors(validationErrors);
+        // Set errors using validation hook
+        Object.keys(validationErrors).forEach((key) => {
+          setFieldError(key, validationErrors[key]);
+        });
         toast.error('Please fix the validation errors');
       } else {
         // Handle other API errors
@@ -280,7 +266,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 label: cat.displayName,
               })),
             ])()}
-            error={formErrors?.parentId}
+            error={errors?.parentId}
             disabled={loadingCategories}
           />
           <InputTextField
@@ -288,6 +274,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
             name="name"
             value={formData.name}
             onChange={handleChange}
+            error={errors?.name}
           />
           <SelectField
             label="Display Type"
@@ -295,6 +282,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
             value={formData.displayType}
             onChange={handleChange}
             options={displayTypes}
+            error={errors?.displayType}
           />
 
           <div className="flex gap-4 items-center">
@@ -325,11 +313,15 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 { label: 'Active', value: 'active' },
                 { label: 'Inactive', value: 'inactive' },
               ]}
+              error={errors?.status}
             />
           </div>
 
           <div className="space-y-3">
             <h3 className="font-semibold">Values</h3>
+            {errors?.values && (
+              <div className="text-red-600 text-sm">{errors.values}</div>
+            )}
             {formData.values.map((val, idx) => (
               <div key={idx} className="flex gap-2">
                 <InputTextField
@@ -338,6 +330,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                   onChange={(e) =>
                     handleValueChange(idx, 'value', e.target.value)
                   }
+                  error={errors?.[`values.${idx}.value`]}
                 />
                 {formData.displayType === 'color' && (
                   <input
@@ -355,6 +348,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                     onChange={(e) =>
                       handleValueChange(idx, 'image', e.target.value)
                     }
+                    error={errors?.[`values.${idx}.image`]}
                   />
                 )}
                 <label>
