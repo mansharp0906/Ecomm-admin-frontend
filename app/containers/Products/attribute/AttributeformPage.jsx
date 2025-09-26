@@ -1,7 +1,6 @@
-import { Container, Breadcrumb } from '@/components';
+import { Container, Breadcrumb, PageHeader } from '@/components';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
 
 import AttributeForm from './AttributeForm';
 
@@ -19,22 +18,14 @@ const AttributeformPage = () => {
   };
   return (
     <Container>
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {isEditMode ? 'Edit Attributes' : 'Add Attributes'}
-            </h1>
-          </div>
-        </div>
-        <Breadcrumb
-          items={[
-            { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Attributes', href: '/products/attributes' },
-            { label: isEditMode ? 'Edit Attributes' : 'Add New Attributes' },
-          ]}
-        />
-      </div>
+      <PageHeader
+        title={isEditMode ? 'Edit Attribute' : 'Add Attribute'}
+        breadcrumbItems={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Categories', href: '/products/categories' },
+          { label: isEditMode ? 'Edit Attribute' : 'Add New Attribute' },
+        ]}
+      />
 
       <AttributeForm
         key={id || 'new'}

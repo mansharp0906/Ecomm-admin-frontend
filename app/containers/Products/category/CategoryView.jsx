@@ -1,11 +1,16 @@
-import { Button, LoadingData, Container, Breadcrumb, CustomIcon } from '@/components';
+import {
+  Button,
+  LoadingData,
+  Container,
+  Breadcrumb,
+  CustomIcon,
+  PageHeaderWithActions,
+} from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
-
 
 const CategoryView = () => {
   const { id } = useParams();
@@ -35,7 +40,6 @@ const CategoryView = () => {
         setError('Failed to fetch category data');
       }
     } catch (err) {
-     
       setError('Failed to load category details');
       toast.error('Failed to load category details');
     } finally {
@@ -85,41 +89,28 @@ const CategoryView = () => {
 
   return (
     <Container>
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Category Details
-            </h1>
-          </div>
-          <div className="flex space-x-3">
-            <Button
-              variant="outline"
-              onClick={handleEdit}
-              className="flex items-center space-x-2"
-            >
-              <CustomIcon type="edit" size={4} />
-              <span>Edit Category</span>
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={handleBack}
-              className="flex items-center space-x-2"
-            >
-              <CustomIcon type="arrow-left" size={4} />
-              <span>Back to Categories</span>
-            </Button>
-          </div>
-        </div>
-        <Breadcrumb
-          items={[
-            { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Categories', href: '/products/categories' },
-            { label: category.name },
-          ]}
-        />
-      </div>
-
+      <PageHeaderWithActions
+        title="Category Details"
+        breadcrumbItems={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Categories', href: '/products/categories' },
+          { label: category.name },
+        ]}
+        actions={[
+          {
+            label: 'Edit',
+            onClick: handleEdit,
+            variant: 'outline',
+            icon: <CustomIcon type="edit" size={4} />,
+          },
+          {
+            label: 'Back',
+            onClick: handleBack,
+            variant: 'secondary',
+            icon: <CustomIcon type="arrow-left" size={4} />,
+          },
+        ]}
+      />
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">

@@ -1,18 +1,20 @@
-import { 
-  Button, 
-  LoadingData, 
-  InputTextField, 
-  SelectField, 
-  TextAreaField 
+import {
+  Button,
+  LoadingData,
+  InputTextField,
+  SelectField,
+  TextAreaField,
 } from '@/components';
-
-
-
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
-import { useValidation, categoryCreateSchema, categoryUpdateSchema } from '@/validations';
+import {
+  useValidation,
+  categoryCreateSchema,
+  categoryUpdateSchema,
+} from '@/validations';
+import ScrollContainer from '@/components/custom-scrollbar/ScrollContainer';
 
 // Validation schemas are now imported from validations directory
 
@@ -31,8 +33,11 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   // Use validation hook
-  const validationSchema = isEditMode ? categoryUpdateSchema : categoryCreateSchema;
-  const { errors, validate, clearErrors, setFieldError } = useValidation(validationSchema);
+  const validationSchema = isEditMode
+    ? categoryUpdateSchema
+    : categoryCreateSchema;
+  const { errors, validate, clearErrors, setFieldError } =
+    useValidation(validationSchema);
 
   const fetchCategoryData = useCallback(async () => {
     try {
@@ -171,7 +176,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           validationErrors[err.path] = err.message;
         });
         // Set errors using validation hook
-        Object.keys(validationErrors).forEach(key => {
+        Object.keys(validationErrors).forEach((key) => {
           setFieldError(key, validationErrors[key]);
         });
         toast.error('Please fix the validation errors');
@@ -207,7 +212,6 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           <LoadingData message="Loading data..." size="50px" />
         ) : (
           <form
-            style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
             onSubmit={handleSubmit}
             className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2"
           >

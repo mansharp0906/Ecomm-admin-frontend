@@ -1,11 +1,16 @@
-import { Button, LoadingData, Container, Breadcrumb, CustomIcon } from '@/components';
+import {
+  Button,
+  LoadingData,
+  Container,
+  Breadcrumb,
+  CustomIcon,
+  PageHeaderWithActions,
+} from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
-
 
 const SubCategoryView = () => {
   const { id } = useParams();
@@ -59,7 +64,6 @@ const SubCategoryView = () => {
         }
       }
     } catch (err) {
-    
       setError('Failed to load sub-category details');
       toast.error('Failed to load sub-category details');
     } finally {
@@ -117,7 +121,7 @@ const SubCategoryView = () => {
 
   return (
     <Container>
-      <div className="mb-8">
+      {/* <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
@@ -150,7 +154,30 @@ const SubCategoryView = () => {
             { label: subCategory.name },
           ]}
         />
-      </div>
+      </div> */}
+
+      <PageHeaderWithActions
+        title="Sub Category Details"
+        breadcrumbItems={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Sub-Categories', href: '/products/subcategories' },
+          { label: subCategory.name },
+        ]}
+        actions={[
+          {
+            label: 'Edit',
+            onClick: handleEdit,
+            variant: 'outline',
+            icon: <CustomIcon type="edit" size={4} />,
+          },
+          {
+            label: 'Back',
+            onClick: handleBack,
+            variant: 'secondary',
+            icon: <CustomIcon type="arrow-left" size={4} />,
+          },
+        ]}
+      />
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">

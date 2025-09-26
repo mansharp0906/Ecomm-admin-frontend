@@ -1,9 +1,7 @@
-import { Container, Breadcrumb } from '@/components';
+import { Container, Breadcrumb, PageHeader } from '@/components';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SubCategoryForm from './SubCategoryForm';
-
-
 
 const SubCategoryFormPage = () => {
   const navigate = useNavigate();
@@ -22,23 +20,14 @@ const SubCategoryFormPage = () => {
 
   return (
     <Container>
-      <div className="mb-8">
-        <Breadcrumb
-          items={[
-            { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Sub Categories', href: '/products/subcategories' },
-            { label: isEditMode ? 'Edit Sub Category' : 'Add Sub Category' },
-          ]}
-        />
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {isEditMode ? 'Edit Sub Category' : 'Add Sub Category'}
-            </h1>
-          </div>
-        </div>
-      </div>
-
+      <PageHeader
+        title={isEditMode ? 'Edit Sub Category' : 'Add Sub Category'}
+        breadcrumbItems={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Sub Categories', href: '/products/subcategories' },
+          { label: isEditMode ? 'Edit Sub Category' : 'Add Sub Category' },
+        ]}
+      />
       <SubCategoryForm
         key={id || 'new'}
         onSuccess={handleFormSuccess}
