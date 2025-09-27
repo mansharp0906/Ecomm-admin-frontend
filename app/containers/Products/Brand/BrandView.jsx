@@ -1,22 +1,20 @@
-import { Button, LoadingData, Container, Breadcrumb, CustomIcon } from '@/components';
+import { Button, LoadingData, Container, Breadcrumb, CustomIcon, ScrollContainer } from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
 
 import brandService from '@/api/service/brandService';
 import { toast } from 'react-toastify';
 
-
 const BrandView = () => {
   const { id } = useParams();
- const navigate = useNavigate();
-  const [brands, setBrands] = useState([]);
+  const navigate = useNavigate();
+  const [brand, setBrand] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (id) {
-      fetchBandData();
+      fetchBrandData();
     }
   }, [id]);
 
@@ -28,23 +26,23 @@ const BrandView = () => {
       const response = await brandService.getById(id);
 
       if (response?.data?.success) {
-        setBrands(response.data.data);
+        setBrand(response.data.data);
       } else if (response?.data) {
-        setBrands(response.data);
+        setBrand(response.data);
       } else {
-        setBrands('Failed to fetch Brand data');
+        setError('Failed to fetch Brand data');
       }
     } catch (err) {
-     
-      setError('Failed to load category details');
-      toast.error('Failed to load category details');
+      console.error('Error fetching brand:', err);
+      setError('Failed to load brand details');
+      toast.error('Failed to load brand details');
     } finally {
       setLoading(false);
     }
   };
 
   const handleEdit = () => {
-    navigate(`/products/bands/edit/${id}`);
+    navigate(`/products/brands/edit/${id}`);
   };
 
   const handleBack = () => {
@@ -59,7 +57,7 @@ const BrandView = () => {
     );
   }
 
-  if (error || !brands) {
+  if (error || !brand) {
     return (
       <Container>
         <div className="text-center py-12">
@@ -67,15 +65,15 @@ const BrandView = () => {
             <CustomIcon type="error" size={8} />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Error Loading Brands
+            Error Loading Brand
           </h2>
-          <p className="text-gray-600 mb-6">{error || 'Brands not found'}</p>
+          <p className="text-gray-600 mb-6">{error || 'Brand not found'}</p>
           <div className="space-x-4">
             <Button onClick={fetchBrandData} variant="primary">
               Retry
             </Button>
             <Button onClick={handleBack} variant="secondary">
-              Back to Brand
+              Back to Brands
             </Button>
           </div>
         </div>
@@ -89,7 +87,7 @@ const BrandView = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Brands Details
+              Brand Details
             </h1>
           </div>
           <div className="flex space-x-3">
@@ -99,7 +97,7 @@ const BrandView = () => {
               className="flex items-center space-x-2"
             >
               <CustomIcon type="edit" size={4} />
-              <span>Edit Brands</span>
+              <span>Edit Brand</span>
             </Button>
             <Button
               variant="secondary"
@@ -115,196 +113,137 @@ const BrandView = () => {
           items={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Brands', href: '/products/brands' },
-            { label: brands.name },
+            { label: brand?.name || 'Brand Details' },
           ]}
         />
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {brands.name}
-          </h2>
-          <p className="text-sm text-gray-500">Brands ID: {brands._id}</p>
-        </div>
-
-        <div className="px-6 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Basic Information
-              </h3>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Name
-                </label>
-                <p className="mt-1 text-sm text-gray-900">{brands.name}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Slug
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {brands.slug || 'N/A'}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Description
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {brands.description || 'N/A'}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Level
-                </label>
-                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                  Level {brands.level || 0}
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Priority
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {brands.priority || 'N/A'}
-                </p>
-              </div>
-            </div>
-
-            {/* Status & Media */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Status & Media
-              </h3>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Status
-                </label>
-                <span
-                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    brands.status === 'active'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}
-                >
-                  {brands.status || 'N/A'}
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Featured
-                </label>
-                <span
-                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    brands.isFeatured
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {brands.isFeatured ? 'Yes' : 'No'}
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Image
-                </label>
-                {brands.image ? (
-                  <div className="mt-2">
+      <ScrollContainer>
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Brand Images */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Logo</h3>
+                  {brand.logo ? (
                     <img
-                      src={brands.image}
-                      alt={brands.name}
-                      className="h-20 w-20 object-cover rounded-lg"
+                      src={brand.logo}
+                      alt={`${brand.name} logo`}
+                      className="w-32 h-32 object-cover rounded-lg border"
                       onError={(e) => {
                         e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
                       }}
                     />
+                  ) : (
+                    <div className="w-32 h-32 bg-gray-200 rounded-lg border flex items-center justify-center text-gray-500">
+                      No Logo
+                    </div>
+                  )}
+                  {!brand.logo && (
+                    <div className="w-32 h-32 bg-gray-200 rounded-lg border flex items-center justify-center text-gray-500 hidden">
+                      No Logo
+                    </div>
+                  )}
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Banner</h3>
+                  {brand.banner ? (
+                    <img
+                      src={brand.banner}
+                      alt={`${brand.name} banner`}
+                      className="w-full h-32 object-cover rounded-lg border"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-32 bg-gray-200 rounded-lg border flex items-center justify-center text-gray-500">
+                      No Banner
+                    </div>
+                  )}
+                  {!brand.banner && (
+                    <div className="w-full h-32 bg-gray-200 rounded-lg border flex items-center justify-center text-gray-500 hidden">
+                      No Banner
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Brand Details */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Basic Information</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Name</label>
+                      <p className="text-lg text-gray-900">{brand.name}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Slug</label>
+                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">{brand.slug}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Status</label>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          brand.status === 'active'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {brand.status}
+                      </span>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Priority</label>
+                      <p className="text-sm text-gray-900">{brand.priority}</p>
+                    </div>
                   </div>
-                ) : (
-                  <p className="mt-1 text-sm text-gray-500">No image</p>
-                )}
-              </div>
-            </div>
-          </div>
+                </div>
 
-          {/* SEO Information */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              SEO Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Meta Title
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {brands.metaTitle || 'N/A'}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Meta Description
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {brands.metaDescription || 'N/A'}
-                </p>
-              </div>
-            </div>
-          </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                  <p className="text-gray-700">{brand.description || 'No description provided'}</p>
+                </div>
 
-          {/* Timestamps */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Timestamps
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Created At
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {brands.createdAt
-                    ? new Date(brands.createdAt).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : 'N/A'}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Updated At
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {brands.updatedAt
-                    ? new Date(brands.updatedAt).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : 'N/A'}
-                </p>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">SEO Information</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Meta Title</label>
+                      <p className="text-sm text-gray-900">{brand.metaTitle || 'Not set'}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Meta Description</label>
+                      <p className="text-sm text-gray-700">{brand.metaDescription || 'Not set'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Timestamps</h3>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div>
+                      <span className="font-medium">Created:</span> {new Date(brand.createdAt).toLocaleString()}
+                    </div>
+                    <div>
+                      <span className="font-medium">Updated:</span> {new Date(brand.updatedAt).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </ScrollContainer>
     </Container>
   );
 };

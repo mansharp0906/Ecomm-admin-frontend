@@ -44,7 +44,7 @@ const BrandFormPage = () => {
         key={id || 'new'}
         onSuccess={handleFormSuccess}
         onCancel={handleFormCancel}
-        categoryId={id}
+        bandId={id}
         isEditMode={isEditMode}
       />
     </Container>

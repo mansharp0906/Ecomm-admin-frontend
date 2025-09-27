@@ -43,6 +43,7 @@ export { default as LoadingData } from './custom-pages/LoadingData';
 export { default as TableContainer } from './custom-pages/TableContainer';
 export { default as PageHeader } from './custom-pages/PageHeader';
 export { default as PageHeaderWithActions } from './custom-pages/PageHeaderWithActions';
+export { default as FileUpload } from './custom-fileuplode/FileUploadButton';
 
 // Custom Pagination component
 export { default as Pagination } from './custom-pagination/Pagination';
@@ -50,6 +51,9 @@ export { default as Pagination } from './custom-pagination/Pagination';
 // Custom Search component
 export { default as SearchBar } from './custom-search/SearchBar';
 export { default as SearchBarContainer } from './custom-search/SearchBarContainer';
+
+// Custom Scrollbar component
+export { default as ScrollContainer } from './custom-scrollbar/ScrollContainer';
 
 // Custom Table components
 export {
