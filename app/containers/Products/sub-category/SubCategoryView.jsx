@@ -4,6 +4,7 @@ import {
   Container,
   CustomIcon,
   PageHeaderWithActions,
+  ScrollContainer,
 } from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -178,7 +179,8 @@ const SubCategoryView = () => {
         ]}
       />
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <ScrollContainer>
+        <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
             {subCategory.name}
@@ -389,7 +391,8 @@ const SubCategoryView = () => {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </ScrollContainer>
     </Container>
   );
 };

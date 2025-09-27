@@ -15,17 +15,6 @@ export const brandCreateSchema = Yup.object({
       },
     ),
 
-  slug: Yup.string()
-    .required('Slug is required')
-    .test(
-      'slug-format',
-      'Slug can only contain lowercase letters, numbers, and hyphens',
-      function (value) {
-        if (!value) return true; // Let required handle empty values
-        return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
-      },
-    ),
-
   description: Yup.string()
     .max(500, 'Description must not exceed 500 characters')
     .nullable(),
@@ -34,7 +23,29 @@ export const brandCreateSchema = Yup.object({
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
 
-  logo: Yup.string().url('Please enter a valid URL').nullable(),
+  logo: Yup.string()
+    .test(
+      'is-url-or-file-ref',
+      'Please enter a valid URL or upload a file',
+      function (value) {
+        if (!value) return true; // Allow empty values
+        // Check if it's a valid URL or blob URL
+        return /^(https?:\/\/|blob:)/.test(value);
+      },
+    )
+    .nullable(),
+
+  banner: Yup.string()
+    .test(
+      'is-url-or-file-ref',
+      'Please enter a valid URL or upload a file',
+      function (value) {
+        if (!value) return true; // Allow empty values
+        // Check if it's a valid URL or blob URL
+        return /^(https?:\/\/|blob:)/.test(value);
+      },
+    )
+    .nullable(),
 
   website: Yup.string().url('Please enter a valid URL').nullable(),
 
@@ -70,6 +81,19 @@ export const brandCreateSchema = Yup.object({
   priority: Yup.number()
     .integer('Value must be a whole number')
     .min(0, 'Value must be positive')
+    .nullable(),
+
+  // Logo and Banner fields
+  image: Yup.string()
+    .test(
+      'is-url-or-file-ref',
+      'Please enter a valid URL or upload a file',
+      function (value) {
+        if (!value) return true; // Allow empty values
+        // Check if it's a valid URL or blob URL
+        return /^(https?:\/\/|blob:)/.test(value);
+      },
+    )
     .nullable(),
 
   // SEO fields
@@ -102,17 +126,6 @@ export const brandUpdateSchema = Yup.object({
       },
     ),
 
-  slug: Yup.string()
-    .required('Slug is required')
-    .test(
-      'slug-format',
-      'Slug can only contain lowercase letters, numbers, and hyphens',
-      function (value) {
-        if (!value) return true; // Let required handle empty values
-        return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
-      },
-    ),
-
   description: Yup.string()
     .max(500, 'Description must not exceed 500 characters')
     .nullable(),
@@ -121,7 +134,29 @@ export const brandUpdateSchema = Yup.object({
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
 
-  logo: Yup.string().url('Please enter a valid URL').nullable(),
+  logo: Yup.string()
+    .test(
+      'is-url-or-file-ref',
+      'Please enter a valid URL or upload a file',
+      function (value) {
+        if (!value) return true; // Allow empty values
+        // Check if it's a valid URL or blob URL
+        return /^(https?:\/\/|blob:)/.test(value);
+      },
+    )
+    .nullable(),
+
+  banner: Yup.string()
+    .test(
+      'is-url-or-file-ref',
+      'Please enter a valid URL or upload a file',
+      function (value) {
+        if (!value) return true; // Allow empty values
+        // Check if it's a valid URL or blob URL
+        return /^(https?:\/\/|blob:)/.test(value);
+      },
+    )
+    .nullable(),
 
   website: Yup.string().url('Please enter a valid URL').nullable(),
 
@@ -157,6 +192,19 @@ export const brandUpdateSchema = Yup.object({
   priority: Yup.number()
     .integer('Value must be a whole number')
     .min(0, 'Value must be positive')
+    .nullable(),
+
+  // Logo and Banner fields
+  image: Yup.string()
+    .test(
+      'is-url-or-file-ref',
+      'Please enter a valid URL or upload a file',
+      function (value) {
+        if (!value) return true; // Allow empty values
+        // Check if it's a valid URL or blob URL
+        return /^(https?:\/\/|blob:)/.test(value);
+      },
+    )
     .nullable(),
 
   // SEO fields

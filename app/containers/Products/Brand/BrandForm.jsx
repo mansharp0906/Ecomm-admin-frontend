@@ -1,4 +1,4 @@
-import { Button, LoadingData, InputTextField, SelectField, TextAreaField } from '@/components';
+import { Button, LoadingData, InputTextField, SelectField, TextAreaField, FileUploadButton } from '@/components';
 
 
 
@@ -13,6 +13,7 @@ import { useValidation, brandCreateSchema, brandUpdateSchema } from '@/validatio
 const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
   const [formData, setFormData] = useState({
     name: '',
+    description: '',
     metaTitle: '',
     metaDescription: '',
     image: null,
@@ -56,18 +57,22 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
         return;
       }
 
+      console.log('API Response:', response.data); // Debug log
+      console.log('Brand data:', brand); // Debug log
+
       if (brand) {
         const newFormData = {
           name: brand.name || '',
-          image: brand.image || null,
-          banner: brand.image || null,
+          description: brand.description || '',
+          image: brand.logo || null, // This should be the Cloudinary URL
+          banner: brand.banner || null, // This should be the Cloudinary URL
           priority: brand.priority || 1,
           status: brand.status || 'active',
-          isFeatured: brand.isFeatured || false,
           metaTitle: brand.metaTitle || '',
           metaDescription: brand.metaDescription || '',
         };
 
+        console.log('Setting form data:', newFormData); // Debug log
         setFormData(newFormData);
       } else {
         toast.error('No brand data found');
@@ -98,6 +103,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
     });
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -117,15 +123,73 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
         return;
       }
 
-      // Remove fields that backend doesn't allow
-      // eslint-disable-next-line no-unused-vars
-      const { image: _image, ...apiData } = formData;
+      // Check if we have new file uploads
+      const logoInput = document.getElementById('brand-logo');
+      const bannerInput = document.getElementById('brand-banner');
+      const hasNewLogo = logoInput && logoInput.files && logoInput.files[0];
+      const hasNewBanner = bannerInput && bannerInput.files && bannerInput.files[0];
+      
+      let formDataToSend;
+      
+      // If we have new file uploads, use FormData
+      if (hasNewLogo || hasNewBanner) {
+        formDataToSend = new FormData();
+        
+        // Add basic fields
+        formDataToSend.append('name', formData.name);
+        formDataToSend.append('description', formData.description || '');
+        formDataToSend.append('metaTitle', formData.metaTitle || '');
+        formDataToSend.append('metaDescription', formData.metaDescription || '');
+        formDataToSend.append('priority', formData.priority);
+        formDataToSend.append('status', formData.status);
+        
+        // Handle logo file upload
+        if (hasNewLogo) {
+          formDataToSend.append('logo', logoInput.files[0]);
+        } else if (formData.image && formData.image.startsWith('http')) {
+          // If it's an existing URL, send it as a string
+          formDataToSend.append('logo', formData.image);
+        }
+        
+        // Handle banner file upload
+        if (hasNewBanner) {
+          formDataToSend.append('banner', bannerInput.files[0]);
+        } else if (formData.banner && formData.banner.startsWith('http')) {
+          // If it's an existing URL, send it as a string
+          formDataToSend.append('banner', formData.banner);
+        }
+      } else {
+        // No new file uploads, use regular JSON object
+        formDataToSend = {
+          name: formData.name,
+          description: formData.description || '',
+          metaTitle: formData.metaTitle || '',
+          metaDescription: formData.metaDescription || '',
+          priority: formData.priority,
+          status: formData.status,
+          logo: formData.image || null,
+          banner: formData.banner || null,
+        };
+      }
+
+      // Debug: Log what we're sending
+      console.log('Form data being sent:', formData);
+      console.log('Data to send:', formDataToSend);
+      
+      if (formDataToSend instanceof FormData) {
+        console.log('FormData object contents:');
+        for (let [key, value] of formDataToSend.entries()) {
+          console.log(key, value);
+        }
+      } else {
+        console.log('JSON object contents:', formDataToSend);
+      }
 
       let response;
       if (isEditMode) {
-        response = await brandService.update(bandId, apiData);
+        response = await brandService.update(bandId, formDataToSend);
       } else {
-        response = await brandService.create(apiData);
+        response = await brandService.create(formDataToSend);
       }
 
       const isSuccess =
@@ -140,6 +204,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
         // Reset form for both create and edit modes
         setFormData({
           name: '',
+          description: '',
           image: null,
           banner: null,
           metaTitle: '',
@@ -179,6 +244,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
   const handleCancel = () => {
     setFormData({
       name: '',
+      description: '',
       image: null,
       banner: null,
       metaTitle: '',
@@ -211,22 +277,36 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
               placeholder="Enter Brand name"
               error={errors?.name}
             />
-            <InputTextField
-              label="Image URL"
-              type="url"
-              name="image"
-              value={formData.image || ''}
+            <TextAreaField
+              label="Description"
+              name="description"
+              value={formData.description}
               onChange={handleInputChange}
-              placeholder="https://example.com/image.jpg"
+              placeholder="Enter brand description"
+              rows={3}
+              error={errors?.description}
+              className="sm:col-span-2"
+            />
+            <FileUploadButton
+              id="brand-logo"
+              label="Logo Upload"
+              accept="image/*"
+              showPreview={true}
+              previewValue={formData.image && formData.image.startsWith('http') ? formData.image : null}
+              onFileSelect={(file) => {
+                handleInputChange({ target: { name: 'image', value: `blob:${URL.createObjectURL(file)}` } });
+              }}
               error={errors?.image}
             />
-            <InputTextField
-              label="Banner URL"
-              type="url"
-              name="banner"
-              value={formData.banner || ''}
-              onChange={handleInputChange}
-              placeholder="https://example.com/image.jpg"
+            <FileUploadButton
+              id="brand-banner"
+              label="Banner Upload"
+              accept="image/*"
+              showPreview={true}
+              previewValue={formData.banner && formData.banner.startsWith('http') ? formData.banner : null}
+              onFileSelect={(file) => {
+                handleInputChange({ target: { name: 'banner', value: `blob:${URL.createObjectURL(file)}` } });
+              }}
               error={errors?.banner}
             />
 

@@ -4,6 +4,7 @@ import {
   Container,
   CustomIcon,
   PageHeaderWithActions,
+  ScrollContainer,
 } from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -173,251 +174,253 @@ const SubSubCategoryView = () => {
           },
         ]}
       />
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {subSubCategory.name}
-          </h2>
-          <p className="text-sm text-gray-500">
-            Sub-Sub-Category ID: {subSubCategory._id}
-          </p>
-        </div>
-
-        <div className="px-6 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Basic Information
-              </h3>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Name
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {subSubCategory.name}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Slug
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {subSubCategory.slug || 'N/A'}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Description
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {subSubCategory.description || 'N/A'}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Level
-                </label>
-                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                  Level {subSubCategory.level || 2}
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Priority
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {subSubCategory.priority || 'N/A'}
-                </p>
-              </div>
-            </div>
-
-            {/* Parent Categories & Status */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Parent Categories & Status
-              </h3>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Parent Category
-                </label>
-                {parentCategory ? (
-                  <div className="mt-1 flex items-center space-x-2">
-                    <p className="text-sm text-gray-900">
-                      {parentCategory.name}
-                    </p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleViewParent}
-                      className="text-xs"
-                    >
-                      View Parent
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="mt-1 text-sm text-gray-500">
-                    No parent category
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Grandparent Category
-                </label>
-                {grandParentCategory ? (
-                  <div className="mt-1 flex items-center space-x-2">
-                    <p className="text-sm text-gray-900">
-                      {grandParentCategory.name}
-                    </p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleViewGrandParent}
-                      className="text-xs"
-                    >
-                      View Grandparent
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="mt-1 text-sm text-gray-500">
-                    No grandparent category
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Status
-                </label>
-                <span
-                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    subSubCategory.status === 'active'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}
-                >
-                  {subSubCategory.status || 'N/A'}
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Featured
-                </label>
-                <span
-                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    subSubCategory.isFeatured
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {subSubCategory.isFeatured ? 'Yes' : 'No'}
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Image
-                </label>
-                {subSubCategory.image ? (
-                  <div className="mt-2">
-                    <img
-                      src={subSubCategory.image}
-                      alt={subSubCategory.name}
-                      className="h-20 w-20 object-cover rounded-lg"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <p className="mt-1 text-sm text-gray-500">No image</p>
-                )}
-              </div>
-            </div>
+      <ScrollContainer>
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {subSubCategory.name}
+            </h2>
+            <p className="text-sm text-gray-500">
+              Sub-Sub-Category ID: {subSubCategory._id}
+            </p>
           </div>
 
-          {/* SEO Information */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              SEO Information
-            </h3>
+          <div className="px-6 py-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Meta Title
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {subSubCategory.metaTitle || 'N/A'}
-                </p>
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Basic Information
+                </h3>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Name
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {subSubCategory.name}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Slug
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {subSubCategory.slug || 'N/A'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {subSubCategory.description || 'N/A'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Level
+                  </label>
+                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                    Level {subSubCategory.level || 2}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Priority
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {subSubCategory.priority || 'N/A'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Meta Description
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {subSubCategory.metaDescription || 'N/A'}
-                </p>
+
+              {/* Parent Categories & Status */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Parent Categories & Status
+                </h3>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Parent Category
+                  </label>
+                  {parentCategory ? (
+                    <div className="mt-1 flex items-center space-x-2">
+                      <p className="text-sm text-gray-900">
+                        {parentCategory.name}
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleViewParent}
+                        className="text-xs"
+                      >
+                        View Parent
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-sm text-gray-500">
+                      No parent category
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Grandparent Category
+                  </label>
+                  {grandParentCategory ? (
+                    <div className="mt-1 flex items-center space-x-2">
+                      <p className="text-sm text-gray-900">
+                        {grandParentCategory.name}
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleViewGrandParent}
+                        className="text-xs"
+                      >
+                        View Grandparent
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-sm text-gray-500">
+                      No grandparent category
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Status
+                  </label>
+                  <span
+                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      subSubCategory.status === 'active'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {subSubCategory.status || 'N/A'}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Featured
+                  </label>
+                  <span
+                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      subSubCategory.isFeatured
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {subSubCategory.isFeatured ? 'Yes' : 'No'}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Image
+                  </label>
+                  {subSubCategory.image ? (
+                    <div className="mt-2">
+                      <img
+                        src={subSubCategory.image}
+                        alt={subSubCategory.name}
+                        className="h-20 w-20 object-cover rounded-lg"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-sm text-gray-500">No image</p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Timestamps */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Timestamps
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Created At
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {subSubCategory.createdAt
-                    ? new Date(subSubCategory.createdAt).toLocaleString(
-                        'en-US',
-                        {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        },
-                      )
-                    : 'N/A'}
-                </p>
+            {/* SEO Information */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                SEO Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Meta Title
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {subSubCategory.metaTitle || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Meta Description
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {subSubCategory.metaDescription || 'N/A'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Updated At
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {subSubCategory.updatedAt
-                    ? new Date(subSubCategory.updatedAt).toLocaleString(
-                        'en-US',
-                        {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        },
-                      )
-                    : 'N/A'}
-                </p>
+            </div>
+
+            {/* Timestamps */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Timestamps
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Created At
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {subSubCategory.createdAt
+                      ? new Date(subSubCategory.createdAt).toLocaleString(
+                          'en-US',
+                          {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          },
+                        )
+                      : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Updated At
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {subSubCategory.updatedAt
+                      ? new Date(subSubCategory.updatedAt).toLocaleString(
+                          'en-US',
+                          {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          },
+                        )
+                      : 'N/A'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </ScrollContainer>
     </Container>
   );
 };

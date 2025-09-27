@@ -4,6 +4,7 @@ import {
   Container,
   CustomIcon,
   PageHeaderWithActions,
+  ScrollContainer,
 } from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -109,15 +110,16 @@ const CategoryView = () => {
           },
         ]}
       />
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {category.name}
-          </h2>
-          <p className="text-sm text-gray-500">Category ID: {category._id}</p>
-        </div>
+      <ScrollContainer>
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {category.name}
+            </h2>
+            <p className="text-sm text-gray-500">Category ID: {category._id}</p>
+          </div>
 
-        <div className="px-6 py-6">
+          <div className="px-6 py-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Basic Information */}
             <div className="space-y-4">
@@ -293,7 +295,8 @@ const CategoryView = () => {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </ScrollContainer>
     </Container>
   );
 };
