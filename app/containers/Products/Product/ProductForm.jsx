@@ -1,79 +1,80 @@
-import { Button,InputTextField,SelectField,TextAreaField } from '@/components';
-// import SelectField from '@/components/custom-forms/SelectField';
-// import TextAreaField from '@/components/custom-forms/TextAreaField';
+import {
+  Button,
+  LoadingData,
+  InputTextField,
+  SelectField,
+  TextAreaField,
+  ScrollContainer,
+} from '@/components';
 import productServices from '@/api/service/productServices';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import * as Yup from 'yup';
 import PropTypes from 'prop-types';
-import { LoadingData } from '@/components';
-
-// Validation schema
-const validationSchema = Yup.object({
-  name: Yup.string()
-    .required('Product name is required')
-    .min(2, 'Product name must be at least 2 characters')
-    .max(50, 'Product name must be less than 50 characters'),
-  description: Yup.string()
-    .required('Description is required')
-    .min(10, 'Description must be at least 10 characters')
-    .max(500, 'Description must be less than 500 characters'),
-  metaTitle: Yup.string()
-    .required('Meta title is required')
-    .min(10, 'Meta title must be at least 10 characters')
-    .max(60, 'Meta title must be less than 60 characters'),
-  metaDescription: Yup.string()
-    .required('Meta description is required')
-    .min(20, 'Meta description must be at least 20 characters')
-    .max(160, 'Meta description must be less than 160 characters'),
-  image: Yup.string().url('Please enter a valid URL').nullable(),
-  priority: Yup.number()
-    .required('Priority is required')
-    .min(1, 'Priority must be at least 1')
-    .max(100, 'Priority must be less than 100')
-    .integer('Priority must be a whole number'),
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
-});
+import {
+  useValidation,
+  productCreateSchema,
+  productUpdateSchema,
+} from '@/validations';
 
 const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    title: '',
     description: '',
+    shortDescription: '',
+    barcode: '',
+    brand: '',
+    category: '',
+    subCategory: '',
+    sku: '',
+    price: '',
+    mrp: '',
+    weight: '',
+    stock: '',
+    image: '',
+    attribute: '',
+    value: '',
+    thumbnail: '',
+    unit: '',
+    type: '',
+    taxType: '',
+    tax: '',
+    minOrderQty: '',
+    shippingCost: '',
+    length: '',
+    width: '',
+    height: '',
+    store: '',
+    threshold: '',
+    visible: '',
+    status: 'active',
+    featured: '',
     metaTitle: '',
     metaDescription: '',
-    image: null,
-    priority: 1,
-    status: 'active',
+    tags: '',
+    createdBy: '',
+    pdf: '',
   });
 
-  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+
+  const validationSchema = isEditMode ? productUpdateSchema : productCreateSchema;
+  const { errors, validate, clearErrors, setFieldError } = useValidation(validationSchema);
 
   const fetchProductData = useCallback(async () => {
     try {
       setIsLoadingData(true);
+      const response = await productServices.getById(productId);
 
-      // Use ProductService instead of direct fetch
-      let response = await productServices.getById(productId);
-
-      // Check if response is HTML (error page)
-      if (
-        typeof response?.data === 'string' &&
-        response.data.includes('<!DOCTYPE')
-      ) {
+      if (typeof response?.data === 'string') {
         toast.error('Server error: API returned HTML instead of JSON');
         return;
       }
 
-      // Determine the correct data structure
       let product;
       if (response?.data?.success) {
         product = response.data.data;
       } else if (response?.data) {
-        // If response.data exists but no success field, assume data is directly in response.data
         product = response.data;
       } else {
         toast.error('Failed to fetch product data');
@@ -82,22 +83,47 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
 
       if (product) {
         const newFormData = {
-          name: product.name || '',
+          title: product.title || '',
           description: product.description || '',
-          image: product.image || null,
-          priority: product.priority || 1,
+          shortDescription: product.shortDescription || '',
+          barcode: product.barcode || '',
+          brand: product.brand || '',
+          category: product.category || '',
+          subCategory: product.subCategory || '',
+          sku: product.sku || '',
+          price: product.price || '',
+          mrp: product.mrp || '',
+          weight: product.weight || '',
+          stock: product.stock || '',
+          image: product.image || '',
+          attribute: product.attribute || '',
+          value: product.value || '',
+          thumbnail: product.thumbnail || '',
+          unit: product.unit || '',
+          type: product.type || '',
+          taxType: product.taxType || '',
+          tax: product.tax || '',
+          minOrderQty: product.minOrderQty || '',
+          shippingCost: product.shippingCost || '',
+          length: product.length || '',
+          width: product.width || '',
+          height: product.height || '',
+          store: product.store || '',
+          threshold: product.threshold || '',
+          visible: product.visible || '',
           status: product.status || 'active',
-          isFeatured: product.isFeatured || false,
+          featured: product.featured || '',
           metaTitle: product.metaTitle || '',
           metaDescription: product.metaDescription || '',
+          tags: product.tags || '',
+          createdBy: product.createdBy || '',
+          pdf: product.pdf || '',
         };
-
         setFormData(newFormData);
       } else {
         toast.error('No product data found');
       }
     } catch (error) {
-      // Check if it's a JSON parsing error
       if (error.message.includes('Unexpected token')) {
         toast.error('Server returned invalid response format');
       } else {
@@ -109,39 +135,28 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
   }, [productId]);
 
   useEffect(() => {
-    if (isEditMode && productId) {
-      fetchProductData();
-    }
+    if (isEditMode && productId) fetchProductData();
   }, [isEditMode, productId, fetchProductData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-
-    // Clear error for this field when user starts typing
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: '',
-      });
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setFormErrors({});
+    clearErrors();
 
     try {
-      // Validate form data
-      await validationSchema.validate(formData, { abortEarly: false });
+      const validationData = { ...formData, id: isEditMode ? productId : undefined };
+      const isValid = await validate(validationData);
+      if (!isValid) {
+        setLoading(false);
+        return;
+      }
 
-      // Remove fields that backend doesn't allow
-      // eslint-disable-next-line no-unused-vars
-      const { image: _image, ...apiData } = formData;
+      const { image: _image, ...apiData } = formData; // Optionally exclude or modify fields before sending
 
       let response;
       if (isEditMode) {
@@ -150,42 +165,59 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
         response = await productServices.create(apiData);
       }
 
-      const isSuccess =
-        response?.data?.success ||
-        (response?.status >= 200 && response?.status < 300);
+      const isSuccess = response?.data?.success || (response?.status >= 200 && response?.status < 300);
 
       if (isSuccess) {
-        toast.success(
-          `Category ${isEditMode ? 'updated' : 'added'} successfully!`,
-        );
-
-        // Reset form for both create and edit modes
+        toast.success(`Product ${isEditMode ? 'updated' : 'added'} successfully!`);
         setFormData({
-          name: '',
+          title: '',
           description: '',
-          image: null,
+          shortDescription: '',
+          barcode: '',
+          brand: '',
+          category: '',
+          subCategory: '',
+          sku: '',
+          price: '',
+          mrp: '',
+          weight: '',
+          stock: '',
+          image: '',
+          attribute: '',
+          value: '',
+          thumbnail: '',
+          unit: '',
+          type: '',
+          taxType: '',
+          tax: '',
+          minOrderQty: '',
+          shippingCost: '',
+          length: '',
+          width: '',
+          height: '',
+          store: '',
+          threshold: '',
+          visible: '',
+          status: 'active',
+          featured: '',
           metaTitle: '',
           metaDescription: '',
-          priority: 1,
-          status: 'active',
+          tags: '',
+          createdBy: '',
+          pdf: '',
         });
-        setFormErrors({});
-
-        // Notify parent component (this will trigger navigation)
-        if (onSuccess) {
-          onSuccess(response.data.data || response.data);
-        }
+        clearErrors();
+        if (onSuccess) onSuccess(response.data.data || response.data);
       } else {
         toast.error('Failed to save product');
       }
     } catch (error) {
       if (error.name === 'ValidationError') {
-        // Handle validation errors
         const validationErrors = {};
         error.inner.forEach((err) => {
           validationErrors[err.path] = err.message;
         });
-        setFormErrors(validationErrors);
+        Object.keys(validationErrors).forEach((key) => setFieldError(key, validationErrors[key]));
         toast.error('Please fix the validation errors');
       } else {
         toast.error(error.response?.data?.message || 'Failed to add product');
@@ -197,40 +229,61 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
 
   const handleCancel = () => {
     setFormData({
-      name: '',
+      title: '',
       description: '',
-      image: null,
+      shortDescription: '',
+      barcode: '',
+      brand: '',
+      category: '',
+      subCategory: '',
+      sku: '',
+      price: '',
+      mrp: '',
+      weight: '',
+      stock: '',
+      image: '',
+      attribute: '',
+      value: '',
+      thumbnail: '',
+      unit: '',
+      type: '',
+      taxType: '',
+      tax: '',
+      minOrderQty: '',
+      shippingCost: '',
+      length: '',
+      width: '',
+      height: '',
+      store: '',
+      threshold: '',
+      visible: '',
+      status: 'active',
+      featured: '',
       metaTitle: '',
       metaDescription: '',
-      priority: 1,
-      status: 'active',
+      tags: '',
+      createdBy: '',
+      pdf: '',
     });
-    setFormErrors({});
-    if (onCancel) {
-      onCancel();
-    }
+    clearErrors();
+    if (onCancel) onCancel();
   };
 
   return (
-    <>
-      {/* Form */}
-      <div className="bg-white rounded-lg shadow">
-        {isEditMode && isLoadingData ? (
-          <LoadingData message="Loading data..." size="50px" />
-        ) : (
-          <form   style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
-            onSubmit={handleSubmit}
-            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
-          >
+    <div className="bg-white rounded-lg shadow">
+      {isEditMode && isLoadingData ? (
+        <LoadingData message="Loading data..." size="50px" />
+      ) : (
+        <ScrollContainer>
+          <form onSubmit={handleSubmit} className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5">
             <InputTextField
-              label="Product Name"
-              name="name"
-              value={formData.name}
+              label="Title"
+              name="title"
+              value={formData.title}
               onChange={handleInputChange}
-              placeholder="Enter product name"
-              error={formErrors?.name}
+              placeholder="Enter product title"
+              error={errors?.title}
             />
-
             <TextAreaField
               label="Description"
               name="description"
@@ -238,50 +291,43 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
               onChange={handleInputChange}
               placeholder="Enter product description"
               rows={2}
-              error={formErrors?.description}
+              error={errors?.description}
               className="sm:col-span-2"
             />
-
-            <InputTextField
-              label="Image URL"
-              type="url"
-              name="image"
-              value={formData.image || ''}
-              onChange={handleInputChange}
-              placeholder="https://example.com/image.jpg"
-              error={formErrors?.image}
-            />
-
-            <InputTextField
-              label="Meta Title"
-              name="metaTitle"
-              value={formData.metaTitle}
-              onChange={handleInputChange}
-              placeholder="Enter meta title"
-              error={formErrors?.metaTitle}
-            />
-
             <TextAreaField
-              label="Meta Description"
-              name="metaDescription"
-              value={formData.metaDescription}
+              label="Short Description"
+              name="shortDescription"
+              value={formData.shortDescription}
               onChange={handleInputChange}
-              placeholder="Enter meta description"
+              placeholder="Enter short description"
               rows={2}
-              error={formErrors?.metaDescription}
-              className="sm:col-span-2"
+              error={errors?.shortDescription}
             />
-
-            <InputTextField
-              label="Priority"
-              type="number"
-              name="priority"
-              value={formData.priority}
-              onChange={handleInputChange}
-              placeholder="e.g. 1"
-              error={formErrors?.priority}
-            />
-
+            <InputTextField label="Barcode" name="barcode" value={formData.barcode} onChange={handleInputChange} error={errors?.barcode} />
+            <InputTextField label="Brand" name="brand" value={formData.brand} onChange={handleInputChange} error={errors?.brand} />
+            <InputTextField label="Category" name="category" value={formData.category} onChange={handleInputChange} error={errors?.category} />
+            <InputTextField label="Sub Category" name="subCategory" value={formData.subCategory} onChange={handleInputChange} error={errors?.subCategory} />
+            <InputTextField label="SKU" name="sku" value={formData.sku} onChange={handleInputChange} error={errors?.sku} />
+            <InputTextField label="Price" name="price" value={formData.price} onChange={handleInputChange} error={errors?.price} />
+            <InputTextField label="MRP" name="mrp" value={formData.mrp} onChange={handleInputChange} error={errors?.mrp} />
+            <InputTextField label="Weight" name="weight" value={formData.weight} onChange={handleInputChange} error={errors?.weight} />
+            <InputTextField label="Stock" name="stock" value={formData.stock} onChange={handleInputChange} error={errors?.stock} />
+            <InputTextField label="Image URL" name="image" value={formData.image} onChange={handleInputChange} error={errors?.image} />
+            <InputTextField label="Attribute" name="attribute" value={formData.attribute} onChange={handleInputChange} error={errors?.attribute} />
+            <InputTextField label="Value" name="value" value={formData.value} onChange={handleInputChange} error={errors?.value} />
+            <InputTextField label="Thumbnail" name="thumbnail" value={formData.thumbnail} onChange={handleInputChange} error={errors?.thumbnail} />
+            <InputTextField label="Unit" name="unit" value={formData.unit} onChange={handleInputChange} error={errors?.unit} />
+            <InputTextField label="Type" name="type" value={formData.type} onChange={handleInputChange} error={errors?.type} />
+            <InputTextField label="Tax Type" name="taxType" value={formData.taxType} onChange={handleInputChange} error={errors?.taxType} />
+            <InputTextField label="Tax" name="tax" value={formData.tax} onChange={handleInputChange} error={errors?.tax} />
+            <InputTextField label="Min Order Quantity" name="minOrderQty" value={formData.minOrderQty} onChange={handleInputChange} error={errors?.minOrderQty} />
+            <InputTextField label="Shipping Cost" name="shippingCost" value={formData.shippingCost} onChange={handleInputChange} error={errors?.shippingCost} />
+            <InputTextField label="Length" name="length" value={formData.length} onChange={handleInputChange} error={errors?.length} />
+            <InputTextField label="Width" name="width" value={formData.width} onChange={handleInputChange} error={errors?.width} />
+            <InputTextField label="Height" name="height" value={formData.height} onChange={handleInputChange} error={errors?.height} />
+            <InputTextField label="Store" name="store" value={formData.store} onChange={handleInputChange} error={errors?.store} />
+            <InputTextField label="Threshold" name="threshold" value={formData.threshold} onChange={handleInputChange} error={errors?.threshold} />
+            <InputTextField label="Visible" name="visible" value={formData.visible} onChange={handleInputChange} error={errors?.visible} />
             <SelectField
               label="Status"
               name="status"
@@ -291,46 +337,34 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
                 { value: 'active', label: 'Active' },
                 { value: 'inactive', label: 'Inactive' },
               ]}
-              error={formErrors?.status}
+              error={errors?.status}
             />
+            <InputTextField label="Featured" name="featured" value={formData.featured} onChange={handleInputChange} error={errors?.featured} />
+            <InputTextField label="Meta Title" name="metaTitle" value={formData.metaTitle} onChange={handleInputChange} error={errors?.metaTitle} />
+            <TextAreaField label="Meta Description" name="metaDescription" value={formData.metaDescription} onChange={handleInputChange} rows={2} error={errors?.metaDescription} />
+            <InputTextField label="Tags" name="tags" value={formData.tags} onChange={handleInputChange} error={errors?.tags} />
+            <InputTextField label="Created By" name="createdBy" value={formData.createdBy} onChange={handleInputChange} error={errors?.createdBy} />
+            <InputTextField label="PDF" name="pdf" value={formData.pdf} onChange={handleInputChange} error={errors?.pdf} />
 
-            {/* Buttons should span full width */}
             <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleCancel}
-                className="px-8"
-              >
+              <Button type="button" variant="secondary" onClick={handleCancel} className="px-8">
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                onClick={handleSubmit}
-                disabled={loading}
-                className="px-8"
-              >
-                {loading
-                  ? isEditMode
-                    ? 'Updating...'
-                    : 'Adding...'
-                  : isEditMode
-                  ? 'Update product'
-                  : 'Add product'}
+              <Button type="submit" variant="primary" disabled={loading} className="px-8">
+                {loading ? (isEditMode ? 'Updating...' : 'Adding...') : isEditMode ? 'Update Product' : 'Add Product'}
               </Button>
             </div>
           </form>
-        )}
-      </div>
-    </>
+        </ScrollContainer>
+      )}
+    </div>
   );
 };
 
 ProductForm.propTypes = {
   onSuccess: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
-  peoductId: PropTypes.string,
+  productId: PropTypes.string,
   isEditMode: PropTypes.bool,
 };
 
