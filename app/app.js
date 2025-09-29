@@ -1,4 +1,3 @@
-import './i18n';
 import React from 'react';
 import { Route, Routes, BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';

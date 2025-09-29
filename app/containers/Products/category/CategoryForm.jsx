@@ -203,7 +203,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2"
+            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
           >
             <InputTextField
               label="Category Name"

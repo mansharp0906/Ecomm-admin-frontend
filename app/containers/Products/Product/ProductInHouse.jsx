@@ -2,7 +2,7 @@ import { Button } from '@/components';
 import React, { useState } from 'react';
 import { MdAdd } from 'react-icons/md';
 import ProductForm from './ProductForm';
-import ProductList from './ProductList';
+// import ProductList from './ProductList';
 
 const ProductInHouse = () => {
   const [showAddForm, setShowAddForm] = useState(false);

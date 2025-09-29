@@ -291,7 +291,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           <form
             // style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
             onSubmit={handleSubmit}
-            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2"
+            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
           >
             <SelectField
               label="Category"
