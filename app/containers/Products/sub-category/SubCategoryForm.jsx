@@ -288,12 +288,8 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         {isEditMode && loadingCategories ? (
           <LoadingData message="Loading data..." />
         ) : (
-<<<<<<< HEAD:app/containers/Products/sub category/SubCategoryForm.jsx
-           <form   style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
-=======
           <form
             // style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
->>>>>>> pallavidev:app/containers/Products/sub-category/SubCategoryForm.jsx
             onSubmit={handleSubmit}
             className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
           >
