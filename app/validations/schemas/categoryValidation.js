@@ -1,56 +1,36 @@
 import * as Yup from 'yup';
 
-// Category create validation schema - Basic validation
+// Simple validation schema - no async validation
 export const categoryCreateSchema = Yup.object({
   name: Yup.string().required('Category name is required'),
-
   description: Yup.string().required('Description is required').nullable(),
-
   status: Yup.string()
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
-
   parentId: Yup.string().nullable(),
-
   level: Yup.number().required('Level is required'),
-
   image: Yup.string().nullable(),
-
   icon: Yup.string().nullable(),
-
   color: Yup.string().nullable(),
-
   isFeatured: Yup.boolean().nullable(),
-
   priority: Yup.number().nullable(),
-
   slug: Yup.string().nullable(),
 });
 
-// Category update validation schema - Basic validation
+// Simple validation schema for update - no async validation
 export const categoryUpdateSchema = Yup.object({
   id: Yup.string().required('ID is required'),
   name: Yup.string().required('Category name is required'),
-
   description: Yup.string().required('Description is required').nullable(),
-
   status: Yup.string()
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
-
   parentId: Yup.string().nullable(),
-
   level: Yup.number().required('Level is required'),
-
   image: Yup.string().nullable(),
-
   icon: Yup.string().nullable(),
-
   color: Yup.string().nullable(),
-
   isFeatured: Yup.boolean().nullable(),
-
   priority: Yup.number().nullable(),
-
   slug: Yup.string().nullable(),
 });
