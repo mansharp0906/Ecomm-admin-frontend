@@ -4,46 +4,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import authService from '@/api/service/authService';
 import LoadingOverlay from '@/components/Loading/index'; // import it here
-import { useValidation, loginSchema } from '@/validations';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false,
-  });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Use validation hook
-  const { errors, validate, clearErrors } = useValidation(loginSchema);
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value,
-    });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    clearErrors();
-
     try {
-      // Validate form data
-      const isValid = await validate(formData);
-      if (!isValid) {
-        setLoading(false);
-        return;
-      }
-
-      const response = await authService.login({ 
-        email: formData.email, 
-        password: formData.password 
-      });
-      
+      const response = await authService.login({ email, password });
       if (response?.data?.success) {
         localStorage.setItem(
           'token',
@@ -76,16 +48,11 @@ export default function LoginPage() {
               </label>
               <input
                 type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={`mt-1 w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-                  errors?.email ? 'border-red-500' : ''
-                }`}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-1 w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
               />
-              {errors?.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
             </div>
 
             {/* Password */}
@@ -95,16 +62,11 @@ export default function LoginPage() {
               </label>
               <input
                 type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className={`mt-1 w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-                  errors?.password ? 'border-red-500' : ''
-                }`}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="mt-1 w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
               />
-              {errors?.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
             </div>
 
             {/* Forgot Password Link */}

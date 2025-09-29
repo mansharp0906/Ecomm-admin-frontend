@@ -1,19 +1,17 @@
-import {
-  Button,
-  LoadingData,
-  Container,
-  Breadcrumb,
-  CustomIcon,
-} from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import attributeService from '@/api/service/attributeService';
+import { Button } from '@/components/custom-button';
+import Container from '@/components/custom-pages/Container';
+import Breadcrumb from '@/components/custom-pages/Breadcrumb';
+import attributeService from '@/api/service/attributesServices';
 import { toast } from 'react-toastify';
+import CustomIcon from '@/components/custom-icon/CustomIcon';
+import { LoadingData } from '@/components/custom-pages';
 
 const AttributeView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [attributes, setAttributes] = useState(null);
+  const [attributes, setAttributes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -35,7 +33,7 @@ const AttributeView = () => {
       } else if (response?.data) {
         setAttributes(response.data);
       } else {
-        setError('Failed to fetch Attribute data');
+        setAttributes('Failed to fetch Attribute data');
       }
     } catch (err) {
       setError('Failed to load Attribute details');
@@ -61,14 +59,36 @@ const AttributeView = () => {
     );
   }
 
+  if (error || !attributes) {
+    return (
+      <Container>
+        <div className="text-center py-12">
+          <div className="text-red-600 mb-4">
+            <CustomIcon type="error" size={8} />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Error Loading Attributes
+          </h2>
+          <p className="text-gray-600 mb-6">{error || 'Attributes not found'}</p>
+          <div className="space-x-4">
+            <Button onClick={fetchAttributeData} variant="primary">
+              Retry
+            </Button>
+            <Button onClick={handleBack} variant="secondary">
+              Back to Attribute
+            </Button>
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Attribute Details
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Brands Details</h1>
           </div>
           <div className="flex space-x-3">
             <Button
@@ -77,7 +97,7 @@ const AttributeView = () => {
               className="flex items-center space-x-2"
             >
               <CustomIcon type="edit" size={4} />
-              <span>Edit Attribute</span>
+              <span>Edit Brands</span>
             </Button>
             <Button
               variant="secondary"
@@ -85,53 +105,38 @@ const AttributeView = () => {
               className="flex items-center space-x-2"
             >
               <CustomIcon type="arrow-left" size={4} />
-              <span>Back</span>
+              <span>Back to Brands</span>
             </Button>
           </div>
         </div>
         <Breadcrumb
           items={[
             { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Attributes', href: '/products/attributes' },
-            { label: attributes?.name },
+            { label: 'Brands', href: '/products/brands' },
+            { label: brands.name },
           ]}
         />
       </div>
 
-      <div
-        className="bg-white rounded-lg shadow overflow-hidden"
-        style={{ minHeight: '600px', overflowY: 'auto', height: '600px' }}
-      >
+      <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                {attributes?.name}
-              </h2>
-              <p className="text-sm text-gray-500">
-                Attribute ID: {attributes?._id}
-              </p>
-            </div>
-            <div className="text-right">
-              <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-purple-100 text-purple-800">
-                {attributes?.displayType || 'N/A'}
-              </span>
-            </div>
-          </div>
+          <h2 className="text-xl font-semibold text-gray-900">{brands.name}</h2>
+          <p className="text-sm text-gray-500">Brands ID: {brands._id}</p>
         </div>
 
         <div className="px-6 py-6">
-          {/* Basic Information Section */}
-          <div className="mb-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Basic Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Basic Information
+              </h3>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Attribute Name
+                  Name
                 </label>
-                <p className="mt-1 text-sm text-gray-900">{attributes?.name}</p>
+                <p className="mt-1 text-sm text-gray-900">{brands.name}</p>
               </div>
 
               <div>
@@ -139,76 +144,56 @@ const AttributeView = () => {
                   Slug
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {attributes?.slug || 'N/A'}
+                  {brands.slug || 'N/A'}
                 </p>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Description
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {brands.description || 'N/A'}
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Level
                 </label>
                 <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                  Level {attributes?.level || 0}
-                </span>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Display Type
-                </label>
-                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                  {attributes?.displayType || 'N/A'}
+                  Level {brands.level || 0}
                 </span>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Filterable
+                  Priority
                 </label>
-                <span
-                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    attributes?.isFilterable
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}
-                >
-                  {attributes?.isFilterable ? 'Yes' : 'No'}
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Required
-                </label>
-                <span
-                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    attributes?.isRequired
-                      ? 'bg-orange-100 text-orange-800'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {attributes?.isRequired ? 'Yes' : 'No'}
-                </span>
+                <p className="mt-1 text-sm text-gray-900">
+                  {brands.priority || 'N/A'}
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* Status & Media Section */}
-          <div className="mb-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Status & Media
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Status & Media */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Status & Media
+              </h3>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Status
                 </label>
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    attributes?.status === 'active'
+                    brands.status === 'active'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}
                 >
-                  {attributes?.status || 'N/A'}
+                  {brands.status || 'N/A'}
                 </span>
               </div>
 
@@ -218,12 +203,12 @@ const AttributeView = () => {
                 </label>
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    attributes?.isFeatured
+                    brands.isFeatured
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {attributes?.isFeatured ? 'Yes' : 'No'}
+                  {brands.isFeatured ? 'Yes' : 'No'}
                 </span>
               </div>
 
@@ -231,11 +216,11 @@ const AttributeView = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Image
                 </label>
-                {attributes?.image ? (
+                {brands.image ? (
                   <div className="mt-2">
                     <img
-                      src={attributes.image}
-                      alt={attributes.name}
+                      src={brands.image}
+                      alt={brands.name}
                       className="h-20 w-20 object-cover rounded-lg"
                       onError={(e) => {
                         e.target.style.display = 'none';
@@ -249,72 +234,30 @@ const AttributeView = () => {
             </div>
           </div>
 
-          {/* Categories */}
-          {attributes?.categories && attributes?.categories?.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Associated Categories
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {attributes?.categories.map((category, index) => (
-                  <span
-                    key={category?._id || index}
-                    className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-indigo-100 text-indigo-800"
-                  >
-                    {category?.name}
-                  </span>
-                ))}
+          {/* SEO Information */}
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              SEO Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Meta Title
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {brands.metaTitle || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Meta Description
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {brands.metaDescription || 'N/A'}
+                </p>
               </div>
             </div>
-          )}
-
-          {/* Attribute Values */}
-          {attributes?.values && attributes?.values?.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Attribute Values
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {attributes.values.map((value, index) => (
-                  <div key={index} className="p-4 bg-gray-50 rounded-lg border">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {value.value}
-                      </span>
-                      {value.isDefault && (
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                          Default
-                        </span>
-                      )}
-                    </div>
-                    {value.color && (
-                      <div className="flex items-center space-x-2 mb-2">
-                        <div
-                          className="w-6 h-6 rounded-full border border-gray-300 shadow-sm"
-                          style={{ backgroundColor: value.color }}
-                        />
-                        <span className="text-xs text-gray-600">
-                          {value.color}
-                        </span>
-                      </div>
-                    )}
-                    {value.image && (
-                      <div className="mt-2">
-                        <img
-                          src={value.image}
-                          alt={value.value}
-                          className="w-12 h-12 object-cover rounded"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>
 
           {/* Timestamps */}
           <div className="mt-8 pt-6 border-t border-gray-200">
@@ -327,8 +270,8 @@ const AttributeView = () => {
                   Created At
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {attributes?.createdAt
-                    ? new Date(attributes?.createdAt).toLocaleString('en-US', {
+                  {brands.createdAt
+                    ? new Date(brands.createdAt).toLocaleString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -343,8 +286,8 @@ const AttributeView = () => {
                   Updated At
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {attributes?.updatedAt
-                    ? new Date(attributes?.updatedAt).toLocaleString('en-US', {
+                  {brands.updatedAt
+                    ? new Date(brands.updatedAt).toLocaleString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',

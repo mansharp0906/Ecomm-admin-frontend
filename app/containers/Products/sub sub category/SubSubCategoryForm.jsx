@@ -1,12 +1,13 @@
-import { Button, LoadingData, InputTextField, SelectField, TextAreaField } from '@/components';
-
-
-
+import { Button } from '@/components/custom-button';
+import InputTextField from '@/components/custom-input-field/InputTextField';
+import SelectField from '@/components/custom-forms/SelectField';
+import TextAreaField from '@/components/custom-forms/TextAreaField';
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
+import { LoadingData } from '@/components/custom-pages';
 
 // Validation schema
 const validationSchema = Yup.object({
@@ -320,10 +321,10 @@ const SubSubCategoryForm = ({
           <LoadingData message="Loading data..." />
         )}
 
-        <form
+        <form 
           style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
           onSubmit={handleSubmit}
-          className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
+          className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 "
         >
           <SelectField
             label="Sub Category"

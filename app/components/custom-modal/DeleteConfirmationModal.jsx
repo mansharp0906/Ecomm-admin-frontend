@@ -1,7 +1,7 @@
-import { Button } from '@/components';
 import React from 'react';
 import PropTypes from 'prop-types';
-
+import { Button } from '@/components/custom-button';
+import CustomIcon from '@/components/custom-icon/CustomIcon';
 
 const DeleteConfirmationModal = ({
   isOpen,

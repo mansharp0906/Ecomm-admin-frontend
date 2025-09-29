@@ -1,18 +1,17 @@
-import { Button, Container, Breadcrumb } from '@/components';
+import { Button } from '@/components/custom-button';
 import React, { useState } from 'react';
 import { MdAdd } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
-
-
-import AttributeListPage from './AttributeListPage';
-
+import Container from '@/components/custom-pages/Container';
+import Breadcrumb from '@/components/custom-pages/Breadcrumb';
+import AttrbuteListPage from './AttrbuteLIstPage';
 
 const AttributePage = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
   const handleAddattributes = () => {
-    navigate('/products/attributes/add');
+    navigate('/products/attribute/add');
   };
 
   return (
@@ -39,7 +38,7 @@ const AttributePage = () => {
         />
       </div>
 
-      <AttributeListPage refreshTrigger={refreshTrigger} />
+      <AttrbuteListPage refreshTrigger={refreshTrigger} />
     </Container>
   );
 };

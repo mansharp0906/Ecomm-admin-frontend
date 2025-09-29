@@ -1,4 +1,4 @@
-import { Button } from '@/components';
+import { Button } from '@/components/custom-button';
 import React, { useState } from 'react';
 import { MdAdd } from 'react-icons/md';
 import ProductForm from './ProductForm';

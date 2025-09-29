@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container } from '@/components';
+import Container from '@/components/custom-pages/Container';
 import DashboadPage from '../Dasboad/DashboadPage';
 
 const Dashboard = () => {

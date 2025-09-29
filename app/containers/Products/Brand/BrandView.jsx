@@ -1,11 +1,12 @@
-import { Button, LoadingData, Container, Breadcrumb, CustomIcon } from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-
+import { Button } from '@/components/custom-button';
+import Container from '@/components/custom-pages/Container';
+import Breadcrumb from '@/components/custom-pages/Breadcrumb';
 import brandService from '@/api/service/brandService';
 import { toast } from 'react-toastify';
-
+import CustomIcon from '@/components/custom-icon/CustomIcon';
+import { LoadingData } from '@/components/custom-pages';
 
 const BrandView = () => {
   const { id } = useParams();
