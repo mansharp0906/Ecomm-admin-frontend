@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container } from '@/components';
-import DashboadPage from '../Dasboad/DashboadPage';
+import DashboadPage from '../dashboard/DashboadPage';
 
 const Dashboard = () => {
   return (

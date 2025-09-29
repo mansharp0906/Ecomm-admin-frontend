@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
  * - height: fixed height (default: 400px)
  * - className: extra classes
  */
-const ScrollContainer = ({ children, maxHeight = '500px', className = '' }) => {
+const ScrollContainer = ({ children, maxHeight = '400px', className = '' }) => {
   return (
     <div
       style={{ maxHeight }}

@@ -3,7 +3,7 @@ import React from 'react';
 
 import { MdAdd } from 'react-icons/md';
 import DashAdminWallet from './DashAdminWallet';
-const stats = [
+const status = [
   {
     label: 'Total Orders',
     value: 191,
@@ -264,7 +264,7 @@ function DashboardPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8  ">
-        {stats.map((stat) => (
+        {status.map((stat) => (
           <div
             key={stat.label}
             className="bg-white border-t shadow rounded-lg p-4 relative hover:shadow-md transition-shadow font-bold"
