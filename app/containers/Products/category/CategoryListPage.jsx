@@ -1,23 +1,12 @@
+import { Button, Pagination, SearchBar, DeleteConfirmationModal, SearchBarContainer, LoadingData, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableContainer, DataNotFound, CustomIcon, Container } from '@/components';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Button } from '@/components/custom-button';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '@/components/custom-table';
-import CustomIcon from '@/components/custom-icon/CustomIcon';
-import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
-import DataNotFound from '@/components/custom-pages/DataNotFound';
-import { SearchBarContainer } from '@/components/custom-search';
-import TableContainer from '@/components/custom-pages/TableContainer';
+
+
+
 import { useNavigate } from 'react-router-dom';
-import { LoadingData } from '@/components/custom-pages';
 
 const CategoryListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();

@@ -1,24 +1,22 @@
-import { Container, Breadcrumb } from '@/components';
-
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import Container from '@/components/custom-pages/Container';
+import Breadcrumb from '@/components/custom-pages/Breadcrumb';
+import ProductForm from './ProductForm';
 
-
-import BrandForm from './BrandForm';
-
-const BrandFormPage = () => {
+const ProductFormPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
 
   const handleFormSuccess = () => {
-    // Navigate back to categories list after successful creation/update
-    navigate('/products/brands');
+    // Navigate back to Products list after successful creation/update
+    navigate('/products/products');
   };
 
   const handleFormCancel = () => {
-    // Navigate back to categories list when cancelled
-    navigate('/products/brands');
+    // Navigate back to Products list when cancelled
+    navigate('/products/products');
   };
 
   return (
@@ -27,20 +25,20 @@ const BrandFormPage = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              {isEditMode ? 'Edit Brands' : 'Add Brands'}
+              {isEditMode ? 'Edit Product' : 'Add Product'}
             </h1>
           </div>
         </div>
         <Breadcrumb
           items={[
             { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Brands', href: '/products/brands' },
-            { label: isEditMode ? 'Edit Brand' : 'Add New Brand' },
+            { label: 'Product', href: '/products/products' },
+            { label: isEditMode ? 'Edit product' : 'Add New Product' },
           ]}
         />
       </div>
 
-      <BrandForm
+      <ProductForm
         key={id || 'new'}
         onSuccess={handleFormSuccess}
         onCancel={handleFormCancel}
@@ -50,5 +48,4 @@ const BrandFormPage = () => {
     </Container>
   );
 };
-
-export default BrandFormPage;
+export default ProductFormPage;

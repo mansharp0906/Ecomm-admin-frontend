@@ -1,42 +1,20 @@
-import { Button } from '@/components/custom-button';
-import InputTextField from '@/components/custom-input-field/InputTextField';
-import SelectField from '@/components/custom-forms/SelectField';
-import TextAreaField from '@/components/custom-forms/TextAreaField';
+import { 
+  Button, 
+  LoadingData, 
+  InputTextField, 
+  SelectField, 
+  TextAreaField 
+} from '@/components';
+
+
+
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import * as Yup from 'yup';
 import PropTypes from 'prop-types';
-import { LoadingData } from '@/components/custom-pages';
+import { useValidation, categoryCreateSchema, categoryUpdateSchema } from '@/validations';
 
-// Validation schema
-const validationSchema = Yup.object({
-  name: Yup.string()
-    .required('Category name is required')
-    .min(2, 'Category name must be at least 2 characters')
-    .max(50, 'Category name must be less than 50 characters'),
-  description: Yup.string()
-    .required('Description is required')
-    .min(10, 'Description must be at least 10 characters')
-    .max(500, 'Description must be less than 500 characters'),
-  metaTitle: Yup.string()
-    .required('Meta title is required')
-    .min(10, 'Meta title must be at least 10 characters')
-    .max(60, 'Meta title must be less than 60 characters'),
-  metaDescription: Yup.string()
-    .required('Meta description is required')
-    .min(20, 'Meta description must be at least 20 characters')
-    .max(160, 'Meta description must be less than 160 characters'),
-  image: Yup.string().url('Please enter a valid URL').nullable(),
-  priority: Yup.number()
-    .required('Priority is required')
-    .min(1, 'Priority must be at least 1')
-    .max(100, 'Priority must be less than 100')
-    .integer('Priority must be a whole number'),
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
-});
+// Validation schemas are now imported from validations directory
 
 const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [formData, setFormData] = useState({
@@ -49,9 +27,12 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     status: 'active',
   });
 
-  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+
+  // Use validation hook
+  const validationSchema = isEditMode ? categoryUpdateSchema : categoryCreateSchema;
+  const { errors, validate, clearErrors, setFieldError } = useValidation(validationSchema);
 
   const fetchCategoryData = useCallback(async () => {
     try {
@@ -121,24 +102,27 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       ...formData,
       [name]: value,
     });
-
-    // Clear error for this field when user starts typing
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: '',
-      });
-    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setFormErrors({});
+    clearErrors();
 
     try {
+      // Prepare data for validation
+      const validationData = {
+        ...formData,
+        id: isEditMode ? categoryId : undefined,
+        level: 0, // Main category level
+      };
+
       // Validate form data
-      await validationSchema.validate(formData, { abortEarly: false });
+      const isValid = await validate(validationData);
+      if (!isValid) {
+        setLoading(false);
+        return;
+      }
 
       // Remove fields that backend doesn't allow
       // eslint-disable-next-line no-unused-vars
@@ -170,7 +154,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           priority: 1,
           status: 'active',
         });
-        setFormErrors({});
+        clearErrors();
 
         // Notify parent component (this will trigger navigation)
         if (onSuccess) {
@@ -186,7 +170,10 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         error.inner.forEach((err) => {
           validationErrors[err.path] = err.message;
         });
-        setFormErrors(validationErrors);
+        // Set errors using validation hook
+        Object.keys(validationErrors).forEach(key => {
+          setFieldError(key, validationErrors[key]);
+        });
         toast.error('Please fix the validation errors');
       } else {
         toast.error(error.response?.data?.message || 'Failed to add category');
@@ -206,7 +193,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       priority: 1,
       status: 'active',
     });
-    setFormErrors({});
+    clearErrors();
     if (onCancel) {
       onCancel();
     }
@@ -219,10 +206,9 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         {isEditMode && isLoadingData ? (
           <LoadingData message="Loading data..." size="50px" />
         ) : (
-          <form
-            style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
+          <form   style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
             onSubmit={handleSubmit}
-            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2"
+            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
           >
             <InputTextField
               label="Category Name"
@@ -230,7 +216,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               value={formData.name}
               onChange={handleInputChange}
               placeholder="Enter category name"
-              error={formErrors?.name}
+              error={errors?.name}
             />
 
             <TextAreaField
@@ -240,7 +226,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               onChange={handleInputChange}
               placeholder="Enter category description"
               rows={2}
-              error={formErrors?.description}
+              error={errors?.description}
               className="sm:col-span-2"
             />
 
@@ -251,7 +237,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               value={formData.image || ''}
               onChange={handleInputChange}
               placeholder="https://example.com/image.jpg"
-              error={formErrors?.image}
+              error={errors?.image}
             />
 
             <InputTextField
@@ -260,7 +246,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               value={formData.metaTitle}
               onChange={handleInputChange}
               placeholder="Enter meta title"
-              error={formErrors?.metaTitle}
+              error={errors?.metaTitle}
             />
 
             <TextAreaField
@@ -270,7 +256,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               onChange={handleInputChange}
               placeholder="Enter meta description"
               rows={2}
-              error={formErrors?.metaDescription}
+              error={errors?.metaDescription}
               className="sm:col-span-2"
             />
 
@@ -281,7 +267,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               value={formData.priority}
               onChange={handleInputChange}
               placeholder="e.g. 1"
-              error={formErrors?.priority}
+              error={errors?.priority}
             />
 
             <SelectField
@@ -293,7 +279,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 { value: 'active', label: 'Active' },
                 { value: 'inactive', label: 'Inactive' },
               ]}
-              error={formErrors?.status}
+              error={errors?.status}
             />
 
             {/* Buttons should span full width */}

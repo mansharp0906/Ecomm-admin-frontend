@@ -1,42 +1,14 @@
-import { Button } from '@/components/custom-button';
-import InputTextField from '@/components/custom-input-field/InputTextField';
-import SelectField from '@/components/custom-forms/SelectField';
-import TextAreaField from '@/components/custom-forms/TextAreaField';
+import { Button, LoadingData, InputTextField, SelectField, TextAreaField } from '@/components';
+
+
+
 import brandService from '@/api/service/brandService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import * as Yup from 'yup';
 import PropTypes from 'prop-types';
-import { LoadingData } from '@/components/custom-pages';
+import { useValidation, brandCreateSchema, brandUpdateSchema } from '@/validations';
 
-// Validation schema
-const validationSchema = Yup.object({
-  name: Yup.string()
-    .required('Category name is required')
-    .min(2, 'Category name must be at least 2 characters')
-    .max(50, 'Category name must be less than 50 characters'),
-  description: Yup.string()
-    .required('Description is required')
-    .min(10, 'Description must be at least 10 characters')
-    .max(500, 'Description must be less than 500 characters'),
-  metaTitle: Yup.string()
-    .required('Meta title is required')
-    .min(10, 'Meta title must be at least 10 characters')
-    .max(60, 'Meta title must be less than 60 characters'),
-  metaDescription: Yup.string()
-    .required('Meta description is required')
-    .min(20, 'Meta description must be at least 20 characters')
-    .max(160, 'Meta description must be less than 160 characters'),
-  image: Yup.string().url('Please enter a valid URL').nullable(),
-  priority: Yup.number()
-    .required('Priority is required')
-    .min(1, 'Priority must be at least 1')
-    .max(100, 'Priority must be less than 100')
-    .integer('Priority must be a whole number'),
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
-});
+// Validation schemas are now imported from validations directory
 
 const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
   const [formData, setFormData] = useState({
@@ -49,9 +21,12 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
     status: 'active',
   });
 
-  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+
+  // Use validation hook
+  const validationSchema = isEditMode ? brandUpdateSchema : brandCreateSchema;
+  const { errors, validate, clearErrors, setFieldError } = useValidation(validationSchema);
 
   const fetchCategoryData = useCallback(async () => {
     try {
@@ -121,24 +96,26 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
       ...formData,
       [name]: value,
     });
-
-    // Clear error for this field when user starts typing
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: '',
-      });
-    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setFormErrors({});
+    clearErrors();
 
     try {
+      // Prepare data for validation
+      const validationData = {
+        ...formData,
+        id: isEditMode ? bandId : undefined,
+      };
+
       // Validate form data
-      await validationSchema.validate(formData, { abortEarly: false });
+      const isValid = await validate(validationData);
+      if (!isValid) {
+        setLoading(false);
+        return;
+      }
 
       // Remove fields that backend doesn't allow
       // eslint-disable-next-line no-unused-vars
@@ -157,7 +134,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
 
       if (isSuccess) {
         toast.success(
-          `Category ${isEditMode ? 'updated' : 'added'} successfully!`,
+          `Brand ${isEditMode ? 'updated' : 'added'} successfully!`,
         );
 
         // Reset form for both create and edit modes
@@ -170,14 +147,14 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
           priority: 1,
           status: 'active',
         });
-        setFormErrors({});
+        clearErrors();
 
         // Notify parent component (this will trigger navigation)
         if (onSuccess) {
           onSuccess(response.data.data || response.data);
         }
       } else {
-        toast.error('Failed to save Bands');
+        toast.error('Failed to save Brand');
       }
     } catch (error) {
       if (error.name === 'ValidationError') {
@@ -186,10 +163,13 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
         error.inner.forEach((err) => {
           validationErrors[err.path] = err.message;
         });
-        setFormErrors(validationErrors);
+        // Set errors using validation hook
+        Object.keys(validationErrors).forEach(key => {
+          setFieldError(key, validationErrors[key]);
+        });
         toast.error('Please fix the validation errors');
       } else {
-        toast.error(error.response?.data?.message || 'Failed to add Brands');
+        toast.error(error.response?.data?.message || 'Failed to add Brand');
       }
     } finally {
       setLoading(false);
@@ -206,7 +186,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
       priority: 1,
       status: 'active',
     });
-    setFormErrors({});
+    clearErrors();
     if (onCancel) {
       onCancel();
     }
@@ -219,9 +199,9 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
         {isEditMode && isLoadingData ? (
           <LoadingData message="Loading data..." size="50px" />
         ) : (
-          <form style={{ minHeight: '400px', overflowY: 'auto' ,height: '450px'}}
+          <form   style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
             onSubmit={handleSubmit}
-            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2"
+            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
           >
             <InputTextField
               label="Brand Name"
@@ -229,7 +209,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
               value={formData.name}
               onChange={handleInputChange}
               placeholder="Enter Brand name"
-              error={formErrors?.name}
+              error={errors?.name}
             />
             <InputTextField
               label="Image URL"
@@ -238,7 +218,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
               value={formData.image || ''}
               onChange={handleInputChange}
               placeholder="https://example.com/image.jpg"
-              error={formErrors?.image}
+              error={errors?.image}
             />
             <InputTextField
               label="Banner URL"
@@ -247,7 +227,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
               value={formData.banner || ''}
               onChange={handleInputChange}
               placeholder="https://example.com/image.jpg"
-              error={formErrors?.banner}
+              error={errors?.banner}
             />
 
             <InputTextField
@@ -256,7 +236,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
               value={formData.metaTitle}
               onChange={handleInputChange}
               placeholder="Enter meta title"
-              error={formErrors?.metaTitle}
+              error={errors?.metaTitle}
             />
 
             <TextAreaField
@@ -266,7 +246,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
               onChange={handleInputChange}
               placeholder="Enter meta description"
               rows={2}
-              error={formErrors?.metaDescription}
+              error={errors?.metaDescription}
               className="sm:col-span-2"
             />
 
@@ -277,7 +257,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
               value={formData.priority}
               onChange={handleInputChange}
               placeholder="e.g. 1"
-              error={formErrors?.priority}
+              error={errors?.priority}
             />
 
             <SelectField
@@ -289,7 +269,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
                 { value: 'active', label: 'Active' },
                 { value: 'inactive', label: 'Inactive' },
               ]}
-              error={formErrors?.status}
+              error={errors?.status}
             />
 
             {/* Buttons should span full width */}
