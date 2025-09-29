@@ -1,5 +1,5 @@
 import { Button, Pagination, SearchBar, DeleteConfirmationModal, SearchBarContainer, LoadingData, Container, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableContainer, DataNotFound, CustomIcon } from '@/components';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import brandService from '@/api/service/brandService'; // Adjust this import path
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
@@ -32,6 +32,14 @@ const BrandListPage = ({ refreshTrigger }) => {
     isLoading: false,
   });
 
+  // Memoize filtered brands
+  const filteredBrands = useMemo(() => {
+    if (!searchTerm) return brands;
+    return brands.filter(brand => 
+      brand.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [brands, searchTerm]);
+
   // Fetch brands from API with pagination and search
   const fetchBrands = useCallback(
     async (page = 1, search = '') => {
@@ -45,7 +53,14 @@ const BrandListPage = ({ refreshTrigger }) => {
         };
 
         const response = await brandService.getAll(params);
+        
+        // Debug logging
+        console.log('Brand API Response:', response);
+        console.log('Response data:', response?.data);
+        
+        // Handle different response structures
         if (response?.data?.success) {
+          // Standard success response
           setBrands(response.data.data || []);
           setPagination((prev) => ({
             ...prev,
@@ -55,8 +70,18 @@ const BrandListPage = ({ refreshTrigger }) => {
               Math.ceil(response.data.total / pagination.itemsPerPage),
             totalItems: response.data.total || (response.data.data ? response.data.data.length : 0),
           }));
+        } else if (Array.isArray(response?.data)) {
+          // Direct array response (like the API you showed)
+          setBrands(response.data);
+          setPagination((prev) => ({
+            ...prev,
+            currentPage: page,
+            totalPages: 1,
+            totalItems: response.data.length,
+          }));
         } else {
-          setError('Failed to fetch brands');
+          console.error('Unexpected response structure:', response?.data);
+          setError('Failed to fetch brands - unexpected response format');
         }
       } catch (err) {
         console.error('Error fetching brands:', err);
@@ -80,7 +105,7 @@ const BrandListPage = ({ refreshTrigger }) => {
   };
 
   // Handle search - debounced API call
-  const handleSearch = (term) => {
+  const handleSearch = useCallback((term) => {
     setSearchTerm(term);
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
     if (searchTimeoutRef.current) {
@@ -89,17 +114,17 @@ const BrandListPage = ({ refreshTrigger }) => {
     searchTimeoutRef.current = setTimeout(() => {
       fetchBrands(1, term);
     }, 700);
-  };
+  }, [fetchBrands]);
 
   // Handle delete brand
-  const handleDelete = (id, name) => {
+  const handleDelete = useCallback((id, name) => {
     setDeleteModal({
       isOpen: true,
       itemId: id,
       itemName: name,
       isLoading: false,
     });
-  };
+  }, []);
 
   // Confirm delete
   const confirmDelete = async () => {
@@ -183,6 +208,8 @@ const BrandListPage = ({ refreshTrigger }) => {
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center">S.No</TableHead>
+                <TableHead>Logo</TableHead>
+                <TableHead>Banner</TableHead>
                 <TableHead>Brand Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Status</TableHead>
@@ -195,6 +222,42 @@ const BrandListPage = ({ refreshTrigger }) => {
                 <TableRow key={brand._id}>
                   <TableCell className="text-center font-medium text-gray-900">
                     {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {brand.logo ? (
+                      <img
+                        src={brand.logo}
+                        alt={brand.name}
+                        className="w-10 h-10 object-cover rounded-full mx-auto"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'block';
+                        }}
+                      />
+                    ) : null}
+                    {!brand.logo && (
+                      <div className="w-10 h-10 bg-gray-200 rounded-full mx-auto flex items-center justify-center text-gray-500 text-xs">
+                        No Logo
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {brand.banner ? (
+                      <img
+                        src={brand.banner}
+                        alt={`${brand.name} banner`}
+                        className="w-16 h-10 object-cover rounded mx-auto"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'block';
+                        }}
+                      />
+                    ) : null}
+                    {!brand.banner && (
+                      <div className="w-16 h-10 bg-gray-200 rounded mx-auto flex items-center justify-center text-gray-500 text-xs">
+                        No Banner
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">{brand.name}</TableCell>
                   <TableCell className="text-gray-500 max-w-xs">
@@ -282,4 +345,4 @@ BrandListPage.propTypes = {
   refreshTrigger: PropTypes.number.isRequired,
 };
 
-export default BrandListPage;
+export default React.memo(BrandListPage);

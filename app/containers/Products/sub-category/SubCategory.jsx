@@ -1,31 +1,30 @@
 import { Container, PageHeader } from '@/components';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CategoryListPage from './CategoryListPage';
+import SubCategoryList from './SubCategoryList';
 
-const CategoryPage = () => {
+const SubCategory = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
-  const handleAddCategory = () => {
-    navigate('/products/categories/add');
+  const handleAddSubCategory = () => {
+    navigate('/products/subcategories/add');
   };
 
   return (
     <Container>
       <PageHeader
-        title="Category"
+        title="Sub Category"
         breadcrumbItems={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Categories' },
+          { label: 'Sub Categories' },
         ]}
-        onAddClick={handleAddCategory}
-        addButtonLabel="Add Category"
-        variant="outline"
+        onAddClick={handleAddSubCategory}
+        addButtonLabel="Add Sub Category"
       />
-      <CategoryListPage refreshTrigger={refreshTrigger} />
+      <SubCategoryList refreshTrigger={refreshTrigger} />
     </Container>
   );
 };
 
-export default CategoryPage;
+export default SubCategory;

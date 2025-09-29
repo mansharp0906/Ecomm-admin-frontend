@@ -1,33 +1,32 @@
-import { Container, Breadcrumb, PageHeader } from '@/components';
+import { Container, PageHeader } from '@/components';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import CategoryForm from './CategoryForm';
+import SubCategoryForm from './SubCategoryForm';
 
-const CategoryFormPage = () => {
+const SubCategoryFormPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
 
   const handleFormSuccess = () => {
-    navigate('/products/categories');
+    navigate('/products/subcategories');
   };
 
   const handleFormCancel = () => {
-    navigate('/products/categories');
+    navigate('/products/subcategories');
   };
 
   return (
     <Container>
       <PageHeader
-        title={isEditMode ? 'Edit Category' : 'Add Category'}
+        title={isEditMode ? 'Edit Sub Category' : 'Add Sub Category'}
         breadcrumbItems={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Categories', href: '/products/categories' },
-          { label: isEditMode ? 'Edit Category' : 'Add New Category' },
+          { label: 'Sub Categories', href: '/products/subcategories' },
+          { label: isEditMode ? 'Edit Sub Category' : 'Add Sub Category' },
         ]}
       />
-
-      <CategoryForm
+      <SubCategoryForm
         key={id || 'new'}
         onSuccess={handleFormSuccess}
         onCancel={handleFormCancel}
@@ -38,4 +37,4 @@ const CategoryFormPage = () => {
   );
 };
 
-export default CategoryFormPage;
+export default SubCategoryFormPage;

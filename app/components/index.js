@@ -32,12 +32,18 @@ export { default as InputTextField } from './custom-input-field/InputTextField';
 // Custom Modal components
 export { default as DeleteConfirmationModal } from './custom-modal/DeleteConfirmationModal';
 
+// Error Boundary component
+export { default as ErrorBoundary } from './ErrorBoundary';
+
 // Custom Page components
 export { default as Breadcrumb } from './custom-pages/Breadcrumb';
 export { default as Container } from './custom-pages/Container';
 export { default as DataNotFound } from './custom-pages/DataNotFound';
 export { default as LoadingData } from './custom-pages/LoadingData';
 export { default as TableContainer } from './custom-pages/TableContainer';
+export { default as PageHeader } from './custom-pages/PageHeader';
+export { default as PageHeaderWithActions } from './custom-pages/PageHeaderWithActions';
+export { default as FileUpload } from './custom-fileuplode/FileUploadButton';
 
 // Custom Pagination component
 export { default as Pagination } from './custom-pagination/Pagination';
@@ -45,6 +51,9 @@ export { default as Pagination } from './custom-pagination/Pagination';
 // Custom Search component
 export { default as SearchBar } from './custom-search/SearchBar';
 export { default as SearchBarContainer } from './custom-search/SearchBarContainer';
+
+// Custom Scrollbar component
+export { default as ScrollContainer } from './custom-scrollbar/ScrollContainer';
 
 // Custom Table components
 export {

@@ -1,43 +1,20 @@
-import { Button, LoadingData, InputTextField, SelectField, TextAreaField } from '@/components';
-
-
+import {
+  Button,
+  LoadingData,
+  InputTextField,
+  SelectField,
+  TextAreaField,
+} from '@/components';
 
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import * as Yup from 'yup';
+import { useValidation } from '@/validations';
+import {
+  subCategoryCreateSchema,
+  subCategoryUpdateSchema,
+} from '@/validations';
 import PropTypes from 'prop-types';
-
-// Validation schema
-const validationSchema = Yup.object({
-  name: Yup.string()
-    .required('Category name is required')
-    .min(2, 'Category name must be at least 2 characters')
-    .max(50, 'Category name must be less than 50 characters'),
-  description: Yup.string()
-    .required('Description is required')
-    .min(10, 'Description must be at least 10 characters')
-    .max(500, 'Description must be less than 500 characters'),
-  metaTitle: Yup.string()
-    .required('Meta title is required')
-    .min(10, 'Meta title must be at least 10 characters')
-    .max(60, 'Meta title must be less than 60 characters'),
-  metaDescription: Yup.string()
-    .required('Meta description is required')
-    .min(20, 'Meta description must be at least 20 characters')
-    .max(160, 'Meta description must be less than 160 characters'),
-  image: Yup.string().url('Please enter a valid URL').nullable(),
-  priority: Yup.number()
-    .required('Priority is required')
-    .min(1, 'Priority must be at least 1')
-    .max(100, 'Priority must be less than 100')
-    .integer('Priority must be a whole number'),
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(['active', 'inactive'], 'Status must be either active or inactive'),
-  parentId: Yup.string().required('Parent category is required'),
-  // isFeatured: Yup.boolean(),
-});
 
 const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [formData, setFormData] = useState({
@@ -50,13 +27,19 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     status: 'active',
     parentId: '',
     isFeatured: false,
+    level: 1, // Add level field for sub-category
   });
 
-  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
+
+  // Use validation hook
+  const validationSchema = isEditMode
+    ? subCategoryUpdateSchema
+    : subCategoryCreateSchema;
+  const { validate, errors, setErrors } = useValidation(validationSchema);
 
   // Fetch all categories for dropdown
   const fetchCategories = async () => {
@@ -111,52 +94,27 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       }
 
       if (category) {
-        // Handle parentId - it might be an object, string, or null
-
-        console.log(
-          'ParentId type:',
-          typeof category.parentId,
-          category.parentId,
-        );
-
         let parentId = '';
         if (category.parentId) {
           if (typeof category.parentId === 'object' && category.parentId._id) {
             parentId = category.parentId._id;
-            console.log('Extracted parentId from object:', parentId);
           } else if (typeof category.parentId === 'string') {
             parentId = category.parentId;
           }
         } else if (category.parentId === null) {
           // If parentId is null, check if there's a parent field or if we need to use path
-          console.log('ParentId is null, checking for parent field...');
           if (category.parent && category.parent._id) {
             parentId = category.parent._id;
-            console.log('Found parent field, using parent._id:', parentId);
           } else if (category.path) {
             // Try to find a category that matches the path
-            console.log('Using path to find parent:', category.path);
-            console.log(
-              'Available category IDs:',
-              categories.map((cat) => cat._id),
-            );
-
             const parentExists = categories.find(
               (cat) => cat._id === category.path,
             );
             if (parentExists) {
               parentId = category.path;
             } else {
-              console.log('Path does not match any available category');
-              console.log('Path ID:', category.path);
-              console.log(
-                'Available IDs:',
-                categories.map((cat) => cat._id),
-              );
-
               // For now, leave it empty so user can select the correct parent
               parentId = '';
-
               // Show a warning to the user
               toast.warning(
                 'Parent category not found. Please select the correct parent category.',
@@ -181,7 +139,6 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
         setFormData(newFormData);
         s;
-        console.log('Available categories:', categories);
       } else {
         toast.error('No sub category data found');
       }
@@ -216,9 +173,9 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     });
 
     // Clear error for this field when user starts typing
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
+    if (errors[name]) {
+      setErrors({
+        ...errors,
         [name]: '',
       });
     }
@@ -227,11 +184,15 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setFormErrors({});
+    setErrors({});
 
     try {
-      // Validate form data
-      await validationSchema.validate(formData, { abortEarly: false });
+      // Validate form data using validation hook
+      const isValid = await validate(formData);
+      if (!isValid) {
+        setLoading(false);
+        return;
+      }
 
       // Remove fields that backend doesn't allow
       const { image: _image, ...apiData } = formData;
@@ -264,7 +225,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           parentId: '',
           isFeatured: false,
         });
-        setFormErrors({});
+        setErrors({});
 
         // Notify parent component (this will trigger navigation)
         if (onSuccess) {
@@ -280,7 +241,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         error.inner.forEach((err) => {
           validationErrors[err.path] = err.message;
         });
-        setFormErrors(validationErrors);
+        setErrors(validationErrors);
         toast.error('Please fix the validation errors');
       } else if (
         error.response?.status === 500 &&
@@ -314,7 +275,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       parentId: '',
       isFeatured: false,
     });
-    setFormErrors({});
+    setErrors({});
     if (onCancel) {
       onCancel();
     }
@@ -327,7 +288,12 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         {isEditMode && loadingCategories ? (
           <LoadingData message="Loading data..." />
         ) : (
+<<<<<<< HEAD:app/containers/Products/sub category/SubCategoryForm.jsx
            <form   style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
+=======
+          <form
+            // style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
+>>>>>>> pallavidev:app/containers/Products/sub-category/SubCategoryForm.jsx
             onSubmit={handleSubmit}
             className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
           >
@@ -344,18 +310,9 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                     label: cat.displayName,
                   })),
                 ];
-                console.log('Dropdown options:', options);
-                console.log(
-                  'Looking for parentId in options:',
-                  formData.parentId,
-                );
-                const foundOption = options.find(
-                  (opt) => opt.value === formData.parentId,
-                );
-
                 return options;
               })()}
-              error={formErrors?.parentId}
+              error={errors?.parentId}
               disabled={loadingCategories}
             />
 
@@ -365,7 +322,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               value={formData.name}
               onChange={handleInputChange}
               placeholder="Enter sub category"
-              error={formErrors?.name}
+              error={errors?.name}
             />
 
             {/* {loadingCategories && <LoadingData message="Loading categories" />} */}
@@ -377,7 +334,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               onChange={handleInputChange}
               placeholder="Enter sub category description"
               rows={2}
-              error={formErrors?.description}
+              error={errors?.description}
               className="sm:col-span-2"
             />
 
@@ -388,7 +345,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               value={formData.image || ''}
               onChange={handleInputChange}
               placeholder="https://example.com/image.jpg"
-              error={formErrors?.image}
+              error={errors?.image}
             />
 
             <InputTextField
@@ -397,7 +354,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               value={formData.metaTitle}
               onChange={handleInputChange}
               placeholder="Enter meta title"
-              error={formErrors?.metaTitle}
+              error={errors?.metaTitle}
             />
 
             <TextAreaField
@@ -407,7 +364,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               onChange={handleInputChange}
               placeholder="Enter meta description"
               rows={2}
-              error={formErrors?.metaDescription}
+              error={errors?.metaDescription}
               className="sm:col-span-2"
             />
 
@@ -418,7 +375,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               value={formData.priority}
               onChange={handleInputChange}
               placeholder="e.g. 1"
-              error={formErrors?.priority}
+              error={errors?.priority}
             />
 
             <SelectField
@@ -430,7 +387,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 { value: 'active', label: 'Active' },
                 { value: 'inactive', label: 'Inactive' },
               ]}
-              error={formErrors?.status}
+              error={errors?.status}
             />
 
             {/* Buttons should span full width */}
@@ -455,8 +412,8 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                     ? 'Updating...'
                     : 'Adding...'
                   : isEditMode
-                  ? 'Update Sub Category'
-                  : 'Add Sub Category'}
+                  ? 'Update'
+                  : 'Add'}
               </Button>
             </div>
           </form>

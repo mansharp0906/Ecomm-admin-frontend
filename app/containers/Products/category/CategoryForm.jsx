@@ -1,20 +1,19 @@
-import { 
-  Button, 
-  LoadingData, 
-  InputTextField, 
-  SelectField, 
-  TextAreaField 
+import {
+  Button,
+  LoadingData,
+  InputTextField,
+  SelectField,
+  TextAreaField,
 } from '@/components';
-
-
-
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
-import { useValidation, categoryCreateSchema, categoryUpdateSchema } from '@/validations';
-
-// Validation schemas are now imported from validations directory
+import {
+  useValidation,
+  categoryCreateSchema,
+  categoryUpdateSchema,
+} from '@/validations';
 
 const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [formData, setFormData] = useState({
@@ -31,21 +30,17 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   // Use validation hook
-  const validationSchema = isEditMode ? categoryUpdateSchema : categoryCreateSchema;
-  const { errors, validate, clearErrors, setFieldError } = useValidation(validationSchema);
+  const validationSchema = isEditMode
+    ? categoryUpdateSchema
+    : categoryCreateSchema;
+  const { errors, validate, clearErrors, setFieldError } =
+    useValidation(validationSchema);
 
   const fetchCategoryData = useCallback(async () => {
     try {
       setIsLoadingData(true);
-
-      // Use categoryService instead of direct fetch
       let response = await categoryService.getById(categoryId);
-
-      // Check if response is HTML (error page)
-      if (
-        typeof response?.data === 'string' &&
-        response.data.includes('<!DOCTYPE')
-      ) {
+      if (typeof response?.data === 'string') {
         toast.error('Server error: API returned HTML instead of JSON');
         return;
       }
@@ -171,7 +166,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           validationErrors[err.path] = err.message;
         });
         // Set errors using validation hook
-        Object.keys(validationErrors).forEach(key => {
+        Object.keys(validationErrors).forEach((key) => {
           setFieldError(key, validationErrors[key]);
         });
         toast.error('Please fix the validation errors');
@@ -206,7 +201,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         {isEditMode && isLoadingData ? (
           <LoadingData message="Loading data..." size="50px" />
         ) : (
-          <form   style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
+          <form
             onSubmit={handleSubmit}
             className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
           >
