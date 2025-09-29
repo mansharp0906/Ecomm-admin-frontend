@@ -44,7 +44,8 @@ const SubSubCategoryForm = ({
   const validationSchema = isEditMode
     ? subSubCategoryUpdateSchema
     : subSubCategoryCreateSchema;
-  const { validate, errors, setErrors, clearErrors } = useValidation(validationSchema);
+  const { validate, errors, setErrors, clearErrors } =
+    useValidation(validationSchema);
 
   // Fetch all sub categories (level 1) for dropdown
   const fetchSubCategories = async () => {
@@ -193,29 +194,29 @@ const SubSubCategoryForm = ({
     try {
       // Manual validation check
       const validationErrors = {};
-      
+
       if (!formData.name || formData.name.trim() === '') {
         validationErrors.name = 'Sub-sub-category name is required';
       }
-      
+
       if (!formData.parentId || formData.parentId.trim() === '') {
         validationErrors.parentId = 'Parent sub-category is required';
       }
-      
+
       if (!formData.description || formData.description.trim() === '') {
         validationErrors.description = 'Description is required';
       }
-      
+
       if (!formData.status || formData.status.trim() === '') {
         validationErrors.status = 'Status is required';
       }
-      
+
       // If validation errors exist, set them and return
       if (Object.keys(validationErrors).length > 0) {
         Object.keys(validationErrors).forEach((key) => {
-          setErrors(prev => ({
+          setErrors((prev) => ({
             ...prev,
-            [key]: validationErrors[key]
+            [key]: validationErrors[key],
           }));
         });
         setLoading(false);
@@ -223,19 +224,22 @@ const SubSubCategoryForm = ({
       }
 
       // Simple duplicate check before submitting
-      const existingCategories = await categoryService.getAll({ 
-        level: 2, 
+      const existingCategories = await categoryService.getAll({
+        level: 2,
         status: 'active',
-        parentId: formData.parentId 
+        parentId: formData.parentId,
       });
       if (existingCategories?.data?.success && existingCategories.data.data) {
-        const duplicateCategory = existingCategories.data.data.find(category => 
-          category.name.toLowerCase() === formData.name.toLowerCase() && 
-          category._id !== categoryId
+        const duplicateCategory = existingCategories.data.data.find(
+          (category) =>
+            category.name.toLowerCase() === formData.name.toLowerCase() &&
+            category._id !== categoryId,
         );
-        
+
         if (duplicateCategory) {
-          toast.error('Sub-sub-category name already exists under this parent. Please choose a different name.');
+          toast.error(
+            'Sub-sub-category name already exists under this parent. Please choose a different name.',
+          );
           setLoading(false);
           return;
         }
@@ -290,9 +294,9 @@ const SubSubCategoryForm = ({
         });
         // Set errors using validation hook
         Object.keys(validationErrors).forEach((key) => {
-          setErrors(prev => ({
+          setErrors((prev) => ({
             ...prev,
-            [key]: validationErrors[key]
+            [key]: validationErrors[key],
           }));
         });
         // Don't show toast for validation errors, they will be displayed in fields
