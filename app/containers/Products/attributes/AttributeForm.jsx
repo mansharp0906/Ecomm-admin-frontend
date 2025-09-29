@@ -250,7 +250,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       {isEditMode && (loadingCategories || isLoadingData) ? (
         <LoadingData message="Loading data..." />
       ) : (
-        <ScrollContainer maxHeight="600px">
+        <ScrollContainer>
           <form
             onSubmit={handleSubmit}
             className="space-y-4 bg-white p-4 rounded-lg shadow"

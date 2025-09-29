@@ -5,12 +5,12 @@ import {
   Breadcrumb,
   CustomIcon,
   PageHeaderWithActions,
+  ScrollContainer,
 } from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import attributeService from '@/api/service/attributeService';
 import { toast } from 'react-toastify';
-import ScrollContainer from '@/components/custom-scrollbar/ScrollContainer';
 
 const AttributeView = () => {
   const { id } = useParams();

@@ -4,6 +4,7 @@ import {
   InputTextField,
   SelectField,
   TextAreaField,
+  ScrollContainer,
 } from '@/components';
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -294,125 +295,127 @@ const SubSubCategoryForm = ({
         {isEditMode && loadingSubCategories ? (
           <LoadingData message="Loading data..." />
         ) : (
-          <form
-            onSubmit={handleSubmit}
-            className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 "
-          >
-            <SelectField
-              label="Sub Category"
-              name="parentId"
-              value={formData.parentId}
-              onChange={handleInputChange}
-              options={[
-                { value: '', label: 'Select Sub Category' },
-                ...subCategories.map((cat) => ({
-                  value: cat._id,
-                  label: cat.displayName,
-                })),
-              ]}
-              error={errors?.parentId}
-              disabled={loadingSubCategories}
-            />
+          <ScrollContainer>
+            <form
+              onSubmit={handleSubmit}
+              className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 "
+            >
+              <SelectField
+                label="Sub Category"
+                name="parentId"
+                value={formData.parentId}
+                onChange={handleInputChange}
+                options={[
+                  { value: '', label: 'Select Sub Category' },
+                  ...subCategories.map((cat) => ({
+                    value: cat._id,
+                    label: cat.displayName,
+                  })),
+                ]}
+                error={errors?.parentId}
+                disabled={loadingSubCategories}
+              />
 
-            <InputTextField
-              label="Sub Sub Category Name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Enter sub sub category name"
-              error={errors?.name}
-            />
+              <InputTextField
+                label="Sub Sub Category Name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Enter sub sub category name"
+                error={errors?.name}
+              />
 
-            <TextAreaField
-              label="Description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Enter sub sub category description"
-              rows={2}
-              error={errors?.description}
-              className="sm:col-span-2"
-            />
+              <TextAreaField
+                label="Description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Enter sub sub category description"
+                rows={2}
+                error={errors?.description}
+                className="sm:col-span-2"
+              />
 
-            <InputTextField
-              label="Image URL"
-              type="url"
-              name="image"
-              value={formData.image || ''}
-              onChange={handleInputChange}
-              placeholder="https://example.com/image.jpg"
-              error={errors?.image}
-            />
+              <InputTextField
+                label="Image URL"
+                type="url"
+                name="image"
+                value={formData.image || ''}
+                onChange={handleInputChange}
+                placeholder="https://example.com/image.jpg"
+                error={errors?.image}
+              />
 
-            <InputTextField
-              label="Meta Title"
-              name="metaTitle"
-              value={formData.metaTitle}
-              onChange={handleInputChange}
-              placeholder="Enter meta title"
-              error={errors?.metaTitle}
-            />
+              <InputTextField
+                label="Meta Title"
+                name="metaTitle"
+                value={formData.metaTitle}
+                onChange={handleInputChange}
+                placeholder="Enter meta title"
+                error={errors?.metaTitle}
+              />
 
-            <TextAreaField
-              label="Meta Description"
-              name="metaDescription"
-              value={formData.metaDescription}
-              onChange={handleInputChange}
-              placeholder="Enter meta description"
-              rows={2}
-              error={errors?.metaDescription}
-              className="sm:col-span-2"
-            />
+              <TextAreaField
+                label="Meta Description"
+                name="metaDescription"
+                value={formData.metaDescription}
+                onChange={handleInputChange}
+                placeholder="Enter meta description"
+                rows={2}
+                error={errors?.metaDescription}
+                className="sm:col-span-2"
+              />
 
-            <InputTextField
-              label="Priority"
-              type="number"
-              name="priority"
-              value={formData.priority}
-              onChange={handleInputChange}
-              placeholder="e.g. 1"
-              error={errors?.priority}
-            />
+              <InputTextField
+                label="Priority"
+                type="number"
+                name="priority"
+                value={formData.priority}
+                onChange={handleInputChange}
+                placeholder="e.g. 1"
+                error={errors?.priority}
+              />
 
-            <SelectField
-              label="Status"
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-              options={[
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
-              ]}
-              error={errors?.status}
-            />
+              <SelectField
+                label="Status"
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                options={[
+                  { value: 'active', label: 'Active' },
+                  { value: 'inactive', label: 'Inactive' },
+                ]}
+                error={errors?.status}
+              />
 
-            {/* Buttons should span full width */}
-            <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleCancel}
-                className="px-8"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                onClick={handleSubmit}
-                disabled={loading}
-                className="px-8"
-              >
-                {loading
-                  ? isEditMode
-                    ? 'Updating...'
-                    : 'Adding...'
-                  : isEditMode
-                  ? 'Update'
-                  : 'Add'}
-              </Button>
-            </div>
-          </form>
+              {/* Buttons should span full width */}
+              <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleCancel}
+                  className="px-8"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="px-8"
+                >
+                  {loading
+                    ? isEditMode
+                      ? 'Updating...'
+                      : 'Adding...'
+                    : isEditMode
+                    ? 'Update'
+                    : 'Add'}
+                </Button>
+              </div>
+            </form>
+          </ScrollContainer>
         )}
       </div>
     </>

@@ -22,7 +22,7 @@ const AttributeformPage = () => {
         title={isEditMode ? 'Edit Attribute' : 'Add Attribute'}
         breadcrumbItems={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Categories', href: '/products/categories' },
+          { label: 'Attribute', href: '/products/Attributes' },
           { label: isEditMode ? 'Edit Attribute' : 'Add New Attribute' },
         ]}
       />
