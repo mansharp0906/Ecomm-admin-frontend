@@ -70,6 +70,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
           page,
           limit: pagination.itemsPerPage,
           level: 0, // Only main categories
+          status: 'active', // Only active categories
           ...(search && { search: search }),
         };
 
