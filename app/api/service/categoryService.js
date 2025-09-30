@@ -21,8 +21,28 @@ const categoryService = {
 
   getById: (id) => api.get(`/categories/${id}`),
   getTree: () => api.get('/categories/tree'),
-  create: (data) => api.post('/categories', data),
-  update: (id, data) => api.put(`/categories/${id}`, data),
+  create: (data) => {
+    // Check if data is FormData to set appropriate headers
+    if (data instanceof FormData) {
+      return api.post('/categories', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    }
+    return api.post('/categories', data);
+  },
+  update: (id, data) => {
+    // Check if data is FormData to set appropriate headers
+    if (data instanceof FormData) {
+      return api.put(`/categories/${id}`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    }
+    return api.put(`/categories/${id}`, data);
+  },
   delete: (id) => api.delete(`/categories/${id}`),
   bulkDelete: (ids) => api.post('/categories/bulk-delete', { ids }),
 };

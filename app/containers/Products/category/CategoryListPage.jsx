@@ -268,6 +268,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center">S.No</TableHead>
+                <TableHead>Image</TableHead>
                 <TableHead>Category Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Level</TableHead>
@@ -285,6 +286,22 @@ const CategoryListPage = ({ refreshTrigger }) => {
                     {(pagination.currentPage - 1) * pagination.itemsPerPage +
                       index +
                       1}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {category.image ? (
+                      <img
+                        src={category.image}
+                        alt={category.name}
+                        className="h-12 w-12 object-cover rounded-lg mx-auto"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="h-12 w-12 bg-gray-100 rounded-lg mx-auto flex items-center justify-center">
+                        <CustomIcon type="image" size={6} />
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">
                     {category.name}

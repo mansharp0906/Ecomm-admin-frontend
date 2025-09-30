@@ -5,6 +5,7 @@ import {
   SelectField,
   TextAreaField,
   ScrollContainer,
+  FileUploadButton,
 } from '@/components';
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -23,6 +24,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     metaTitle: '',
     metaDescription: '',
     image: null,
+    imageFile: null, // For file upload
     priority: 1,
     status: 'active',
   });
@@ -34,7 +36,9 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const validationSchema = isEditMode
     ? categoryUpdateSchema
     : categoryCreateSchema;
-  const { errors, validate, clearErrors } = useValidation(validationSchema);
+  const { errors, validate, clearErrors } = useValidation(validationSchema, {
+    showToast: false, // Disable automatic toast, we'll show specific errors
+  });
 
   const fetchCategoryData = useCallback(async () => {
     try {
@@ -62,6 +66,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           name: category.name || '',
           description: category.description || '',
           image: category.image || null,
+          imageFile: null, // Reset file upload when editing
           priority: category.priority || 1,
           status: category.status || 'active',
           isFeatured: category.isFeatured || false,
@@ -105,6 +110,18 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     }
   };
 
+  const handleFileUpload = (file) => {
+    setFormData({
+      ...formData,
+      imageFile: file,
+    });
+    
+    // Clear field error when file is selected
+    if (errors?.image) {
+      clearErrors('image');
+    }
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -116,12 +133,16 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       const validationData = {
         ...formData,
         id: isEditMode ? categoryId : undefined,
-        level: 0, // Main category level
       };
 
       // Validate form data
       const isValid = await validate(validationData);
       if (!isValid) {
+        // Show specific validation errors
+        if (Object.keys(errors).length > 0) {
+          const errorMessages = Object.values(errors).join(', ');
+          toast.error(`Validation errors: ${errorMessages}`);
+        }
         setLoading(false);
         return;
       }
@@ -141,15 +162,41 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         }
       }
 
-      // Remove fields that backend doesn't allow
-      // eslint-disable-next-line no-unused-vars
-      const { image: _image, ...apiData } = formData;
-
+      // Check if we have new file uploads
+      const imageInput = document.getElementById('image');
+      const hasNewImage = imageInput && imageInput.files && imageInput.files[0];
+      
       let response;
-      if (isEditMode) {
-        response = await categoryService.update(categoryId, apiData);
+      
+      // If we have new file uploads, use FormData
+      if (hasNewImage) {
+        const formDataToSend = new FormData();
+        
+        // Add basic fields
+        formDataToSend.append('name', formData.name);
+        formDataToSend.append('description', formData.description || '');
+        formDataToSend.append('metaTitle', formData.metaTitle || '');
+        formDataToSend.append('metaDescription', formData.metaDescription || '');
+        formDataToSend.append('priority', formData.priority);
+        formDataToSend.append('status', formData.status);
+        
+        // Handle image file upload
+        formDataToSend.append('image', imageInput.files[0]);
+        
+        if (isEditMode) {
+          response = await categoryService.update(categoryId, formDataToSend);
+        } else {
+          response = await categoryService.create(formDataToSend);
+        }
       } else {
-        response = await categoryService.create(apiData);
+        // No file upload, send regular JSON data
+        const { imageFile, ...apiData } = formData;
+        
+        if (isEditMode) {
+          response = await categoryService.update(categoryId, apiData);
+        } else {
+          response = await categoryService.create(apiData);
+        }
       }
 
       const isSuccess =
@@ -166,6 +213,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           name: '',
           description: '',
           image: null,
+          imageFile: null,
           metaTitle: '',
           metaDescription: '',
           priority: 1,
@@ -193,6 +241,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       name: '',
       description: '',
       image: null,
+      imageFile: null,
       metaTitle: '',
       metaDescription: '',
       priority: 1,
@@ -236,14 +285,15 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 className="sm:col-span-2"
               />
 
-              <InputTextField
-                label="Image URL"
-                type="url"
-                name="image"
-                value={formData.image || ''}
-                onChange={handleInputChange}
-                placeholder="https://example.com/image.jpg"
+              <FileUploadButton
+                label="Category Image"
+                id="image"
+                accept="image/*"
+                onFileSelect={handleFileUpload}
+                showPreview={true}
+                previewValue={formData.image}
                 error={errors?.image}
+                className="sm:col-span-2"
               />
 
               <InputTextField

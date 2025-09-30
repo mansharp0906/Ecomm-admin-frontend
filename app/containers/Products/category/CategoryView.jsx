@@ -216,14 +216,22 @@ const CategoryView = () => {
                     <img
                       src={category.image}
                       alt={category.name}
-                      className="h-20 w-20 object-cover rounded-lg"
+                      className="h-32 w-32 object-cover rounded-lg border border-gray-200"
                       onError={(e) => {
                         e.target.style.display = 'none';
                       }}
                     />
+                    <p className="mt-2 text-xs text-gray-500">
+                      Click to view full size
+                    </p>
                   </div>
                 ) : (
-                  <p className="mt-1 text-sm text-gray-500">No image</p>
+                  <div className="mt-2 h-32 w-32 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+                    <div className="text-center">
+                      <CustomIcon type="image" size={8} />
+                      <p className="text-xs text-gray-500 mt-1">No image</p>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
