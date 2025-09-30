@@ -40,7 +40,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const validationSchema = isEditMode
     ? subCategoryUpdateSchema
     : subCategoryCreateSchema;
-  const { validate, errors, setErrors } = useValidation(validationSchema);
+  const { validate, errors, setErrors, clearErrors } = useValidation(validationSchema);
 
   // Fetch all categories for dropdown
   const fetchCategories = async () => {
@@ -175,28 +175,68 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
     // Clear error for this field when user starts typing
     if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: '',
-      });
+      clearErrors(name);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setErrors({});
+    clearErrors();
 
     try {
-      // Validate form data using validation hook
-      const isValid = await validate(formData);
-      if (!isValid) {
+      // Manual validation check
+      const validationErrors = {};
+      
+      if (!formData.name || formData.name.trim() === '') {
+        validationErrors.name = 'Sub-category name is required';
+      }
+      
+      if (!formData.parentId || formData.parentId.trim() === '') {
+        validationErrors.parentId = 'Parent category is required';
+      }
+      
+      if (!formData.description || formData.description.trim() === '') {
+        validationErrors.description = 'Description is required';
+      }
+      
+      if (!formData.status || formData.status.trim() === '') {
+        validationErrors.status = 'Status is required';
+      }
+      
+      // If validation errors exist, set them and return
+      if (Object.keys(validationErrors).length > 0) {
+        Object.keys(validationErrors).forEach((key) => {
+          setErrors(prev => ({
+            ...prev,
+            [key]: validationErrors[key]
+          }));
+        });
         setLoading(false);
         return;
       }
 
+      // Simple duplicate check before submitting
+      const existingCategories = await categoryService.getAll({ 
+        level: 1, 
+        status: 'active',
+        parentId: formData.parentId 
+      });
+      if (existingCategories?.data?.success && existingCategories.data.data) {
+        const duplicateCategory = existingCategories.data.data.find(category => 
+          category.name.toLowerCase() === formData.name.toLowerCase() && 
+          category._id !== categoryId
+        );
+        
+        if (duplicateCategory) {
+          toast.error('Sub-category name already exists under this parent. Please choose a different name.');
+          setLoading(false);
+          return;
+        }
+      }
+
       // Remove fields that backend doesn't allow
-      const { image: _image, ...apiData } = formData;
+      const { level: _level, image: _image, ...apiData } = formData;
 
       let response;
       if (isEditMode) {
@@ -242,8 +282,14 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         error.inner.forEach((err) => {
           validationErrors[err.path] = err.message;
         });
-        setErrors(validationErrors);
-        toast.error('Please fix the validation errors');
+        // Set errors using validation hook
+        Object.keys(validationErrors).forEach((key) => {
+          setErrors(prev => ({
+            ...prev,
+            [key]: validationErrors[key]
+          }));
+        });
+        // Don't show toast for validation errors, they will be displayed in fields
       } else if (
         error.response?.status === 500 &&
         error.response?.data?.error?.includes('duplicate key')
@@ -286,8 +332,8 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     <>
       {/* Form */}
       <div className="bg-white rounded-lg shadow">
-        {isEditMode && loadingCategories ? (
-          <LoadingData message="Loading data..." />
+        {loadingCategories ? (
+          <LoadingData message="Loading categories..." />
         ) : (
           <ScrollContainer>
             <form

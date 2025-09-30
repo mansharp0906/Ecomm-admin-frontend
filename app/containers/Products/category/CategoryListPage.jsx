@@ -70,6 +70,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
           page,
           limit: pagination.itemsPerPage,
           level: 0, // Only main categories
+          status: 'active', // Only active categories
           ...(search && { search: search }),
         };
 
@@ -162,16 +163,50 @@ const CategoryListPage = ({ refreshTrigger }) => {
           prev.filter((category) => category._id !== deleteModal.itemId),
         );
 
-        // Update pagination if needed
-        setPagination((prev) => ({
-          ...prev,
-          totalItems: prev.totalItems - 1,
-          totalPages: Math.ceil((prev.totalItems - 1) / prev.itemsPerPage),
-        }));
+        // Update pagination state
+        setPagination((prev) => {
+          const newTotalItems = prev.totalItems - 1;
+          const newTotalPages = Math.ceil(newTotalItems / prev.itemsPerPage);
+          
+          // If current page is beyond the new total pages, go to last page
+          let newCurrentPage = prev.currentPage;
+          if (newTotalPages > 0 && prev.currentPage > newTotalPages) {
+            newCurrentPage = newTotalPages;
+          }
+
+          return {
+            ...prev,
+            currentPage: newCurrentPage,
+            totalItems: newTotalItems,
+            totalPages: newTotalPages,
+          };
+        });
+
+        // If current page becomes empty and there are previous pages, refetch data
+        const remainingItems = categories.length - 1;
+        if (remainingItems === 0 && pagination.currentPage > 1) {
+          const newPage = pagination.currentPage - 1;
+          setPagination((prev) => ({ ...prev, currentPage: newPage }));
+          // Small delay to ensure state updates are complete before refetch
+          setTimeout(() => {
+            fetchCategories(newPage, searchTerm);
+          }, 100);
+        }
+
+        // Fallback: If there are issues with state update, refetch after a short delay
+        setTimeout(() => {
+          // Check if the deleted item is still in the list (indicating state update failed)
+          const deletedItemStillExists = categories.some(cat => cat._id === deleteModal.itemId);
+          if (deletedItemStillExists) {
+            console.log('State update failed, refetching data...');
+            fetchCategories(pagination.currentPage, searchTerm);
+          }
+        }, 500);
       } else {
         toast.error(response?.data?.message || 'Failed to delete category');
       }
     } catch (err) {
+      console.error('Delete error:', err);
       toast.error(err?.response?.data?.message || 'Failed to delete category');
     } finally {
       // Always close modal after operation (success or error)
