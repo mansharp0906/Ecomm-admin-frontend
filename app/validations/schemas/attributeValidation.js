@@ -16,25 +16,22 @@ export const attributeCreateSchema = Yup.object({
   name: Yup.string().required('Attribute name is required'),
 
   displayType: Yup.string()
-    .required('Display type is required')
-    .oneOf(['color', 'text', 'image'], 'Invalid display type'),
+    .oneOf(['color', 'text', 'image'], 'Invalid display type')
+    .nullable(),
 
-  isFilterable: Yup.boolean().required(),
+  isFilterable: Yup.boolean().nullable(),
 
-  isRequired: Yup.boolean().required(),
+  isRequired: Yup.boolean().nullable(),
 
   status: Yup.string()
-    .required('Status is required')
-    .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
+    .oneOf(['active', 'inactive'], 'Status must be active or inactive')
+    .nullable(),
 
   parentId: Yup.string().required('Category is required'),
 
   description: Yup.string().nullable(),
 
-  values: Yup.array()
-    .of(attributeValueSchema)
-    .min(1, 'At least one value is required')
-    .nullable(),
+  values: Yup.array().of(attributeValueSchema).nullable(),
 
   priority: Yup.number().nullable(),
 
@@ -48,25 +45,22 @@ export const attributeUpdateSchema = Yup.object({
   name: Yup.string().required('Attribute name is required'),
 
   displayType: Yup.string()
-    .required('Display type is required')
-    .oneOf(['color', 'text', 'image'], 'Invalid display type'),
+    .oneOf(['color', 'text', 'image'], 'Invalid display type')
+    .nullable(),
 
-  isFilterable: Yup.boolean().required(),
+  isFilterable: Yup.boolean().nullable(),
 
-  isRequired: Yup.boolean().required(),
+  isRequired: Yup.boolean().nullable(),
 
   status: Yup.string()
-    .required('Status is required')
-    .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
+    .oneOf(['active', 'inactive'], 'Status must be active or inactive')
+    .nullable(),
 
   parentId: Yup.string().required('Category is required'),
 
   description: Yup.string().nullable(),
 
-  values: Yup.array()
-    .of(attributeValueSchema)
-    .min(1, 'At least one value is required')
-    .nullable(),
+  values: Yup.array().of(attributeValueSchema).nullable(),
 
   priority: Yup.number().nullable(),
 

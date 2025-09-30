@@ -36,7 +36,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const validationSchema = isEditMode
     ? categoryUpdateSchema
     : categoryCreateSchema;
-  const { errors, validate, clearErrors } = useValidation(validationSchema, {
+  const { errors, validate, clearErrors, clearFieldError } = useValidation(validationSchema, {
     showToast: false, // Disable automatic toast, we'll show specific errors
   });
 
@@ -106,7 +106,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     
     // Clear field error when user starts typing
     if (errors?.[name]) {
-      clearErrors(name);
+      clearFieldError(name);
     }
   };
 
@@ -118,7 +118,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     
     // Clear field error when file is selected
     if (errors?.image) {
-      clearErrors('image');
+      clearFieldError('image');
     }
   };
 
@@ -140,8 +140,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       if (!isValid) {
         // Show specific validation errors
         if (Object.keys(errors).length > 0) {
-          const errorMessages = Object.values(errors).join(', ');
-          toast.error(`Validation errors: ${errorMessages}`);
+          toast.error('Please fill the required fields');
         }
         setLoading(false);
         return;
@@ -190,7 +189,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         }
       } else {
         // No file upload, send regular JSON data
-        const { imageFile, ...apiData } = formData;
+        const { imageFile, image, ...apiData } = formData;
         
         if (isEditMode) {
           response = await categoryService.update(categoryId, apiData);

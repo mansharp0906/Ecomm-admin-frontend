@@ -46,7 +46,7 @@ const SubSubCategoryForm = ({
   const validationSchema = isEditMode
     ? subSubCategoryUpdateSchema
     : subSubCategoryCreateSchema;
-  const { validate, errors, setErrors, clearErrors } =
+  const { validate, errors, setErrors, clearErrors, clearFieldError } =
     useValidation(validationSchema);
 
   // Fetch all sub categories (level 1) for dropdown
@@ -184,7 +184,7 @@ const SubSubCategoryForm = ({
 
     // Clear error for this field when user starts typing
     if (errors[name]) {
-      clearErrors(name);
+      clearFieldError(name);
     }
   };
 
@@ -196,7 +196,7 @@ const SubSubCategoryForm = ({
     
     // Clear field error when file is selected
     if (errors?.image) {
-      clearErrors('image');
+      clearFieldError('image');
     }
   };
 
@@ -217,9 +217,6 @@ const SubSubCategoryForm = ({
         validationErrors.parentId = 'Parent sub-category is required';
       }
 
-      if (!formData.description || formData.description.trim() === '') {
-        validationErrors.description = 'Description is required';
-      }
 
       if (!formData.status || formData.status.trim() === '') {
         validationErrors.status = 'Status is required';
@@ -233,6 +230,10 @@ const SubSubCategoryForm = ({
             [key]: validationErrors[key],
           }));
         });
+        
+        // Show toast message for required fields
+        toast.error('Please fill the required fields');
+        
         setLoading(false);
         return;
       }
