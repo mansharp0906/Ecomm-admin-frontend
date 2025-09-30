@@ -34,90 +34,158 @@ export const productVariantSchema = Yup.object({
   images: Yup.array().of(Yup.string()).nullable(),
 });
 
-// Product create validation schema - Basic validation
+// Product create validation schema - Updated to match payload structure
 export const productCreateSchema = Yup.object({
-  name: Yup.string().required('Product name is required'),
+  title: Yup.string().required('Product title is required'),
 
-  description: Yup.string().required('Product description is required'),
+  slug: Yup.string().nullable(),
 
-  category: Yup.string().required('Category is required'),
+  description: Yup.string().nullable(),
 
-  brand: Yup.string().required('Brand is required'),
+  shortDescription: Yup.string().nullable(),
 
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(
-      ['active', 'inactive', 'draft'],
-      'Status must be active, inactive, or draft',
-    ),
+  sku: Yup.string().nullable(),
 
-  variants: Yup.array()
-    .of(productVariantSchema)
-    .min(1, 'At least one variant is required')
-    .required(),
+  barcode: Yup.string().nullable(),
+
+  thumbnail: Yup.string().nullable(),
 
   images: Yup.array().of(Yup.string()).nullable(),
 
-  tags: Yup.array().of(Yup.string()).nullable(),
+  brand: Yup.string().nullable(),
 
-  isFeatured: Yup.boolean().nullable(),
+  category: Yup.string().required('Category is required'),
 
-  isDigital: Yup.boolean().nullable(),
+  subCategory: Yup.string().nullable(),
 
-  downloadableFiles: Yup.array().of(Yup.string()).nullable(),
+  attributes: Yup.array().nullable(),
 
-  seoTitle: Yup.string().nullable(),
+  type: Yup.string()
+    .oneOf(['physical', 'digital'], 'Type must be physical or digital')
+    .nullable(),
 
-  seoDescription: Yup.string().nullable(),
+  unit: Yup.string().nullable(),
 
-  seoKeywords: Yup.string().nullable(),
+  minOrderQty: Yup.number()
+    .min(1, 'Minimum order quantity must be at least 1')
+    .nullable(),
+
+  tax: Yup.number().min(0, 'Tax cannot be negative').nullable(),
+
+  taxType: Yup.string()
+    .oneOf(
+      ['inclusive', 'exclusive'],
+      'Tax type must be inclusive or exclusive',
+    )
+    .nullable(),
+
+  shippingCost: Yup.number()
+    .min(0, 'Shipping cost cannot be negative')
+    .nullable(),
+
+  weight: Yup.number().min(0, 'Weight cannot be negative').nullable(),
+
+  dimensions: Yup.object({
+    length: Yup.number().min(0, 'Length cannot be negative').nullable(),
+    width: Yup.number().min(0, 'Width cannot be negative').nullable(),
+    height: Yup.number().min(0, 'Height cannot be negative').nullable(),
+  }).nullable(),
+
+  status: Yup.string()
+    .oneOf(
+      ['active', 'inactive', 'draft'],
+      'Status must be active, inactive, or draft',
+    )
+    .nullable(),
+
+  featured: Yup.boolean().nullable(),
 
   metaTitle: Yup.string().nullable(),
 
   metaDescription: Yup.string().nullable(),
+
+  pdf: Yup.string().nullable(),
+
+  tags: Yup.array().of(Yup.string()).nullable(),
+
+  variants: Yup.array().nullable(),
 });
 
-// Product update validation schema - Basic validation
+// Product update validation schema - Updated to match payload structure
 export const productUpdateSchema = Yup.object({
   id: Yup.string().required('ID is required'),
 
-  name: Yup.string().required('Product name is required'),
+  title: Yup.string().required('Product title is required'),
 
-  description: Yup.string().required('Product description is required'),
+  slug: Yup.string().nullable(),
 
-  category: Yup.string().required('Category is required'),
+  description: Yup.string().nullable(),
 
-  brand: Yup.string().required('Brand is required'),
+  shortDescription: Yup.string().nullable(),
 
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(
-      ['active', 'inactive', 'draft'],
-      'Status must be active, inactive, or draft',
-    ),
+  sku: Yup.string().nullable(),
 
-  variants: Yup.array()
-    .of(productVariantSchema)
-    .min(1, 'At least one variant is required')
-    .required(),
+  barcode: Yup.string().nullable(),
+
+  thumbnail: Yup.string().nullable(),
 
   images: Yup.array().of(Yup.string()).nullable(),
 
-  tags: Yup.array().of(Yup.string()).nullable(),
+  brand: Yup.string().nullable(),
 
-  isFeatured: Yup.boolean().nullable(),
+  category: Yup.string().required('Category is required'),
 
-  isDigital: Yup.boolean().nullable(),
+  subCategory: Yup.string().nullable(),
 
-  downloadableFiles: Yup.array().of(Yup.string()).nullable(),
+  attributes: Yup.array().nullable(),
 
-  seoTitle: Yup.string().nullable(),
+  type: Yup.string()
+    .oneOf(['physical', 'digital'], 'Type must be physical or digital')
+    .nullable(),
 
-  seoDescription: Yup.string().nullable(),
+  unit: Yup.string().nullable(),
 
-  seoKeywords: Yup.string().nullable(),
+  minOrderQty: Yup.number()
+    .min(1, 'Minimum order quantity must be at least 1')
+    .nullable(),
+
+  tax: Yup.number().min(0, 'Tax cannot be negative').nullable(),
+
+  taxType: Yup.string()
+    .oneOf(
+      ['inclusive', 'exclusive'],
+      'Tax type must be inclusive or exclusive',
+    )
+    .nullable(),
+
+  shippingCost: Yup.number()
+    .min(0, 'Shipping cost cannot be negative')
+    .nullable(),
+
+  weight: Yup.number().min(0, 'Weight cannot be negative').nullable(),
+
+  dimensions: Yup.object({
+    length: Yup.number().min(0, 'Length cannot be negative').nullable(),
+    width: Yup.number().min(0, 'Width cannot be negative').nullable(),
+    height: Yup.number().min(0, 'Height cannot be negative').nullable(),
+  }).nullable(),
+
+  status: Yup.string()
+    .oneOf(
+      ['active', 'inactive', 'draft'],
+      'Status must be active, inactive, or draft',
+    )
+    .nullable(),
+
+  featured: Yup.boolean().nullable(),
 
   metaTitle: Yup.string().nullable(),
 
   metaDescription: Yup.string().nullable(),
+
+  pdf: Yup.string().nullable(),
+
+  tags: Yup.array().of(Yup.string()).nullable(),
+
+  variants: Yup.array().nullable(),
 });

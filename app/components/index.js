@@ -29,6 +29,9 @@ export {
 // Custom Input Field component
 export { default as InputTextField } from './custom-input-field/InputTextField';
 
+// Custom Checkbox Field component
+export { default as CheckboxField } from './custom-checkbox-field/CheckboxField';
+
 // Custom Modal components
 export { default as DeleteConfirmationModal } from './custom-modal/DeleteConfirmationModal';
 

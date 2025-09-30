@@ -23,14 +23,14 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import productService from '@/api/service/productServices';
+import productServices from '@/api/service/productServices';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 
 const ProductListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();
-  const [product, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -52,12 +52,12 @@ const ProductListPage = ({ refreshTrigger }) => {
     isLoading: false,
   });
 
-  const filteredProduct = useMemo(() => {
-    if (!searchTerm) return product;
-    return product.filter((product) =>
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return products;
+    return products.filter((product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
-  }, [product, searchTerm]);
+  }, [products, searchTerm]);
 
   // Fetch Products from API with pagination and search
   const fetchProductData = useCallback(
@@ -72,27 +72,36 @@ const ProductListPage = ({ refreshTrigger }) => {
           ...(search && { search: search }),
         };
 
-        const response = await productService.getAll(params);
-        if (response?.data?.success) {
+        const response = await productServices.getAll(params);
+        
+        // Check if response is successful
+        if (response?.data?.success || (response?.status >= 200 && response?.status < 300)) {
           // Use data directly from API (backend should return only level 0 categories)
-          setProducts(response.data.data);
+          const productsData = response.data?.data || response.data || [];
+          setProducts(Array.isArray(productsData) ? productsData : []);
 
           // Update pagination state from API response (backend handles pagination)
           setPagination((prev) => ({
             ...prev,
-            currentPage: response.data.page || page,
+            currentPage: response.data?.page || page,
             totalPages:
-              response.data.totalPages ||
-              Math.ceil(response.data.total / pagination.itemsPerPage),
-            totalItems: response.data.total || response.data.data.length,
+              response.data?.totalPages ||
+              Math.ceil((response.data?.total || productsData.length) / pagination.itemsPerPage),
+            totalItems: response.data?.total || productsData.length,
           }));
+
+          // Clear any previous errors since we got a successful response
+          setError(null);
         } else {
-          setError('Failed to fetch Products');
+          // Only show error if response indicates failure
+          const errorMessage = response?.data?.message || 'Failed to fetch Products';
+          setError(errorMessage);
+          // No toast message for empty data
         }
       } catch (err) {
-        console.error('Error fetching Product:', err);
-        setError('Failed to fetch  Products');
-        toast.error('Failed to load product');
+        console.error('Error fetching Products:', err);
+        setError('Failed to fetch Products');
+        // No toast message for errors
       } finally {
         setLoading(false);
       }
@@ -128,12 +137,8 @@ const ProductListPage = ({ refreshTrigger }) => {
     },
     [fetchProductData],
   );
-  // Initial load effect - only for refreshTrigger
-  useEffect(() => {
-    fetchProductData(pagination.currentPage, searchTerm);
-  }, [refreshTrigger]);
 
-  // Handle delete brand
+  // Handle delete product
   const handleDelete = (id, name) => {
     setDeleteModal({
       isOpen: true,
@@ -148,14 +153,14 @@ const ProductListPage = ({ refreshTrigger }) => {
     if (!deleteModal.itemId) return;
     setDeleteModal((prev) => ({ ...prev, isLoading: true }));
     try {
-      const response = await productService.delete(deleteModal.itemId);
+      const response = await productServices.delete(deleteModal.itemId);
       if (response?.data?.success) {
         toast.success('Product deleted successfully!');
         setProducts((prev) =>
           prev.filter((product) => product._id !== deleteModal.itemId),
         );
-        newTotalItems = pagination.totalItems - 1;
-        newTotalPages = Math.max(
+        const newTotalItems = pagination.totalItems - 1;
+        const newTotalPages = Math.max(
           1,
           Math.ceil(newTotalItems / pagination.itemsPerPage),
         );
@@ -221,15 +226,15 @@ const ProductListPage = ({ refreshTrigger }) => {
 
       {loading && <LoadingData message="Loading data..." />}
 
-      {!loading && product.length === 0 && <DataNotFound />}
+      {!loading && products.length === 0 && <DataNotFound />}
 
-      {!loading && product.length > 0 && (
+      {!loading && products.length > 0 && (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center">S.No</TableHead>
-                <TableHead>product Name</TableHead>
+                <TableHead>Product Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created Date</TableHead>

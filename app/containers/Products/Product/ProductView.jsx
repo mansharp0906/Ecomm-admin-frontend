@@ -62,7 +62,7 @@ const ProductVew = () => {
     );
   }
 
-  if (error || !category) {
+  if (error || !product) {
     return (
       <Container>
         <div className="text-center py-12">
@@ -70,9 +70,9 @@ const ProductVew = () => {
             <CustomIcon type="error" size={8} />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Error Loading products
+            Error Loading Product
           </h2>
-          <p className="text-gray-600 mb-6">{error || 'Category not found'}</p>
+          <p className="text-gray-600 mb-6">{error || 'Product not found'}</p>
           <div className="space-x-4">
             <Button onClick={fetchProductData} variant="primary">
               Retry
@@ -92,7 +92,7 @@ const ProductVew = () => {
         title="Product Details"
         breadcrumbItems={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'products', href: '/products/products' },
+          { label: 'Products', href: '/products/products' },
           { label: product.name },
         ]}
         actions={[

@@ -1,4 +1,4 @@
-import { Button, LoadingData, InputTextField, SelectField } from '@/components';
+import { Button, LoadingData, InputTextField, SelectField, CheckboxField } from '@/components';
 import React, { useState, useEffect, useCallback } from 'react';
 
 import attributeService from '@/api/service/attributeService';
@@ -323,25 +323,21 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               error={errors?.displayType}
             />
 
-            <div className="flex gap-4 items-center">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="isFilterable"
-                  checked={formData.isFilterable}
-                  onChange={handleInputChange}
-                />
-                <span>Filterable</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="isRequired"
-                  checked={formData.isRequired}
-                  onChange={handleInputChange}
-                />
-                <span>Required</span>
-              </label>
+            <div className="flex gap-6 items-center">
+              <CheckboxField
+                label="Filterable"
+                name="isFilterable"
+                value={formData.isFilterable}
+                onChange={handleInputChange}
+                description="Allow filtering by this attribute"
+              />
+              <CheckboxField
+                label="Required"
+                name="isRequired"
+                value={formData.isRequired}
+                onChange={handleInputChange}
+                description="Make this attribute mandatory"
+              />
               <SelectField
                 label="Status"
                 name="status"
@@ -389,16 +385,15 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                       error={errors?.[`values.${idx}.image`]}
                     />
                   )}
-                  <label>
-                    Default
-                    <input
-                      type="checkbox"
-                      checked={val.isDefault}
-                      onChange={(e) =>
-                        handleValueChange(idx, 'isDefault', e.target.checked)
-                      }
-                    />
-                  </label>
+                  <CheckboxField
+                    label="Default"
+                    name={`values.${idx}.isDefault`}
+                    value={val.isDefault}
+                    onChange={(e) =>
+                      handleValueChange(idx, 'isDefault', e.target.checked)
+                    }
+                    description="Set as default value"
+                  />
                 </div>
               ))}
               <Button type="button" onClick={addValue}>
