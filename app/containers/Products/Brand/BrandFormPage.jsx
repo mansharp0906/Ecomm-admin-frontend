@@ -1,9 +1,6 @@
 import { Container, Breadcrumb } from '@/components';
-
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-
 import BrandForm from './BrandForm';
 
 const BrandFormPage = () => {
@@ -33,7 +30,7 @@ const BrandFormPage = () => {
         </div>
         <Breadcrumb
           items={[
-            { label: 'Dashboard', href: '/dashboard' },
+            // { label: 'Dashboard', href: '/dashboard' },
             { label: 'Brands', href: '/products/brands' },
             { label: isEditMode ? 'Edit Brand' : 'Add New Brand' },
           ]}

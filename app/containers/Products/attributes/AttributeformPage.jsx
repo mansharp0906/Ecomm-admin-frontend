@@ -21,7 +21,7 @@ const AttributeformPage = () => {
       <PageHeader
         title={isEditMode ? 'Edit Attribute' : 'Add Attribute'}
         breadcrumbItems={[
-          { label: 'Dashboard', href: '/dashboard' },
+          // { label: 'Dashboard', href: '/dashboard' },
           { label: 'Attribute', href: '/products/Attributes' },
           { label: isEditMode ? 'Edit Attribute' : 'Add New Attribute' },
         ]}

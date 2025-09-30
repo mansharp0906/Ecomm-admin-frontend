@@ -207,7 +207,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 >
                   Product Management
                 </span>
-                
+
                 <MdArrowDropDown
                   className={`inline ml-2  transform transition-transform ${
                     openDropdown === 'productManagement' ? 'rotate-180' : ''

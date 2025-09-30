@@ -23,7 +23,7 @@ const ProductFormPage = () => {
       <PageHeader
         title={isEditMode ? 'Edit Product' : 'Add Product'}
         breadcrumbItems={[
-          { label: 'Dashboard', href: '/dashboard' },
+          // { label: 'Dashboard', href: '/dashboard' },
           { label: 'Product', href: '/products/products' },
           { label: isEditMode ? 'Edit product' : 'Add New Product' },
         ]}

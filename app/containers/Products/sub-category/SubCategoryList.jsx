@@ -175,7 +175,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
   }, []);
 
   // Confirm delete
-  const confirmDelete = async () => {
+  const confirmDelete = useCallback(async () => {
     if (!deleteModal.itemId) return;
 
     setDeleteModal((prev) => ({ ...prev, isLoading: true }));
@@ -185,17 +185,9 @@ const SubCategoryList = ({ refreshTrigger }) => {
       if (response?.data?.success) {
         toast.success('Sub Category deleted successfully!');
 
-        // Remove item from frontend state immediately
-        setSubCategories((prev) =>
-          prev.filter((subCategory) => subCategory._id !== deleteModal.itemId),
-        );
-
-        // Update pagination if needed
-        setPagination((prev) => ({
-          ...prev,
-          totalItems: prev.totalItems - 1,
-          totalPages: Math.ceil((prev.totalItems - 1) / prev.itemsPerPage),
-        }));
+        // Refetch from page 1 after deletion to avoid stale pagination issues
+        setPagination((prev) => ({ ...prev, currentPage: 1 }));
+        fetchSubCategories(1, searchTerm);
       } else {
         toast.error(response?.data?.message || 'Failed to delete sub category');
       }
@@ -204,7 +196,6 @@ const SubCategoryList = ({ refreshTrigger }) => {
         err?.response?.data?.message || 'Failed to delete sub category',
       );
     } finally {
-      // Always close modal after operation (success or error)
       setDeleteModal({
         isOpen: false,
         itemId: null,
@@ -212,7 +203,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
         isLoading: false,
       });
     }
-  };
+  }, [deleteModal.itemId, fetchSubCategories, searchTerm]);
 
   // Close delete modal
   const closeDeleteModal = () => {
