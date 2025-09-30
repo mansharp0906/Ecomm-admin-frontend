@@ -22,6 +22,7 @@ import SubCategoryView from './containers/Products/sub-category/SubCategoryView'
 import { SubSubCategoryPage } from './containers/Products/sub-sub-category';
 import SubSubCategoryFormPage from './containers/Products/sub-sub-category/SubSubCategoryFormPage';
 import SubSubCategoryView from './containers/Products/sub-sub-category/SubSubCategoryView';
+import Brand from './containers/Products/brand/BrandPage';
 import Attributes from './containers/Products/attributes/AttributePage';
 import ProductInHouse from './containers/Products/Product/ProductInHouse';
 import Vendors from './containers/Products/Ventors/Vendors';

@@ -173,6 +173,37 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         return;
       }
 
+      // Simple duplicate check before submitting (check globally for slug uniqueness)
+      try {
+        const existingAttributes = await attributeService.getAll();
+        console.log('Existing attributes response:', existingAttributes); // Debug log
+        
+        if (existingAttributes?.data?.success && existingAttributes.data.data) {
+          // Create slug from name (same logic as backend)
+          const slug = formData.name.toLowerCase().replace(/\s+/g, '-');
+          
+          console.log('Checking for slug:', slug); // Debug log
+          
+          const duplicateAttribute = existingAttributes.data.data.find(attribute => 
+            (attribute.slug === slug || attribute.name.toLowerCase() === formData.name.toLowerCase()) && 
+            attribute._id !== categoryId
+          );
+          
+          console.log('Duplicate attribute found:', duplicateAttribute); // Debug log
+          
+          if (duplicateAttribute) {
+            toast.error('Attribute name already exists. Please choose a different name.');
+            setLoading(false);
+            return;
+          }
+        } else {
+          console.log('No existing attributes found or API response issue'); // Debug log
+        }
+      } catch (error) {
+        console.error('Error checking duplicate attributes:', error);
+        // Continue with submission if duplicate check fails
+      }
+
       const apiData = {
         name: formData.name,
         values: formData.values,
@@ -233,6 +264,11 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           setFieldError(key, validationErrors[key]);
         });
         toast.error('Please fix the validation errors');
+      } else if (error.response?.status === 500 && 
+                 error.response?.data?.error?.includes('E11000 duplicate key error') &&
+                 error.response?.data?.error?.includes('slug_1')) {
+        // Handle specific duplicate key error for slug
+        toast.error('Attribute name already exists. Please choose a different name.');
       } else {
         // Handle other API errors
         const errorMessage =
@@ -247,8 +283,8 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
   return (
     <div className="bg-white rounded-lg shadow">
-      {isEditMode && (loadingCategories || isLoadingData) ? (
-        <LoadingData message="Loading data..." />
+      {loadingCategories || (isEditMode && isLoadingData) ? (
+        <LoadingData message={isEditMode && isLoadingData ? "Loading data..." : "Loading categories..."} />
       ) : (
         <ScrollContainer>
           <form

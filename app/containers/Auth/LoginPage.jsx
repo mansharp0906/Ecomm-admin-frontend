@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { showSuccessToast, showErrorToast } from '@/utils/toast';
 import authService from '@/api/service/authService';
 import LoadingOverlay from '@/components/Loading/index'; // import it here
 import { useValidation, loginSchema } from '@/validations';
@@ -45,15 +45,17 @@ export default function LoginPage() {
       });
       
       if (response?.data?.success) {
-        localStorage.setItem(
-          'token',
-          response.data.token || response.data.data?.token,
-        );
-        toast.success('Login successful!');
-        navigate('/dashboard');
+        const token = response.data.data?.token;
+        if (token) {
+          localStorage.setItem('token', token);
+          showSuccessToast('Login successful!');
+          navigate('/dashboard');
+        } else {
+          showErrorToast('Login response missing token');
+        }
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed!');
+      showErrorToast(error.response?.data?.message || 'Login failed!');
     } finally {
       setLoading(false);
     }

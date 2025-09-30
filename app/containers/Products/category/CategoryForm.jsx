@@ -34,8 +34,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const validationSchema = isEditMode
     ? categoryUpdateSchema
     : categoryCreateSchema;
-  const { errors, validate, clearErrors, setFieldError } =
-    useValidation(validationSchema);
+  const { errors, validate, clearErrors } = useValidation(validationSchema);
 
   const fetchCategoryData = useCallback(async () => {
     try {
@@ -92,13 +91,20 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     }
   }, [isEditMode, categoryId, fetchCategoryData]);
 
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
     });
+    
+    // Clear field error when user starts typing
+    if (errors?.[name]) {
+      clearErrors(name);
+    }
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -118,6 +124,21 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       if (!isValid) {
         setLoading(false);
         return;
+      }
+
+      // Simple duplicate check before submitting
+      const existingCategories = await categoryService.getAll({ level: 0, status: 'active' });
+      if (existingCategories?.data?.success && existingCategories.data.data) {
+        const duplicateCategory = existingCategories.data.data.find(category => 
+          category.name.toLowerCase() === formData.name.toLowerCase() && 
+          category._id !== categoryId
+        );
+        
+        if (duplicateCategory) {
+          toast.error('Category name already exists. Please choose a different name.');
+          setLoading(false);
+          return;
+        }
       }
 
       // Remove fields that backend doesn't allow
@@ -160,20 +181,8 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         toast.error('Failed to save category');
       }
     } catch (error) {
-      if (error.name === 'ValidationError') {
-        // Handle validation errors
-        const validationErrors = {};
-        error.inner.forEach((err) => {
-          validationErrors[err.path] = err.message;
-        });
-        // Set errors using validation hook
-        Object.keys(validationErrors).forEach((key) => {
-          setFieldError(key, validationErrors[key]);
-        });
-        toast.error('Please fix the validation errors');
-      } else {
-        toast.error(error.response?.data?.message || 'Failed to add category');
-      }
+      console.error('Error saving category:', error);
+      toast.error(error.response?.data?.message || 'Failed to save category');
     } finally {
       setLoading(false);
     }
