@@ -5,6 +5,7 @@ import {
   SelectField,
   TextAreaField,
   ScrollContainer,
+  FileUploadButton,
 } from '@/components';
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -28,6 +29,7 @@ const SubSubCategoryForm = ({
     metaTitle: '',
     metaDescription: '',
     image: null,
+    imageFile: null, // For file upload
     priority: 1,
     status: 'active',
     parentId: '',
@@ -186,6 +188,18 @@ const SubSubCategoryForm = ({
     }
   };
 
+  const handleFileUpload = (file) => {
+    setFormData({
+      ...formData,
+      imageFile: file,
+    });
+    
+    // Clear field error when file is selected
+    if (errors?.image) {
+      clearErrors('image');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -245,14 +259,43 @@ const SubSubCategoryForm = ({
         }
       }
 
-      // Remove fields that backend doesn't allow
-      const { level: _level, image: _image, ...apiData } = formData;
-
+      // Check if we have new file uploads
+      const imageInput = document.getElementById('image');
+      const hasNewImage = imageInput && imageInput.files && imageInput.files[0];
+      
       let response;
-      if (isEditMode) {
-        response = await categoryService.update(categoryId, apiData);
+      
+      // If we have new file uploads, use FormData
+      if (hasNewImage) {
+        const formDataToSend = new FormData();
+        
+        // Add basic fields
+        formDataToSend.append('name', formData.name);
+        formDataToSend.append('description', formData.description || '');
+        formDataToSend.append('metaTitle', formData.metaTitle || '');
+        formDataToSend.append('metaDescription', formData.metaDescription || '');
+        formDataToSend.append('priority', formData.priority);
+        formDataToSend.append('status', formData.status);
+        formDataToSend.append('parentId', formData.parentId);
+        formDataToSend.append('isFeatured', formData.isFeatured);
+        
+        // Handle image file upload
+        formDataToSend.append('image', imageInput.files[0]);
+        
+        if (isEditMode) {
+          response = await categoryService.update(categoryId, formDataToSend);
+        } else {
+          response = await categoryService.create(formDataToSend);
+        }
       } else {
-        response = await categoryService.create(apiData);
+        // No file upload, send regular JSON data
+        const { imageFile, level: _level, image: _image, ...apiData } = formData;
+        
+        if (isEditMode) {
+          response = await categoryService.update(categoryId, apiData);
+        } else {
+          response = await categoryService.create(apiData);
+        }
       }
 
       const isSuccess =
@@ -269,6 +312,7 @@ const SubSubCategoryForm = ({
           name: '',
           description: '',
           image: null,
+          imageFile: null,
           metaTitle: '',
           metaDescription: '',
           priority: 1,
@@ -325,6 +369,7 @@ const SubSubCategoryForm = ({
       name: '',
       description: '',
       image: null,
+      imageFile: null,
       metaTitle: '',
       metaDescription: '',
       priority: 1,
@@ -386,14 +431,15 @@ const SubSubCategoryForm = ({
                 className="sm:col-span-2"
               />
 
-              <InputTextField
-                label="Image URL"
-                type="url"
-                name="image"
-                value={formData.image || ''}
-                onChange={handleInputChange}
-                placeholder="https://example.com/image.jpg"
+              <FileUploadButton
+                label="Sub Sub Category Image"
+                id="image"
+                accept="image/*"
+                onFileSelect={handleFileUpload}
+                showPreview={true}
+                previewValue={formData.image}
                 error={errors?.image}
+                className="sm:col-span-2"
               />
 
               <InputTextField

@@ -273,6 +273,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center">S.No</TableHead>
+                <TableHead>Image</TableHead>
                 <TableHead>Sub Sub Category</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Sub Category</TableHead>
@@ -290,6 +291,22 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
                     {(pagination.currentPage - 1) * pagination.itemsPerPage +
                       index +
                       1}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {subSubCategory.image ? (
+                      <img
+                        src={subSubCategory.image}
+                        alt={subSubCategory.name}
+                        className="h-12 w-12 object-cover rounded-lg mx-auto"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="h-12 w-12 bg-gray-100 rounded-lg mx-auto flex items-center justify-center">
+                        <CustomIcon type="image" size={6} />
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">
                     {subSubCategory.name}
