@@ -60,7 +60,7 @@ export const useValidation = (schema, options = {}) => {
         setErrors(validationErrors);
 
         if (showToast) {
-          toast.error('Please fix the validation errors');
+          toast.error('Please fill the required fields');
         }
 
         return false;

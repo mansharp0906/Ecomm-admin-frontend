@@ -55,7 +55,7 @@ export const userUpdateSchema = Yup.object({
   }),
 });
 
-// Login validation schema - Minimal validation (email + password only)
+// Login validation schema - Individual field validation messages
 export const loginSchema = Yup.object({
   email: Yup.string()
     .required('Email is required')

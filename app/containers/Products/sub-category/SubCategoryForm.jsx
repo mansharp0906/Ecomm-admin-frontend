@@ -42,7 +42,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const validationSchema = isEditMode
     ? subCategoryUpdateSchema
     : subCategoryCreateSchema;
-  const { validate, errors, setErrors, clearErrors } = useValidation(validationSchema);
+  const { validate, errors, setErrors, clearErrors, clearFieldError } = useValidation(validationSchema);
 
   // Fetch all categories for dropdown
   const fetchCategories = async () => {
@@ -169,28 +169,41 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     }
   }, [isEditMode, categoryId, fetchCategoryData, categories.length]);
 
+  // Function to check if all required fields are filled
+  const areAllRequiredFieldsFilled = (data) => {
+    return (
+      data.name && data.name.trim() !== '' &&
+      data.parentId && data.parentId.trim() !== '' &&
+      data.status && data.status.trim() !== ''
+    );
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
+    const newFormData = {
       ...formData,
       [name]: type === 'checkbox' ? checked : value,
-    });
+    };
+    
+    setFormData(newFormData);
 
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      clearErrors(name);
+    // Clear error for the current field if it's filled
+    if (errors[name] && value && value.trim() !== '') {
+      clearFieldError(name);
     }
   };
 
   const handleFileUpload = (file) => {
-    setFormData({
+    const newFormData = {
       ...formData,
       imageFile: file,
-    });
+    };
+    
+    setFormData(newFormData);
     
     // Clear field error when file is selected
-    if (errors?.image) {
-      clearErrors('image');
+    if (errors?.image && file) {
+      clearFieldError('image');
     }
   };
 
@@ -211,9 +224,6 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         validationErrors.parentId = 'Parent category is required';
       }
       
-      if (!formData.description || formData.description.trim() === '') {
-        validationErrors.description = 'Description is required';
-      }
       
       if (!formData.status || formData.status.trim() === '') {
         validationErrors.status = 'Status is required';
@@ -227,6 +237,10 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
             [key]: validationErrors[key]
           }));
         });
+        
+        // Show toast message for required fields
+        toast.error('Please fill the required fields');
+        
         setLoading(false);
         return;
       }

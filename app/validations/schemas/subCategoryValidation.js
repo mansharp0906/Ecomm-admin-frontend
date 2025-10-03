@@ -11,7 +11,7 @@ export const subCategoryCreateSchema = Yup.object({
     .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
 
   // Required fields
-  description: Yup.string().required('Description is required'),
+  description: Yup.string().nullable(),
 
   // Optional fields
   slug: Yup.string().nullable(),
@@ -32,7 +32,7 @@ export const subCategoryUpdateSchema = Yup.object({
     .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
 
   // Required fields
-  description: Yup.string().required('Description is required'),
+  description: Yup.string().nullable(),
 
   // Optional fields
   slug: Yup.string().nullable(),

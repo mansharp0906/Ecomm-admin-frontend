@@ -1,4 +1,4 @@
-import { Button, LoadingData, InputTextField, SelectField } from '@/components';
+import { Button, LoadingData, InputTextField, SelectField, CheckboxField } from '@/components';
 import React, { useState, useEffect, useCallback } from 'react';
 
 import attributeService from '@/api/service/attributeService';
@@ -40,10 +40,10 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const validationSchema = isEditMode
     ? attributeUpdateSchema
     : attributeCreateSchema;
-  const { errors, validate, clearErrors, setFieldError } = useValidation(
+  const { errors, validate, clearErrors, setFieldError, clearFieldError } = useValidation(
     validationSchema,
     {
-      context: { displayType: formData.displayType },
+      showToast: false,
     },
   );
 
@@ -96,10 +96,17 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+    const fieldValue = type === 'checkbox' ? checked : value;
+    
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: fieldValue,
     });
+
+    // Clear error for the current field if it's filled
+    if (errors[name] && fieldValue && (typeof fieldValue === 'boolean' || fieldValue.toString().trim() !== '')) {
+      clearFieldError(name);
+    }
   };
 
   useEffect(() => {
@@ -114,7 +121,13 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   }, [isEditMode, categoryId, fetchCategoryData, categories.length]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    // Clear error for the current field if it's filled
+    if (errors[name] && value && value.trim() !== '') {
+      clearFieldError(name);
+    }
   };
 
   const handleValueChange = (index, field, value) => {
@@ -159,6 +172,30 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     clearErrors();
 
     try {
+      // Manual validation check
+      const validationErrors = {};
+      
+      if (!formData.name || formData.name.trim() === '') {
+        validationErrors.name = 'Attribute name is required';
+      }
+      
+      if (!formData.parentId || formData.parentId.trim() === '') {
+        validationErrors.parentId = 'Category is required';
+      }
+      
+      // If validation errors exist, set them and return
+      if (Object.keys(validationErrors).length > 0) {
+        Object.keys(validationErrors).forEach((key) => {
+          setFieldError(key, validationErrors[key]);
+        });
+        
+        // Show toast message for required fields
+        toast.error('Please fill the required fields');
+        
+        setLoading(false);
+        return;
+      }
+
       // Prepare data for validation
       const validationData = {
         ...formData,
@@ -263,7 +300,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         Object.keys(validationErrors).forEach((key) => {
           setFieldError(key, validationErrors[key]);
         });
-        toast.error('Please fix the validation errors');
+        toast.error('Please fill the required fields');
       } else if (error.response?.status === 500 && 
                  error.response?.data?.error?.includes('E11000 duplicate key error') &&
                  error.response?.data?.error?.includes('slug_1')) {
@@ -323,25 +360,21 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
               error={errors?.displayType}
             />
 
-            <div className="flex gap-4 items-center">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="isFilterable"
-                  checked={formData.isFilterable}
-                  onChange={handleInputChange}
-                />
-                <span>Filterable</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="isRequired"
-                  checked={formData.isRequired}
-                  onChange={handleInputChange}
-                />
-                <span>Required</span>
-              </label>
+            <div className="flex gap-6 items-center">
+              <CheckboxField
+                label="Filterable"
+                name="isFilterable"
+                value={formData.isFilterable}
+                onChange={handleInputChange}
+                description="Allow filtering by this attribute"
+              />
+              <CheckboxField
+                label="Required"
+                name="isRequired"
+                value={formData.isRequired}
+                onChange={handleInputChange}
+                description="Make this attribute mandatory"
+              />
               <SelectField
                 label="Status"
                 name="status"
@@ -389,16 +422,15 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                       error={errors?.[`values.${idx}.image`]}
                     />
                   )}
-                  <label>
-                    Default
-                    <input
-                      type="checkbox"
-                      checked={val.isDefault}
-                      onChange={(e) =>
-                        handleValueChange(idx, 'isDefault', e.target.checked)
-                      }
-                    />
-                  </label>
+                  <CheckboxField
+                    label="Default"
+                    name={`values.${idx}.isDefault`}
+                    value={val.isDefault}
+                    onChange={(e) =>
+                      handleValueChange(idx, 'isDefault', e.target.checked)
+                    }
+                    description="Set as default value"
+                  />
                 </div>
               ))}
               <Button type="button" onClick={addValue}>

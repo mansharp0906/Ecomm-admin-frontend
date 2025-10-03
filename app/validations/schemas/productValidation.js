@@ -14,12 +14,28 @@ export const productVariantSchema = Yup.object({
 
   stock: Yup.number().required('Stock is required'),
 
-  weight: Yup.number().nullable(),
+  weight: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
   dimensions: Yup.object({
-    length: Yup.number().nullable(),
-    width: Yup.number().nullable(),
-    height: Yup.number().nullable(),
+    length: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    width: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    height: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
   }).nullable(),
 
   attributes: Yup.array()
@@ -34,90 +50,224 @@ export const productVariantSchema = Yup.object({
   images: Yup.array().of(Yup.string()).nullable(),
 });
 
-// Product create validation schema - Basic validation
+// Product create validation schema - Updated to match payload structure
 export const productCreateSchema = Yup.object({
-  name: Yup.string().required('Product name is required'),
+  title: Yup.string().required('Product title is required'),
 
-  description: Yup.string().required('Product description is required'),
+  slug: Yup.string().nullable(),
 
-  category: Yup.string().required('Category is required'),
+  description: Yup.string().nullable(),
 
-  brand: Yup.string().required('Brand is required'),
+  shortDescription: Yup.string().nullable(),
 
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(
-      ['active', 'inactive', 'draft'],
-      'Status must be active, inactive, or draft',
-    ),
+  sku: Yup.string().when('variants', {
+    is: (variants) => !variants || variants.length === 0,
+    then: (schema) => schema.required('SKU is required when no variants exist'),
+    otherwise: (schema) => schema.nullable(),
+  }),
 
-  variants: Yup.array()
-    .of(productVariantSchema)
-    .min(1, 'At least one variant is required')
-    .required(),
+  barcode: Yup.string().nullable(),
+
+  thumbnail: Yup.string().required('Thumbnail image is required'),
 
   images: Yup.array().of(Yup.string()).nullable(),
 
-  tags: Yup.array().of(Yup.string()).nullable(),
+  brand: Yup.string().required('Brand is required'),
 
-  isFeatured: Yup.boolean().nullable(),
+  category: Yup.string().required('Category is required'),
 
-  isDigital: Yup.boolean().nullable(),
+  subCategory: Yup.string().required('Sub Category is required'),
 
-  downloadableFiles: Yup.array().of(Yup.string()).nullable(),
+  attributes: Yup.array().nullable(),
 
-  seoTitle: Yup.string().nullable(),
+  type: Yup.string().nullable(),
 
-  seoDescription: Yup.string().nullable(),
+  unit: Yup.string().nullable(),
 
-  seoKeywords: Yup.string().nullable(),
+  minOrderQty: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  tax: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  taxType: Yup.string().nullable(),
+
+  shippingCost: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  weight: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  dimensions: Yup.object({
+    length: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    width: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    height: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+  }).nullable(),
+
+  status: Yup.string().nullable(),
+
+  featured: Yup.boolean().nullable(),
 
   metaTitle: Yup.string().nullable(),
 
   metaDescription: Yup.string().nullable(),
+
+  pdf: Yup.string().nullable(),
+
+  tags: Yup.mixed()
+    .nullable()
+    .transform((value, originalValue) => {
+      if (
+        originalValue === '' ||
+        originalValue === null ||
+        originalValue === undefined
+      ) {
+        return null;
+      }
+      if (typeof originalValue === 'string') {
+        return originalValue
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter((tag) => tag !== '');
+      }
+      return value;
+    }),
+
+  variants: Yup.array().nullable(),
 });
 
-// Product update validation schema - Basic validation
+// Product update validation schema - Updated to match payload structure
 export const productUpdateSchema = Yup.object({
   id: Yup.string().required('ID is required'),
 
-  name: Yup.string().required('Product name is required'),
+  title: Yup.string().required('Product title is required'),
 
-  description: Yup.string().required('Product description is required'),
+  slug: Yup.string().nullable(),
 
-  category: Yup.string().required('Category is required'),
+  description: Yup.string().nullable(),
 
-  brand: Yup.string().required('Brand is required'),
+  shortDescription: Yup.string().nullable(),
 
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(
-      ['active', 'inactive', 'draft'],
-      'Status must be active, inactive, or draft',
-    ),
+  sku: Yup.string().when('variants', {
+    is: (variants) => !variants || variants.length === 0,
+    then: (schema) => schema.required('SKU is required when no variants exist'),
+    otherwise: (schema) => schema.nullable(),
+  }),
 
-  variants: Yup.array()
-    .of(productVariantSchema)
-    .min(1, 'At least one variant is required')
-    .required(),
+  barcode: Yup.string().nullable(),
+
+  thumbnail: Yup.string().required('Thumbnail image is required'),
 
   images: Yup.array().of(Yup.string()).nullable(),
 
-  tags: Yup.array().of(Yup.string()).nullable(),
+  brand: Yup.string().required('Brand is required'),
 
-  isFeatured: Yup.boolean().nullable(),
+  category: Yup.string().required('Category is required'),
 
-  isDigital: Yup.boolean().nullable(),
+  subCategory: Yup.string().required('Sub Category is required'),
 
-  downloadableFiles: Yup.array().of(Yup.string()).nullable(),
+  attributes: Yup.array().nullable(),
 
-  seoTitle: Yup.string().nullable(),
+  type: Yup.string().nullable(),
 
-  seoDescription: Yup.string().nullable(),
+  unit: Yup.string().nullable(),
 
-  seoKeywords: Yup.string().nullable(),
+  minOrderQty: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  tax: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  taxType: Yup.string().nullable(),
+
+  shippingCost: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  weight: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  dimensions: Yup.object({
+    length: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    width: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    height: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+  }).nullable(),
+
+  status: Yup.string().nullable(),
+
+  featured: Yup.boolean().nullable(),
 
   metaTitle: Yup.string().nullable(),
 
   metaDescription: Yup.string().nullable(),
+
+  pdf: Yup.string().nullable(),
+
+  tags: Yup.mixed()
+    .nullable()
+    .transform((value, originalValue) => {
+      if (
+        originalValue === '' ||
+        originalValue === null ||
+        originalValue === undefined
+      ) {
+        return null;
+      }
+      if (typeof originalValue === 'string') {
+        return originalValue
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter((tag) => tag !== '');
+      }
+      return value;
+    }),
+
+  variants: Yup.array().nullable(),
 });
