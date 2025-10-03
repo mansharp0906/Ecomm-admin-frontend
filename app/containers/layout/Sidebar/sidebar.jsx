@@ -111,7 +111,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   </span>
                 </div>
                 <MdArrowDropDown
-                  className={`inline ml-2 transform transition-transform  ${
+                  className={`inline ml-2 transform transition-transform ${
+                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
+                  } ${
                     openDropdown === 'productSection' ? 'rotate-180' : ''
                   }`}
                 />
@@ -160,6 +162,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
+                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
+                  } ${
                     openDropdown === 'orderSection' ? 'rotate-180' : ''
                   }`}
                 />
@@ -209,7 +213,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 </span>
 
                 <MdArrowDropDown
-                  className={`inline ml-2  transform transition-transform ${
+                  className={`inline ml-2 transform transition-transform ${
+                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
+                  } ${
                     openDropdown === 'productManagement' ? 'rotate-180' : ''
                   }`}
                 />
@@ -290,6 +296,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 </span>
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
+                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
+                  } ${
                     openDropdown === 'promotionManagement' ? 'rotate-180' : ''
                   }`}
                 />
@@ -337,6 +345,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 </span>
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
+                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
+                  } ${
                     openDropdown === 'reportsAnalysis' ? 'rotate-180' : ''
                   }`}
                 />
@@ -383,6 +393,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 </span>
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
+                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
+                  } ${
                     openDropdown === 'userManagement' ? 'rotate-180' : ''
                   }`}
                 />
@@ -430,6 +442,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
+                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
+                  } ${
                     openDropdown === 'businessSettings' ? 'rotate-180' : ''
                   }`}
                 />
@@ -479,6 +493,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 {/* Dropdown arrow */}
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
+                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
+                  } ${
                     openDropdown === 'systemSettings' ? 'rotate-180' : ''
                   }`}
                 />
