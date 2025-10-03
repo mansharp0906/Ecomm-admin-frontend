@@ -34,7 +34,6 @@ const SubSubCategoryForm = ({
     status: 'active',
     parentId: '',
     isFeatured: false,
-    level: 2, // Add level field for sub-sub-category
   });
 
   const [loading, setLoading] = useState(false);
@@ -290,7 +289,7 @@ const SubSubCategoryForm = ({
         }
       } else {
         // No file upload, send regular JSON data
-        const { imageFile, level: _level, image: _image, ...apiData } = formData;
+        const { imageFile, image: _image, ...apiData } = formData;
         
         if (isEditMode) {
           response = await categoryService.update(categoryId, apiData);
