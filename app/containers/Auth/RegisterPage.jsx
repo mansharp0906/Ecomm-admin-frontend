@@ -41,6 +41,7 @@ export default function RegisterPage() {
       const isValid = await validate(formData);
       if (!isValid) {
         setLoading(false);
+        showErrorToast('Please fix all validation errors before submitting');
         return;
       }
 
@@ -58,7 +59,9 @@ export default function RegisterPage() {
         navigate('/login');
       }, 1500);
     } catch (err) {
-      showErrorToast(err.response?.data?.message || 'Registration failed');
+      const errorMessage = err.response?.data?.message || err.message || 'Registration failed';
+      showErrorToast(errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -175,8 +178,10 @@ export default function RegisterPage() {
                   <option value="">Select Role</option>
                   <option value="admin">Admin</option>
                   <option value="manager">Manager</option>
-                  <option value="employee">Employee</option>
+                  <option value="cashier">Cashier</option>
                   <option value="customer">Customer</option>
+                  <option value="vendor">Vendor</option>
+                  <option value="delivery">Delivery</option>
                 </select>
                 {errors?.role && (
                   <p className="mt-1 text-sm text-red-600">{errors.role}</p>

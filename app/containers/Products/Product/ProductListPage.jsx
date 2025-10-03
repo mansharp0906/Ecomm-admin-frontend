@@ -1,27 +1,36 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Button, } from '@/components';
-import productService from '@/api/service/brandService'; // Adjust this import path
-import { toast } from 'react-toastify';
-import PropTypes from 'prop-types';
 import {
+  Button,
+  Pagination,
+  SearchBar,
+  DeleteConfirmationModal,
+  SearchBarContainer,
+  LoadingData,
   Table,
   TableHeader,
   TableBody,
   TableRow,
   TableHead,
   TableCell,
+  TableContainer,
+  DataNotFound,
+  CustomIcon,
+  Container,
 } from '@/components';
-import CustomIcon from '@/components/custom-icon/CustomIcon';
-import { Pagination, SearchBar, DeleteConfirmationModal } from '@/components';
-import DataNotFound from '@/components/custom-pages/DataNotFound';
-import { SearchBarContainer } from '@/components';
-// import TableContainer from '@/components';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
+import productServices from '@/api/service/productServices';
+import { toast } from 'react-toastify';
+import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
-import { LoadingData } from '@/components';
 
 const ProductListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();
-  const [product, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -43,8 +52,15 @@ const ProductListPage = ({ refreshTrigger }) => {
     isLoading: false,
   });
 
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return products;
+    return products.filter((product) =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [products, searchTerm]);
+
   // Fetch Products from API with pagination and search
-  const fetchProducts = useCallback(
+  const fetchProductData = useCallback(
     async (page = 1, search = '') => {
       setLoading(true);
       setError(null);
@@ -52,29 +68,40 @@ const ProductListPage = ({ refreshTrigger }) => {
         const params = {
           page,
           limit: pagination.itemsPerPage,
-          ...(search && { search }),
+          level: 0, // Only main categories
+          ...(search && { search: search }),
         };
 
-        const response = await productService.getAll(params);
-        if (response?.data?.success) {
-          setProducts(response.data.data || []);
+        const response = await productServices.getAll(params);
+        
+        // Check if response is successful
+        if (response?.data?.success || (response?.status >= 200 && response?.status < 300)) {
+          // Use data directly from API (backend should return only level 0 categories)
+          const productsData = response.data?.data || response.data || [];
+          setProducts(Array.isArray(productsData) ? productsData : []);
+
+          // Update pagination state from API response (backend handles pagination)
           setPagination((prev) => ({
             ...prev,
-            currentPage: response.data.page || page,
+            currentPage: response.data?.page || page,
             totalPages:
-              response.data.totalPages ||
-              Math.ceil(response.data.total / pagination.itemsPerPage),
-            totalItems:
-              response.data.total ||
-              (response.data.data ? response.data.data.length : 0),
+              response.data?.totalPages ||
+              Math.ceil((response.data?.total || productsData.length) / pagination.itemsPerPage),
+            totalItems: response.data?.total || productsData.length,
           }));
+
+          // Clear any previous errors since we got a successful response
+          setError(null);
         } else {
-          setError('Failed to fetch Product');
+          // Only show error if response indicates failure
+          const errorMessage = response?.data?.message || 'Failed to fetch Products';
+          setError(errorMessage);
+          // No toast message for empty data
         }
       } catch (err) {
         console.error('Error fetching Products:', err);
         setError('Failed to fetch Products');
-        toast.error('Failed to load Products');
+        // No toast message for errors
       } finally {
         setLoading(false);
       }
@@ -84,27 +111,34 @@ const ProductListPage = ({ refreshTrigger }) => {
 
   // Load Products on mount and when dependencies change
   useEffect(() => {
-    fetchProducts(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchProducts, pagination.currentPage, searchTerm]);
+    fetchProductData(pagination.currentPage, searchTerm);
+  }, [refreshTrigger, fetchProductData, pagination.currentPage, searchTerm]);
 
   // Handle page change
   const handlePageChange = (page) => {
     setPagination((prev) => ({ ...prev, currentPage: page }));
   };
 
-  // Handle search - debounced API call
-  const handleSearch = (term) => {
-    setSearchTerm(term);
-    setPagination((prev) => ({ ...prev, currentPage: 1 }));
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    searchTimeoutRef.current = setTimeout(() => {
-      fetchProducts(1, term);
-    }, 700);
-  };
+  // Handle search - throttled API call
+  const handleSearch = useCallback(
+    (term) => {
+      setSearchTerm(term);
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
 
-  // Handle delete brand
+      // Clear previous timeout
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+
+      // Set new timeout for throttled search (300ms delay)
+      searchTimeoutRef.current = setTimeout(() => {
+        fetchProductData(1, term);
+      }, 700);
+    },
+    [fetchProductData],
+  );
+
+  // Handle delete product
   const handleDelete = (id, name) => {
     setDeleteModal({
       isOpen: true,
@@ -119,12 +153,14 @@ const ProductListPage = ({ refreshTrigger }) => {
     if (!deleteModal.itemId) return;
     setDeleteModal((prev) => ({ ...prev, isLoading: true }));
     try {
-      const response = await productService.delete(deleteModal.itemId);
+      const response = await productServices.delete(deleteModal.itemId);
       if (response?.data?.success) {
         toast.success('Product deleted successfully!');
-          setBrands((prev) => prev.filter((brand) => brand._id !== deleteModal.itemId));
-        newTotalItems = pagination.totalItems - 1;
-        newTotalPages = Math.max(
+        setProducts((prev) =>
+          prev.filter((product) => product._id !== deleteModal.itemId),
+        );
+        const newTotalItems = pagination.totalItems - 1;
+        const newTotalPages = Math.max(
           1,
           Math.ceil(newTotalItems / pagination.itemsPerPage),
         );
@@ -190,15 +226,15 @@ const ProductListPage = ({ refreshTrigger }) => {
 
       {loading && <LoadingData message="Loading data..." />}
 
-      {!loading && product.length === 0 && <DataNotFound />}
+      {!loading && products.length === 0 && <DataNotFound />}
 
-      {!loading && product.length > 0 && (
+      {!loading && products.length > 0 && (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center">S.No</TableHead>
-                <TableHead>product Name</TableHead>
+                <TableHead>Product Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created Date</TableHead>

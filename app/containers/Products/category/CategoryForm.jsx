@@ -5,6 +5,7 @@ import {
   SelectField,
   TextAreaField,
   ScrollContainer,
+  FileUploadButton,
 } from '@/components';
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -23,19 +24,24 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     metaTitle: '',
     metaDescription: '',
     image: null,
+    imageFile: null, // For file upload
     priority: 1,
     status: 'active',
+    parentId: '', // Add parentId for sub-category selection
   });
 
   const [loading, setLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [subCategories, setSubCategories] = useState([]);
+  const [loadingSubCategories, setLoadingSubCategories] = useState(false);
 
   // Use validation hook
   const validationSchema = isEditMode
     ? categoryUpdateSchema
     : categoryCreateSchema;
-  const { errors, validate, clearErrors, setFieldError } =
-    useValidation(validationSchema);
+  const { errors, validate, clearErrors, clearFieldError } = useValidation(validationSchema, {
+    showToast: false, // Disable automatic toast, we'll show specific errors
+  });
 
   const fetchCategoryData = useCallback(async () => {
     try {
@@ -59,15 +65,30 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       }
 
       if (category) {
+        // Handle parentId - it might be an object, string, or null
+        let parentId = '';
+        if (category.parentId) {
+          if (typeof category.parentId === 'object' && category.parentId._id) {
+            parentId = category.parentId._id;
+          } else if (typeof category.parentId === 'string') {
+            parentId = category.parentId;
+          }
+        } else if (category.parentId === null && category.path) {
+          // If parentId is null but path exists, use path as parentId
+          parentId = category.path;
+        }
+
         const newFormData = {
           name: category.name || '',
           description: category.description || '',
           image: category.image || null,
+          imageFile: null, // Reset file upload when editing
           priority: category.priority || 1,
           status: category.status || 'active',
           isFeatured: category.isFeatured || false,
           metaTitle: category.metaTitle || '',
           metaDescription: category.metaDescription || '',
+          parentId: parentId,
         };
 
         setFormData(newFormData);
@@ -86,11 +107,60 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     }
   }, [categoryId]);
 
+  // Fetch all sub categories (level 1) for dropdown
+  const fetchSubCategories = useCallback(async () => {
+    setLoadingSubCategories(true);
+    try {
+      const response = await categoryService.getTree();
+      if (response?.data) {
+        // Extract all sub categories (level 1) from the tree structure
+        const allSubCategories = [];
+
+        const extractSubCategories = (categories) => {
+          categories.forEach((category) => {
+            if (category.children && category.children.length > 0) {
+              // Check if children are Level 1 (sub categories)
+              const level1Children = category.children.filter(
+                (child) => child.level === 1,
+              );
+              if (level1Children.length > 0) {
+                allSubCategories.push(...level1Children);
+              }
+              // Recursively extract from deeper levels
+              extractSubCategories(category.children);
+            }
+          });
+        };
+
+        extractSubCategories(response.data);
+
+        const formattedSubCategories = allSubCategories.map((cat) => ({
+          ...cat,
+          displayName: `${cat.name} (${
+            cat.parentId ? 'Sub Category' : 'Main Category'
+          })`,
+        }));
+
+        setSubCategories(formattedSubCategories);
+      }
+    } catch (error) {
+      toast.error('Failed to load sub categories');
+    } finally {
+      setLoadingSubCategories(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (isEditMode && categoryId) {
       fetchCategoryData();
     }
   }, [isEditMode, categoryId, fetchCategoryData]);
+
+  // Load sub-categories on component mount
+  useEffect(() => {
+    fetchSubCategories();
+  }, [fetchSubCategories]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -98,7 +168,25 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       ...formData,
       [name]: value,
     });
+    
+    // Clear field error when user starts typing
+    if (errors?.[name]) {
+      clearFieldError(name);
+    }
   };
+
+  const handleFileUpload = (file) => {
+    setFormData({
+      ...formData,
+      imageFile: file,
+    });
+    
+    // Clear field error when file is selected
+    if (errors?.image) {
+      clearFieldError('image');
+    }
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -110,25 +198,76 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       const validationData = {
         ...formData,
         id: isEditMode ? categoryId : undefined,
-        level: 0, // Main category level
       };
 
       // Validate form data
       const isValid = await validate(validationData);
       if (!isValid) {
+        // Show specific validation errors
+        if (Object.keys(errors).length > 0) {
+          toast.error('Please fill the required fields');
+        }
         setLoading(false);
         return;
       }
 
-      // Remove fields that backend doesn't allow
-      // eslint-disable-next-line no-unused-vars
-      const { image: _image, ...apiData } = formData;
+      // Simple duplicate check before submitting
+      const existingCategories = await categoryService.getAll({ level: 0, status: 'active' });
+      if (existingCategories?.data?.success && existingCategories.data.data) {
+        const duplicateCategory = existingCategories.data.data.find(category => 
+          category.name.toLowerCase() === formData.name.toLowerCase() && 
+          category._id !== categoryId
+        );
+        
+        if (duplicateCategory) {
+          toast.error('Category name already exists. Please choose a different name.');
+          setLoading(false);
+          return;
+        }
+      }
 
+      // Check if we have new file uploads
+      const imageInput = document.getElementById('image');
+      const hasNewImage = imageInput && imageInput.files && imageInput.files[0];
+      
       let response;
-      if (isEditMode) {
-        response = await categoryService.update(categoryId, apiData);
+      
+      // If we have new file uploads, use FormData
+      if (hasNewImage) {
+        const formDataToSend = new FormData();
+        
+        // Add basic fields
+        formDataToSend.append('name', formData.name);
+        formDataToSend.append('description', formData.description || '');
+        formDataToSend.append('metaTitle', formData.metaTitle || '');
+        formDataToSend.append('metaDescription', formData.metaDescription || '');
+        formDataToSend.append('priority', formData.priority);
+        formDataToSend.append('status', formData.status);
+        if (formData.parentId) {
+          formDataToSend.append('parentId', formData.parentId);
+        }
+        
+        // Handle image file upload
+        formDataToSend.append('image', imageInput.files[0]);
+        
+        if (isEditMode) {
+          response = await categoryService.update(categoryId, formDataToSend);
+        } else {
+          response = await categoryService.create(formDataToSend);
+        }
       } else {
-        response = await categoryService.create(apiData);
+        // No file upload, send regular JSON data
+        const { imageFile, image, ...apiData } = formData;
+        // Only include parentId if it's not empty
+        if (!apiData.parentId) {
+          delete apiData.parentId;
+        }
+        
+        if (isEditMode) {
+          response = await categoryService.update(categoryId, apiData);
+        } else {
+          response = await categoryService.create(apiData);
+        }
       }
 
       const isSuccess =
@@ -145,10 +284,12 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           name: '',
           description: '',
           image: null,
+          imageFile: null,
           metaTitle: '',
           metaDescription: '',
           priority: 1,
           status: 'active',
+          parentId: '',
         });
         clearErrors();
 
@@ -160,20 +301,8 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         toast.error('Failed to save category');
       }
     } catch (error) {
-      if (error.name === 'ValidationError') {
-        // Handle validation errors
-        const validationErrors = {};
-        error.inner.forEach((err) => {
-          validationErrors[err.path] = err.message;
-        });
-        // Set errors using validation hook
-        Object.keys(validationErrors).forEach((key) => {
-          setFieldError(key, validationErrors[key]);
-        });
-        toast.error('Please fix the validation errors');
-      } else {
-        toast.error(error.response?.data?.message || 'Failed to add category');
-      }
+      console.error('Error saving category:', error);
+      toast.error(error.response?.data?.message || 'Failed to save category');
     } finally {
       setLoading(false);
     }
@@ -184,10 +313,12 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       name: '',
       description: '',
       image: null,
+      imageFile: null,
       metaTitle: '',
       metaDescription: '',
       priority: 1,
       status: 'active',
+      parentId: '',
     });
     clearErrors();
     if (onCancel) {
@@ -201,6 +332,8 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       <div className="bg-white rounded-lg shadow">
         {isEditMode && isLoadingData ? (
           <LoadingData message="Loading data..." size="50px" />
+        ) : loadingSubCategories ? (
+          <LoadingData message="Loading sub-categories..." size="50px" />
         ) : (
           <ScrollContainer>
             <form
@@ -216,6 +349,25 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 error={errors?.name}
               />
 
+              <SelectField
+                label="Parent Category (Optional)"
+                name="parentId"
+                value={formData.parentId}
+                onChange={handleInputChange}
+                options={(() => {
+                  const options = [
+                    { value: '', label: 'Select Parent Category (Optional)' },
+                    ...subCategories.map((cat) => ({
+                      value: cat._id,
+                      label: cat.displayName,
+                    })),
+                  ];
+                  return options;
+                })()}
+                error={errors?.parentId}
+                disabled={loadingSubCategories}
+              />
+
               <TextAreaField
                 label="Description"
                 name="description"
@@ -227,14 +379,15 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 className="sm:col-span-2"
               />
 
-              <InputTextField
-                label="Image URL"
-                type="url"
-                name="image"
-                value={formData.image || ''}
-                onChange={handleInputChange}
-                placeholder="https://example.com/image.jpg"
+              <FileUploadButton
+                label="Category Image"
+                id="image"
+                accept="image/*"
+                onFileSelect={handleFileUpload}
+                showPreview={true}
+                previewValue={formData.image}
                 error={errors?.image}
+                className="sm:col-span-2"
               />
 
               <InputTextField

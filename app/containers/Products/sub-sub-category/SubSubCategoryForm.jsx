@@ -5,6 +5,7 @@ import {
   SelectField,
   TextAreaField,
   ScrollContainer,
+  FileUploadButton,
 } from '@/components';
 import categoryService from '@/api/service/categoryService';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -28,6 +29,7 @@ const SubSubCategoryForm = ({
     metaTitle: '',
     metaDescription: '',
     image: null,
+    imageFile: null, // For file upload
     priority: 1,
     status: 'active',
     parentId: '',
@@ -44,7 +46,8 @@ const SubSubCategoryForm = ({
   const validationSchema = isEditMode
     ? subSubCategoryUpdateSchema
     : subSubCategoryCreateSchema;
-  const { validate, errors, setErrors } = useValidation(validationSchema);
+  const { validate, errors, setErrors, clearErrors, clearFieldError } =
+    useValidation(validationSchema);
 
   // Fetch all sub categories (level 1) for dropdown
   const fetchSubCategories = async () => {
@@ -181,34 +184,119 @@ const SubSubCategoryForm = ({
 
     // Clear error for this field when user starts typing
     if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: '',
-      });
+      clearFieldError(name);
+    }
+  };
+
+  const handleFileUpload = (file) => {
+    setFormData({
+      ...formData,
+      imageFile: file,
+    });
+    
+    // Clear field error when file is selected
+    if (errors?.image) {
+      clearFieldError('image');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setErrors({});
+    clearErrors();
 
     try {
-      // Validate form data using validation hook
-      const isValid = await validate(formData);
-      if (!isValid) {
+      // Manual validation check
+      const validationErrors = {};
+
+      if (!formData.name || formData.name.trim() === '') {
+        validationErrors.name = 'Sub-sub-category name is required';
+      }
+
+      if (!formData.parentId || formData.parentId.trim() === '') {
+        validationErrors.parentId = 'Parent sub-category is required';
+      }
+
+
+      if (!formData.status || formData.status.trim() === '') {
+        validationErrors.status = 'Status is required';
+      }
+
+      // If validation errors exist, set them and return
+      if (Object.keys(validationErrors).length > 0) {
+        Object.keys(validationErrors).forEach((key) => {
+          setErrors((prev) => ({
+            ...prev,
+            [key]: validationErrors[key],
+          }));
+        });
+        
+        // Show toast message for required fields
+        toast.error('Please fill the required fields');
+        
         setLoading(false);
         return;
       }
 
-      // Remove fields that backend doesn't allow
-      const { image: _image, ...apiData } = formData;
+      // Simple duplicate check before submitting
+      const existingCategories = await categoryService.getAll({
+        level: 2,
+        status: 'active',
+        parentId: formData.parentId,
+      });
+      if (existingCategories?.data?.success && existingCategories.data.data) {
+        const duplicateCategory = existingCategories.data.data.find(
+          (category) =>
+            category.name.toLowerCase() === formData.name.toLowerCase() &&
+            category._id !== categoryId,
+        );
 
+        if (duplicateCategory) {
+          toast.error(
+            'Sub-sub-category name already exists under this parent. Please choose a different name.',
+          );
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Check if we have new file uploads
+      const imageInput = document.getElementById('image');
+      const hasNewImage = imageInput && imageInput.files && imageInput.files[0];
+      
       let response;
-      if (isEditMode) {
-        response = await categoryService.update(categoryId, apiData);
+      
+      // If we have new file uploads, use FormData
+      if (hasNewImage) {
+        const formDataToSend = new FormData();
+        
+        // Add basic fields
+        formDataToSend.append('name', formData.name);
+        formDataToSend.append('description', formData.description || '');
+        formDataToSend.append('metaTitle', formData.metaTitle || '');
+        formDataToSend.append('metaDescription', formData.metaDescription || '');
+        formDataToSend.append('priority', formData.priority);
+        formDataToSend.append('status', formData.status);
+        formDataToSend.append('parentId', formData.parentId);
+        formDataToSend.append('isFeatured', formData.isFeatured);
+        
+        // Handle image file upload
+        formDataToSend.append('image', imageInput.files[0]);
+        
+        if (isEditMode) {
+          response = await categoryService.update(categoryId, formDataToSend);
+        } else {
+          response = await categoryService.create(formDataToSend);
+        }
       } else {
-        response = await categoryService.create(apiData);
+        // No file upload, send regular JSON data
+        const { imageFile, level: _level, image: _image, ...apiData } = formData;
+        
+        if (isEditMode) {
+          response = await categoryService.update(categoryId, apiData);
+        } else {
+          response = await categoryService.create(apiData);
+        }
       }
 
       const isSuccess =
@@ -225,6 +313,7 @@ const SubSubCategoryForm = ({
           name: '',
           description: '',
           image: null,
+          imageFile: null,
           metaTitle: '',
           metaDescription: '',
           priority: 1,
@@ -248,8 +337,14 @@ const SubSubCategoryForm = ({
         error.inner.forEach((err) => {
           validationErrors[err.path] = err.message;
         });
-        setErrors(validationErrors);
-        toast.error('Please fix the validation errors');
+        // Set errors using validation hook
+        Object.keys(validationErrors).forEach((key) => {
+          setErrors((prev) => ({
+            ...prev,
+            [key]: validationErrors[key],
+          }));
+        });
+        // Don't show toast for validation errors, they will be displayed in fields
       } else if (
         error.response?.status === 500 &&
         error.response?.data?.error?.includes('duplicate key')
@@ -275,6 +370,7 @@ const SubSubCategoryForm = ({
       name: '',
       description: '',
       image: null,
+      imageFile: null,
       metaTitle: '',
       metaDescription: '',
       priority: 1,
@@ -292,8 +388,8 @@ const SubSubCategoryForm = ({
     <>
       {/* Form */}
       <div className="bg-white rounded-lg shadow">
-        {isEditMode && loadingSubCategories ? (
-          <LoadingData message="Loading data..." />
+        {loadingSubCategories ? (
+          <LoadingData message="Loading sub-categories..." />
         ) : (
           <ScrollContainer>
             <form
@@ -336,14 +432,15 @@ const SubSubCategoryForm = ({
                 className="sm:col-span-2"
               />
 
-              <InputTextField
-                label="Image URL"
-                type="url"
-                name="image"
-                value={formData.image || ''}
-                onChange={handleInputChange}
-                placeholder="https://example.com/image.jpg"
+              <FileUploadButton
+                label="Sub Sub Category Image"
+                id="image"
+                accept="image/*"
+                onFileSelect={handleFileUpload}
+                showPreview={true}
+                previewValue={formData.image}
                 error={errors?.image}
+                className="sm:col-span-2"
               />
 
               <InputTextField

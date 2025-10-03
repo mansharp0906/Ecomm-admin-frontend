@@ -22,9 +22,8 @@ import SubCategoryView from './containers/Products/sub-category/SubCategoryView'
 import { SubSubCategoryPage } from './containers/Products/sub-sub-category';
 import SubSubCategoryFormPage from './containers/Products/sub-sub-category/SubSubCategoryFormPage';
 import SubSubCategoryView from './containers/Products/sub-sub-category/SubSubCategoryView';
-import Brand from './containers/Products/brand/BrandPage';
 import Attributes from './containers/Products/attributes/AttributePage';
-import ProductInHouse from './containers/Products/Product/ProductInHouse';
+import ProductInHouse from './containers/Products/product/ProductInHouse';
 import Vendors from './containers/Products/Ventors/Vendors';
 import BulkImpor from './containers/Products/Bulk/BulkImpor';
 import Pos from './containers/Products/Pos';
@@ -61,6 +60,8 @@ import AttributeformPage from './containers/Products/attributes/AttributeformPag
 import AttributeView from './containers/Products/attributes/AttributeView';
 import BrandFormPage from './containers/Products/brand/BrandFormPage';
 import BrandView from './containers/Products/brand/BrandView';
+import ProductFormPage from './containers/Products/product/ProductFormPage';
+import BrandPage from './containers/Products/brand/BrandPage';
 // import './styles/toast.css';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -136,7 +137,7 @@ function App() {
                 path="/products/subsubcategories/view/:id"
                 element={<SubSubCategoryView />}
               />
-              <Route path="/products/brands" element={<Brand />} />
+              <Route path="/products/brands" element={<BrandPage />} />
               <Route path="products/brands/add" element={<BrandFormPage />} />
               <Route
                 path="products/brands/edit/:id"
@@ -156,7 +157,11 @@ function App() {
                 path="/products/attributes/view/:id"
                 element={<AttributeView />}
               />
-              <Route path="/products/inhouse" element={<ProductInHouse />} />
+              <Route path="/products/products" element={<ProductInHouse />} />
+              <Route
+                path="products/products/add"
+                element={<ProductFormPage />}
+              />
               <Route path="/products/vendors" element={<Vendors />} />
               <Route path="/products/import" element={<BulkImpor />} />
 

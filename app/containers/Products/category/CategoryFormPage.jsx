@@ -21,7 +21,7 @@ const CategoryFormPage = () => {
       <PageHeader
         title={isEditMode ? 'Edit Category' : 'Add Category'}
         breadcrumbItems={[
-          { label: 'Dashboard', href: '/dashboard' },
+          // { label: 'Dashboard', href: '/dashboard' },
           { label: 'Categories', href: '/products/categories' },
           { label: isEditMode ? 'Edit Category' : 'Add New Category' },
         ]}

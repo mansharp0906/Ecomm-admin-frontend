@@ -211,7 +211,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 >
                   Product Management
                 </span>
-                
+
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'

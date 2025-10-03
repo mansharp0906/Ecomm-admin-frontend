@@ -1,42 +1,41 @@
 import * as Yup from 'yup';
 
-// Product variant validation schema
+// Product variant validation schema - Basic validation
 export const productVariantSchema = Yup.object({
-  name: Yup.string()
-    .required('Variant name is required')
-    .max(100, 'Variant name must not exceed 100 characters'),
+  name: Yup.string().required('Variant name is required'),
 
-  sku: Yup.string()
-    .required('SKU is required')
-    .max(50, 'SKU must not exceed 50 characters'),
+  sku: Yup.string().required('SKU is required'),
 
-  price: Yup.number()
-    .required('Price is required')
-    .min(0, 'Value must be positive')
-    .test(
-      'price-format',
-      'Price must have maximum 2 decimal places',
-      (value) =>
-        value === undefined ||
-        value === null ||
-        /^\d+(\.\d{1,2})?$/.test(value.toString()),
-    ),
+  price: Yup.number().required('Price is required'),
 
-  comparePrice: Yup.number().min(0, 'Value must be positive').nullable(),
+  comparePrice: Yup.number().nullable(),
 
-  costPrice: Yup.number().min(0, 'Value must be positive').nullable(),
+  costPrice: Yup.number().nullable(),
 
-  stock: Yup.number()
-    .integer('Value must be a whole number')
-    .min(0, 'Value must be positive')
-    .required('Stock is required'),
+  stock: Yup.number().required('Stock is required'),
 
-  weight: Yup.number().min(0, 'Value must be positive').nullable(),
+  weight: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
   dimensions: Yup.object({
-    length: Yup.number().min(0, 'Value must be positive').nullable(),
-    width: Yup.number().min(0, 'Value must be positive').nullable(),
-    height: Yup.number().min(0, 'Value must be positive').nullable(),
+    length: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    width: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    height: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
   }).nullable(),
 
   attributes: Yup.array()
@@ -48,282 +47,227 @@ export const productVariantSchema = Yup.object({
     )
     .nullable(),
 
-  images: Yup.array()
-    .of(Yup.string().url('Please enter a valid URL'))
-    .nullable(),
-
-  isDefault: Yup.boolean().nullable(),
+  images: Yup.array().of(Yup.string()).nullable(),
 });
 
-// Product create validation schema
+// Product create validation schema - Updated to match payload structure
 export const productCreateSchema = Yup.object({
-  name: Yup.string()
-    .required('Product name is required')
-    .min(2, 'Product name must be at least 2 characters')
-    .max(50, 'Product name must not exceed 50 characters')
-    .test(
-      'name-format',
-      'Name can only contain letters, numbers, spaces, hyphens, and underscores',
-      function (value) {
-        if (!value) return true; // Let required handle empty values
-        return /^[a-zA-Z0-9\s\-_]+$/.test(value);
-      },
-    ),
+  title: Yup.string().required('Product title is required'),
 
-  slug: Yup.string()
-    .required('Slug is required')
-    .test(
-      'slug-format',
-      'Slug can only contain lowercase letters, numbers, and hyphens',
-      function (value) {
-        if (!value) return true; // Let required handle empty values
-        return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
-      },
-    ),
+  slug: Yup.string().nullable(),
 
-  description: Yup.string()
-    .required('Description is required')
-    .max(2000, 'Description must not exceed 2000 characters'),
+  description: Yup.string().nullable(),
 
-  shortDescription: Yup.string()
-    .max(500, 'Short description must not exceed 500 characters')
-    .nullable(),
+  shortDescription: Yup.string().nullable(),
 
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(['active', 'inactive', 'draft'], 'Please select a valid status'),
+  sku: Yup.string().when('variants', {
+    is: (variants) => !variants || variants.length === 0,
+    then: (schema) => schema.required('SKU is required when no variants exist'),
+    otherwise: (schema) => schema.nullable(),
+  }),
 
-  categoryId: Yup.string().required('Category is required'),
+  barcode: Yup.string().nullable(),
 
-  brandId: Yup.string().nullable(),
+  thumbnail: Yup.string().required('Thumbnail image is required'),
 
-  tags: Yup.array()
-    .of(Yup.string().max(50, 'Tag must not exceed 50 characters'))
-    .nullable(),
+  images: Yup.array().of(Yup.string()).nullable(),
 
-  // Pricing
-  basePrice: Yup.number()
-    .required('Base price is required')
-    .min(0, 'Value must be positive')
-    .test(
-      'price-format',
-      'Price must have maximum 2 decimal places',
-      (value) =>
-        value === undefined ||
-        value === null ||
-        /^\d+(\.\d{1,2})?$/.test(value.toString()),
-    ),
+  brand: Yup.string().required('Brand is required'),
 
-  comparePrice: Yup.number().min(0, 'Value must be positive').nullable(),
+  category: Yup.string().required('Category is required'),
 
-  costPrice: Yup.number().min(0, 'Value must be positive').nullable(),
+  subCategory: Yup.string().required('Sub Category is required'),
 
-  // Inventory
-  trackQuantity: Yup.boolean().required(),
-  quantity: Yup.number()
-    .when('trackQuantity', {
-      is: true,
-      then: (schema) => schema.required('Quantity is required'),
-      otherwise: (schema) => schema.nullable(),
-    })
-    .integer('Value must be a whole number')
-    .min(0, 'Value must be positive'),
+  attributes: Yup.array().nullable(),
 
-  lowStockThreshold: Yup.number()
-    .integer('Value must be a whole number')
-    .min(0, 'Value must be positive')
-    .nullable(),
+  type: Yup.string().nullable(),
 
-  // Physical properties
-  weight: Yup.number().min(0, 'Value must be positive').nullable(),
+  unit: Yup.string().nullable(),
+
+  minOrderQty: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  tax: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  taxType: Yup.string().nullable(),
+
+  shippingCost: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  weight: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
   dimensions: Yup.object({
-    length: Yup.number().min(0, 'Value must be positive').nullable(),
-    width: Yup.number().min(0, 'Value must be positive').nullable(),
-    height: Yup.number().min(0, 'Value must be positive').nullable(),
+    length: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    width: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    height: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
   }).nullable(),
 
-  // Media
-  images: Yup.array()
-    .of(Yup.string().url('Please enter a valid URL'))
-    .min(1, 'Please add at least 1 image')
-    .required('Images are required'),
+  status: Yup.string().nullable(),
 
-  featuredImage: Yup.string()
-    .url('Please enter a valid URL')
-    .required('Featured image is required'),
+  featured: Yup.boolean().nullable(),
 
-  // Variants
-  variants: Yup.array().of(productVariantSchema).nullable(),
+  metaTitle: Yup.string().nullable(),
 
-  // SEO fields
-  metaTitle: Yup.string()
-    .max(60, 'Meta title must not exceed 60 characters')
-    .nullable(),
+  metaDescription: Yup.string().nullable(),
 
-  metaDescription: Yup.string()
-    .max(160, 'Meta description must not exceed 160 characters')
-    .nullable(),
+  pdf: Yup.string().nullable(),
 
-  metaKeywords: Yup.string()
-    .max(200, 'Meta keywords must not exceed 200 characters')
-    .nullable(),
+  tags: Yup.mixed()
+    .nullable()
+    .transform((value, originalValue) => {
+      if (
+        originalValue === '' ||
+        originalValue === null ||
+        originalValue === undefined
+      ) {
+        return null;
+      }
+      if (typeof originalValue === 'string') {
+        return originalValue
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter((tag) => tag !== '');
+      }
+      return value;
+    }),
 
-  // Additional fields
-  isFeatured: Yup.boolean().nullable(),
-  isDigital: Yup.boolean().nullable(),
-  requiresShipping: Yup.boolean().nullable(),
-  taxable: Yup.boolean().nullable(),
-
-  // Shipping
-  shippingClass: Yup.string()
-    .max(50, 'Shipping class must not exceed 50 characters')
-    .nullable(),
-
-  // Attributes
-  attributes: Yup.array()
-    .of(
-      Yup.object({
-        name: Yup.string().required(),
-        value: Yup.string().required(),
-      }),
-    )
-    .nullable(),
+  variants: Yup.array().nullable(),
 });
 
-// Product update validation schema
+// Product update validation schema - Updated to match payload structure
 export const productUpdateSchema = Yup.object({
   id: Yup.string().required('ID is required'),
-  name: Yup.string()
-    .required('Product name is required')
-    .min(2, 'Product name must be at least 2 characters')
-    .max(50, 'Product name must not exceed 50 characters')
-    .test(
-      'name-format',
-      'Name can only contain letters, numbers, spaces, hyphens, and underscores',
-      function (value) {
-        if (!value) return true; // Let required handle empty values
-        return /^[a-zA-Z0-9\s\-_]+$/.test(value);
-      },
-    ),
 
-  slug: Yup.string()
-    .required('Slug is required')
-    .test(
-      'slug-format',
-      'Slug can only contain lowercase letters, numbers, and hyphens',
-      function (value) {
-        if (!value) return true; // Let required handle empty values
-        return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
-      },
-    ),
+  title: Yup.string().required('Product title is required'),
 
-  description: Yup.string()
-    .required('Description is required')
-    .max(2000, 'Description must not exceed 2000 characters'),
+  slug: Yup.string().nullable(),
 
-  shortDescription: Yup.string()
-    .max(500, 'Short description must not exceed 500 characters')
-    .nullable(),
+  description: Yup.string().nullable(),
 
-  status: Yup.string()
-    .required('Status is required')
-    .oneOf(['active', 'inactive', 'draft'], 'Please select a valid status'),
+  shortDescription: Yup.string().nullable(),
 
-  categoryId: Yup.string().required('Category is required'),
+  sku: Yup.string().when('variants', {
+    is: (variants) => !variants || variants.length === 0,
+    then: (schema) => schema.required('SKU is required when no variants exist'),
+    otherwise: (schema) => schema.nullable(),
+  }),
 
-  brandId: Yup.string().nullable(),
+  barcode: Yup.string().nullable(),
 
-  tags: Yup.array()
-    .of(Yup.string().max(50, 'Tag must not exceed 50 characters'))
-    .nullable(),
+  thumbnail: Yup.string().required('Thumbnail image is required'),
 
-  // Pricing
-  basePrice: Yup.number()
-    .required('Base price is required')
-    .min(0, 'Value must be positive')
-    .test(
-      'price-format',
-      'Price must have maximum 2 decimal places',
-      (value) =>
-        value === undefined ||
-        value === null ||
-        /^\d+(\.\d{1,2})?$/.test(value.toString()),
-    ),
+  images: Yup.array().of(Yup.string()).nullable(),
 
-  comparePrice: Yup.number().min(0, 'Value must be positive').nullable(),
+  brand: Yup.string().required('Brand is required'),
 
-  costPrice: Yup.number().min(0, 'Value must be positive').nullable(),
+  category: Yup.string().required('Category is required'),
 
-  // Inventory
-  trackQuantity: Yup.boolean().required(),
-  quantity: Yup.number()
-    .when('trackQuantity', {
-      is: true,
-      then: (schema) => schema.required('Quantity is required'),
-      otherwise: (schema) => schema.nullable(),
-    })
-    .integer('Value must be a whole number')
-    .min(0, 'Value must be positive'),
+  subCategory: Yup.string().required('Sub Category is required'),
 
-  lowStockThreshold: Yup.number()
-    .integer('Value must be a whole number')
-    .min(0, 'Value must be positive')
-    .nullable(),
+  attributes: Yup.array().nullable(),
 
-  // Physical properties
-  weight: Yup.number().min(0, 'Value must be positive').nullable(),
+  type: Yup.string().nullable(),
+
+  unit: Yup.string().nullable(),
+
+  minOrderQty: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  tax: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  taxType: Yup.string().nullable(),
+
+  shippingCost: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
+
+  weight: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
   dimensions: Yup.object({
-    length: Yup.number().min(0, 'Value must be positive').nullable(),
-    width: Yup.number().min(0, 'Value must be positive').nullable(),
-    height: Yup.number().min(0, 'Value must be positive').nullable(),
+    length: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    width: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    height: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
   }).nullable(),
 
-  // Media
-  images: Yup.array()
-    .of(Yup.string().url('Please enter a valid URL'))
-    .min(1, 'Please add at least 1 image')
-    .required('Images are required'),
+  status: Yup.string().nullable(),
 
-  featuredImage: Yup.string()
-    .url('Please enter a valid URL')
-    .required('Featured image is required'),
+  featured: Yup.boolean().nullable(),
 
-  // Variants
-  variants: Yup.array().of(productVariantSchema).nullable(),
+  metaTitle: Yup.string().nullable(),
 
-  // SEO fields
-  metaTitle: Yup.string()
-    .max(60, 'Meta title must not exceed 60 characters')
-    .nullable(),
+  metaDescription: Yup.string().nullable(),
 
-  metaDescription: Yup.string()
-    .max(160, 'Meta description must not exceed 160 characters')
-    .nullable(),
+  pdf: Yup.string().nullable(),
 
-  metaKeywords: Yup.string()
-    .max(200, 'Meta keywords must not exceed 200 characters')
-    .nullable(),
+  tags: Yup.mixed()
+    .nullable()
+    .transform((value, originalValue) => {
+      if (
+        originalValue === '' ||
+        originalValue === null ||
+        originalValue === undefined
+      ) {
+        return null;
+      }
+      if (typeof originalValue === 'string') {
+        return originalValue
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter((tag) => tag !== '');
+      }
+      return value;
+    }),
 
-  // Additional fields
-  isFeatured: Yup.boolean().nullable(),
-  isDigital: Yup.boolean().nullable(),
-  requiresShipping: Yup.boolean().nullable(),
-  taxable: Yup.boolean().nullable(),
-
-  // Shipping
-  shippingClass: Yup.string()
-    .max(50, 'Shipping class must not exceed 50 characters')
-    .nullable(),
-
-  // Attributes
-  attributes: Yup.array()
-    .of(
-      Yup.object({
-        name: Yup.string().required(),
-        value: Yup.string().required(),
-      }),
-    )
-    .nullable(),
+  variants: Yup.array().nullable(),
 });

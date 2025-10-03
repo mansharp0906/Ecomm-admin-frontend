@@ -8,50 +8,50 @@ import {
 } from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import categoryService from '@/api/service/categoryService';
+import productServices from '@/api/service/productServices';
 import { toast } from 'react-toastify';
 
-const CategoryView = () => {
+const ProductVew = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [category, setCategory] = useState(null);
+  const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (id) {
-      fetchCategoryData();
+      fetchProductData();
     }
   }, [id]);
 
-  const fetchCategoryData = async () => {
+  const fetchProductData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await categoryService.getById(id);
+      const response = await productServices.getById(id);
 
       if (response?.data?.success) {
-        setCategory(response.data.data);
+        setProduct(response.data.data);
       } else if (response?.data) {
-        setCategory(response.data);
+        setProduct(response.data);
       } else {
-        setError('Failed to fetch category data');
+        setError('Failed to fetch product data');
       }
     } catch (err) {
-      setError('Failed to load category details');
-      toast.error('Failed to load category details');
+      setError('Failed to load product details');
+      toast.error('Failed to load product details');
     } finally {
       setLoading(false);
     }
   };
 
   const handleEdit = () => {
-    navigate(`/products/categories/edit/${id}`);
+    navigate(`/products/products/edit/${id}`);
   };
 
   const handleBack = () => {
-    navigate('/products/categories');
+    navigate('/products/products');
   };
 
   if (loading) {
@@ -62,7 +62,7 @@ const CategoryView = () => {
     );
   }
 
-  if (error || !category) {
+  if (error || !product) {
     return (
       <Container>
         <div className="text-center py-12">
@@ -70,15 +70,15 @@ const CategoryView = () => {
             <CustomIcon type="error" size={8} />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Error Loading Category
+            Error Loading Product
           </h2>
-          <p className="text-gray-600 mb-6">{error || 'Category not found'}</p>
+          <p className="text-gray-600 mb-6">{error || 'Product not found'}</p>
           <div className="space-x-4">
-            <Button onClick={fetchCategoryData} variant="primary">
+            <Button onClick={fetchProductData} variant="primary">
               Retry
             </Button>
             <Button onClick={handleBack} variant="secondary">
-              Back to Categories
+              Back to Products
             </Button>
           </div>
         </div>
@@ -89,11 +89,11 @@ const CategoryView = () => {
   return (
     <Container>
       <PageHeaderWithActions
-        title="Category Details"
+        title="Product Details"
         breadcrumbItems={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Categories', href: '/products/categories' },
-          { label: category.name },
+          { label: 'Products', href: '/products/products' },
+          { label: product.name },
         ]}
         actions={[
           {
@@ -114,9 +114,9 @@ const CategoryView = () => {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">
-              {category.name}
+              {product.name}
             </h2>
-            <p className="text-sm text-gray-500">Category ID: {category._id}</p>
+            <p className="text-sm text-gray-500">Product ID: {product._id}</p>
           </div>
 
           <div className="px-6 py-6">
@@ -131,7 +131,7 @@ const CategoryView = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Name
                 </label>
-                <p className="mt-1 text-sm text-gray-900">{category.name}</p>
+                <p className="mt-1 text-sm text-gray-900">{product.name}</p>
               </div>
 
               <div>
@@ -139,7 +139,7 @@ const CategoryView = () => {
                   Slug
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {category.slug || 'N/A'}
+                  {product.slug || 'N/A'}
                 </p>
               </div>
 
@@ -148,7 +148,7 @@ const CategoryView = () => {
                   Description
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {category.description || 'N/A'}
+                  {product.description || 'N/A'}
                 </p>
               </div>
 
@@ -157,7 +157,7 @@ const CategoryView = () => {
                   Level
                 </label>
                 <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                  Level {category.level || 0}
+                  Level {product.level || 0}
                 </span>
               </div>
 
@@ -166,7 +166,7 @@ const CategoryView = () => {
                   Priority
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {category.priority || 'N/A'}
+                  {product.priority || 'N/A'}
                 </p>
               </div>
             </div>
@@ -183,12 +183,12 @@ const CategoryView = () => {
                 </label>
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    category.status === 'active'
+                    product.status === 'active'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}
                 >
-                  {category.status || 'N/A'}
+                  {product.status || 'N/A'}
                 </span>
               </div>
 
@@ -198,12 +198,12 @@ const CategoryView = () => {
                 </label>
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    category.isFeatured
+                    product.isFeatured
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {category.isFeatured ? 'Yes' : 'No'}
+                  {product.isFeatured ? 'Yes' : 'No'}
                 </span>
               </div>
 
@@ -211,27 +211,19 @@ const CategoryView = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Image
                 </label>
-                {category.image ? (
+                {product.image ? (
                   <div className="mt-2">
                     <img
-                      src={category.image}
-                      alt={category.name}
-                      className="h-32 w-32 object-cover rounded-lg border border-gray-200"
+                      src={product.image}
+                      alt={product.name}
+                      className="h-20 w-20 object-cover rounded-lg"
                       onError={(e) => {
                         e.target.style.display = 'none';
                       }}
                     />
-                    <p className="mt-2 text-xs text-gray-500">
-                      Click to view full size
-                    </p>
                   </div>
                 ) : (
-                  <div className="mt-2 h-32 w-32 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
-                    <div className="text-center">
-                      <CustomIcon type="image" size={8} />
-                      <p className="text-xs text-gray-500 mt-1">No image</p>
-                    </div>
-                  </div>
+                  <p className="mt-1 text-sm text-gray-500">No image</p>
                 )}
               </div>
             </div>
@@ -248,7 +240,7 @@ const CategoryView = () => {
                   Meta Title
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {category.metaTitle || 'N/A'}
+                  {product.metaTitle || 'N/A'}
                 </p>
               </div>
               <div>
@@ -256,7 +248,7 @@ const CategoryView = () => {
                   Meta Description
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {category.metaDescription || 'N/A'}
+                  {product.metaDescription || 'N/A'}
                 </p>
               </div>
             </div>
@@ -273,8 +265,8 @@ const CategoryView = () => {
                   Created At
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {category.createdAt
-                    ? new Date(category.createdAt).toLocaleString('en-US', {
+                  {product.createdAt
+                    ? new Date(product.createdAt).toLocaleString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -289,8 +281,8 @@ const CategoryView = () => {
                   Updated At
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {category.updatedAt
-                    ? new Date(category.updatedAt).toLocaleString('en-US', {
+                  {product.updatedAt
+                    ? new Date(product.updatedAt).toLocaleString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -309,4 +301,4 @@ const CategoryView = () => {
   );
 };
 
-export default CategoryView;
+export default ProductVew;
