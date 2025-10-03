@@ -7,7 +7,6 @@ export const categoryCreateSchema = Yup.object({
   status: Yup.string()
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
-  parentId: Yup.string().nullable(),
   level: Yup.number().nullable(), // Made optional since backend sets it automatically
   image: Yup.string().nullable(),
   icon: Yup.string().nullable(),
@@ -25,7 +24,6 @@ export const categoryUpdateSchema = Yup.object({
   status: Yup.string()
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
-  parentId: Yup.string().nullable(),
   level: Yup.number().nullable(), // Made optional since backend sets it automatically
   image: Yup.string().nullable(),
   icon: Yup.string().nullable(),
