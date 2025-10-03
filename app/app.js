@@ -24,7 +24,6 @@ import SubSubCategoryFormPage from './containers/Products/sub-sub-category/SubSu
 import SubSubCategoryView from './containers/Products/sub-sub-category/SubSubCategoryView';
 import Attributes from './containers/Products/attributes/AttributePage';
 import ProductInHouse from './containers/Products/Product/ProductInHouse';
-import Vendors from './containers/Products/Ventors/VendorsPage';
 import BulkImpor from './containers/Products/Bulk/BulkImpor';
 import Pos from './containers/Products/Pos';
 import Pos_report from './containers/Products/Pos_report';
@@ -62,6 +61,7 @@ import BrandFormPage from './containers/Products/Brand/BrandFormPage';
 import BrandView from './containers/Products/Brand/BrandView';
 import ProductFormPage from './containers/Products/Product/ProductFormPage';
 import BrandPage from './containers/Products/Brand/BrandPage';
+import VendorsPage from './containers/Products/Ventors/VendorsPage';
 // import './styles/toast.css';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -162,7 +162,7 @@ function App() {
                 path="products/products/add"
                 element={<ProductFormPage />}
               />
-              <Route path="/products/vendors" element={<Vendors />} />
+              <Route path="/products/vendors" element={<VendorsPage />} />
               <Route path="/products/import" element={<BulkImpor />} />
 
               {/* order */}
