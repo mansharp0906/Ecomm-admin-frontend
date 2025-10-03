@@ -14,12 +14,28 @@ export const productVariantSchema = Yup.object({
 
   stock: Yup.number().required('Stock is required'),
 
-  weight: Yup.number().nullable(),
+  weight: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
   dimensions: Yup.object({
-    length: Yup.number().nullable(),
-    width: Yup.number().nullable(),
-    height: Yup.number().nullable(),
+    length: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    width: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    height: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
   }).nullable(),
 
   attributes: Yup.array()
@@ -44,59 +60,75 @@ export const productCreateSchema = Yup.object({
 
   shortDescription: Yup.string().nullable(),
 
-  sku: Yup.string().nullable(),
+  sku: Yup.string().when('variants', {
+    is: (variants) => !variants || variants.length === 0,
+    then: (schema) => schema.required('SKU is required when no variants exist'),
+    otherwise: (schema) => schema.nullable(),
+  }),
 
   barcode: Yup.string().nullable(),
 
-  thumbnail: Yup.string().nullable(),
+  thumbnail: Yup.string().required('Thumbnail image is required'),
 
   images: Yup.array().of(Yup.string()).nullable(),
 
-  brand: Yup.string().nullable(),
+  brand: Yup.string().required('Brand is required'),
 
   category: Yup.string().required('Category is required'),
 
-  subCategory: Yup.string().nullable(),
+  subCategory: Yup.string().required('Sub Category is required'),
 
   attributes: Yup.array().nullable(),
 
-  type: Yup.string()
-    .oneOf(['physical', 'digital'], 'Type must be physical or digital')
-    .nullable(),
+  type: Yup.string().nullable(),
 
   unit: Yup.string().nullable(),
 
   minOrderQty: Yup.number()
-    .min(1, 'Minimum order quantity must be at least 1')
-    .nullable(),
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
-  tax: Yup.number().min(0, 'Tax cannot be negative').nullable(),
+  tax: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
-  taxType: Yup.string()
-    .oneOf(
-      ['inclusive', 'exclusive'],
-      'Tax type must be inclusive or exclusive',
-    )
-    .nullable(),
+  taxType: Yup.string().nullable(),
 
   shippingCost: Yup.number()
-    .min(0, 'Shipping cost cannot be negative')
-    .nullable(),
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
-  weight: Yup.number().min(0, 'Weight cannot be negative').nullable(),
+  weight: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
   dimensions: Yup.object({
-    length: Yup.number().min(0, 'Length cannot be negative').nullable(),
-    width: Yup.number().min(0, 'Width cannot be negative').nullable(),
-    height: Yup.number().min(0, 'Height cannot be negative').nullable(),
+    length: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    width: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    height: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
   }).nullable(),
 
-  status: Yup.string()
-    .oneOf(
-      ['active', 'inactive', 'draft'],
-      'Status must be active, inactive, or draft',
-    )
-    .nullable(),
+  status: Yup.string().nullable(),
 
   featured: Yup.boolean().nullable(),
 
@@ -106,7 +138,24 @@ export const productCreateSchema = Yup.object({
 
   pdf: Yup.string().nullable(),
 
-  tags: Yup.array().of(Yup.string()).nullable(),
+  tags: Yup.mixed()
+    .nullable()
+    .transform((value, originalValue) => {
+      if (
+        originalValue === '' ||
+        originalValue === null ||
+        originalValue === undefined
+      ) {
+        return null;
+      }
+      if (typeof originalValue === 'string') {
+        return originalValue
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter((tag) => tag !== '');
+      }
+      return value;
+    }),
 
   variants: Yup.array().nullable(),
 });
@@ -123,59 +172,75 @@ export const productUpdateSchema = Yup.object({
 
   shortDescription: Yup.string().nullable(),
 
-  sku: Yup.string().nullable(),
+  sku: Yup.string().when('variants', {
+    is: (variants) => !variants || variants.length === 0,
+    then: (schema) => schema.required('SKU is required when no variants exist'),
+    otherwise: (schema) => schema.nullable(),
+  }),
 
   barcode: Yup.string().nullable(),
 
-  thumbnail: Yup.string().nullable(),
+  thumbnail: Yup.string().required('Thumbnail image is required'),
 
   images: Yup.array().of(Yup.string()).nullable(),
 
-  brand: Yup.string().nullable(),
+  brand: Yup.string().required('Brand is required'),
 
   category: Yup.string().required('Category is required'),
 
-  subCategory: Yup.string().nullable(),
+  subCategory: Yup.string().required('Sub Category is required'),
 
   attributes: Yup.array().nullable(),
 
-  type: Yup.string()
-    .oneOf(['physical', 'digital'], 'Type must be physical or digital')
-    .nullable(),
+  type: Yup.string().nullable(),
 
   unit: Yup.string().nullable(),
 
   minOrderQty: Yup.number()
-    .min(1, 'Minimum order quantity must be at least 1')
-    .nullable(),
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
-  tax: Yup.number().min(0, 'Tax cannot be negative').nullable(),
+  tax: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
-  taxType: Yup.string()
-    .oneOf(
-      ['inclusive', 'exclusive'],
-      'Tax type must be inclusive or exclusive',
-    )
-    .nullable(),
+  taxType: Yup.string().nullable(),
 
   shippingCost: Yup.number()
-    .min(0, 'Shipping cost cannot be negative')
-    .nullable(),
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
-  weight: Yup.number().min(0, 'Weight cannot be negative').nullable(),
+  weight: Yup.number()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? null : value;
+    }),
 
   dimensions: Yup.object({
-    length: Yup.number().min(0, 'Length cannot be negative').nullable(),
-    width: Yup.number().min(0, 'Width cannot be negative').nullable(),
-    height: Yup.number().min(0, 'Height cannot be negative').nullable(),
+    length: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    width: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
+    height: Yup.number()
+      .nullable()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value;
+      }),
   }).nullable(),
 
-  status: Yup.string()
-    .oneOf(
-      ['active', 'inactive', 'draft'],
-      'Status must be active, inactive, or draft',
-    )
-    .nullable(),
+  status: Yup.string().nullable(),
 
   featured: Yup.boolean().nullable(),
 
@@ -185,7 +250,24 @@ export const productUpdateSchema = Yup.object({
 
   pdf: Yup.string().nullable(),
 
-  tags: Yup.array().of(Yup.string()).nullable(),
+  tags: Yup.mixed()
+    .nullable()
+    .transform((value, originalValue) => {
+      if (
+        originalValue === '' ||
+        originalValue === null ||
+        originalValue === undefined
+      ) {
+        return null;
+      }
+      if (typeof originalValue === 'string') {
+        return originalValue
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter((tag) => tag !== '');
+      }
+      return value;
+    }),
 
   variants: Yup.array().nullable(),
 });

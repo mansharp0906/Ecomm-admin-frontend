@@ -27,10 +27,13 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     imageFile: null, // For file upload
     priority: 1,
     status: 'active',
+    parentId: '', // Add parentId for sub-category selection
   });
 
   const [loading, setLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [subCategories, setSubCategories] = useState([]);
+  const [loadingSubCategories, setLoadingSubCategories] = useState(false);
 
   // Use validation hook
   const validationSchema = isEditMode
@@ -62,6 +65,19 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       }
 
       if (category) {
+        // Handle parentId - it might be an object, string, or null
+        let parentId = '';
+        if (category.parentId) {
+          if (typeof category.parentId === 'object' && category.parentId._id) {
+            parentId = category.parentId._id;
+          } else if (typeof category.parentId === 'string') {
+            parentId = category.parentId;
+          }
+        } else if (category.parentId === null && category.path) {
+          // If parentId is null but path exists, use path as parentId
+          parentId = category.path;
+        }
+
         const newFormData = {
           name: category.name || '',
           description: category.description || '',
@@ -72,6 +88,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           isFeatured: category.isFeatured || false,
           metaTitle: category.metaTitle || '',
           metaDescription: category.metaDescription || '',
+          parentId: parentId,
         };
 
         setFormData(newFormData);
@@ -90,11 +107,59 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     }
   }, [categoryId]);
 
+  // Fetch all sub categories (level 1) for dropdown
+  const fetchSubCategories = useCallback(async () => {
+    setLoadingSubCategories(true);
+    try {
+      const response = await categoryService.getTree();
+      if (response?.data) {
+        // Extract all sub categories (level 1) from the tree structure
+        const allSubCategories = [];
+
+        const extractSubCategories = (categories) => {
+          categories.forEach((category) => {
+            if (category.children && category.children.length > 0) {
+              // Check if children are Level 1 (sub categories)
+              const level1Children = category.children.filter(
+                (child) => child.level === 1,
+              );
+              if (level1Children.length > 0) {
+                allSubCategories.push(...level1Children);
+              }
+              // Recursively extract from deeper levels
+              extractSubCategories(category.children);
+            }
+          });
+        };
+
+        extractSubCategories(response.data);
+
+        const formattedSubCategories = allSubCategories.map((cat) => ({
+          ...cat,
+          displayName: `${cat.name} (${
+            cat.parentId ? 'Sub Category' : 'Main Category'
+          })`,
+        }));
+
+        setSubCategories(formattedSubCategories);
+      }
+    } catch (error) {
+      toast.error('Failed to load sub categories');
+    } finally {
+      setLoadingSubCategories(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (isEditMode && categoryId) {
       fetchCategoryData();
     }
   }, [isEditMode, categoryId, fetchCategoryData]);
+
+  // Load sub-categories on component mount
+  useEffect(() => {
+    fetchSubCategories();
+  }, [fetchSubCategories]);
 
 
   const handleInputChange = (e) => {
@@ -178,6 +243,9 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         formDataToSend.append('metaDescription', formData.metaDescription || '');
         formDataToSend.append('priority', formData.priority);
         formDataToSend.append('status', formData.status);
+        if (formData.parentId) {
+          formDataToSend.append('parentId', formData.parentId);
+        }
         
         // Handle image file upload
         formDataToSend.append('image', imageInput.files[0]);
@@ -190,6 +258,10 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       } else {
         // No file upload, send regular JSON data
         const { imageFile, image, ...apiData } = formData;
+        // Only include parentId if it's not empty
+        if (!apiData.parentId) {
+          delete apiData.parentId;
+        }
         
         if (isEditMode) {
           response = await categoryService.update(categoryId, apiData);
@@ -217,6 +289,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           metaDescription: '',
           priority: 1,
           status: 'active',
+          parentId: '',
         });
         clearErrors();
 
@@ -245,6 +318,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       metaDescription: '',
       priority: 1,
       status: 'active',
+      parentId: '',
     });
     clearErrors();
     if (onCancel) {
@@ -258,6 +332,8 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       <div className="bg-white rounded-lg shadow">
         {isEditMode && isLoadingData ? (
           <LoadingData message="Loading data..." size="50px" />
+        ) : loadingSubCategories ? (
+          <LoadingData message="Loading sub-categories..." size="50px" />
         ) : (
           <ScrollContainer>
             <form
@@ -271,6 +347,25 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 onChange={handleInputChange}
                 placeholder="Enter category name"
                 error={errors?.name}
+              />
+
+              <SelectField
+                label="Parent Category (Optional)"
+                name="parentId"
+                value={formData.parentId}
+                onChange={handleInputChange}
+                options={(() => {
+                  const options = [
+                    { value: '', label: 'Select Parent Category (Optional)' },
+                    ...subCategories.map((cat) => ({
+                      value: cat._id,
+                      label: cat.displayName,
+                    })),
+                  ];
+                  return options;
+                })()}
+                error={errors?.parentId}
+                disabled={loadingSubCategories}
               />
 
               <TextAreaField

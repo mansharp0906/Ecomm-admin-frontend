@@ -160,15 +160,15 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
         }
       } else {
         // No new file uploads, use regular JSON object
+        const { image, banner, ...apiData } = formData;
+        
         formDataToSend = {
-          name: formData.name,
-          description: formData.description || '',
-          metaTitle: formData.metaTitle || '',
-          metaDescription: formData.metaDescription || '',
-          priority: formData.priority,
-          status: formData.status,
-          logo: formData.image || null,
-          banner: formData.banner || null,
+          name: apiData.name,
+          description: apiData.description || '',
+          metaTitle: apiData.metaTitle || '',
+          metaDescription: apiData.metaDescription || '',
+          priority: apiData.priority,
+          status: apiData.status,
         };
       }
 
@@ -232,7 +232,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
         Object.keys(validationErrors).forEach(key => {
           setFieldError(key, validationErrors[key]);
         });
-        toast.error('Please fix the validation errors');
+        toast.error('Please fill the required fields');
       } else {
         toast.error(error.response?.data?.message || 'Failed to add Brand');
       }
