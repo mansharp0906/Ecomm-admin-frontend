@@ -112,7 +112,7 @@ const ProductListPage = ({ refreshTrigger }) => {
   // Load Products on mount and when dependencies change
   useEffect(() => {
     fetchProductData(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchProductData, pagination.currentPage, searchTerm]);
+  }, [refreshTrigger, fetchProductData, pagination.currentPage]);
 
   // Handle page change
   const handlePageChange = (page) => {

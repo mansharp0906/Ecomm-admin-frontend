@@ -118,7 +118,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
   // Load attributes on mount and when dependencies change
   useEffect(() => {
     fetchAttributes(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchAttributes, pagination.currentPage, searchTerm, categoryId]);
+  }, [refreshTrigger, fetchAttributes, pagination.currentPage, categoryId]);
 
   // Handle page change
   const handlePageChange = (page) => {
