@@ -121,7 +121,6 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
     refreshTrigger,
     fetchSubSubCategories,
     pagination.currentPage,
-    searchTerm,
   ]);
 
   // Handle page change

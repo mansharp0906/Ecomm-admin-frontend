@@ -105,7 +105,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
   // Load categories on component mount and when refreshTrigger changes
   useEffect(() => {
     fetchCategories(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchCategories, pagination.currentPage, searchTerm]);
+  }, [refreshTrigger, fetchCategories, pagination.currentPage]);
 
   // Handle page change
   const handlePageChange = (page) => {
