@@ -27,6 +27,8 @@ import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
+import Tooltip from '@/components/custom-table/tooltip';
+
 
 const SubSubCategoryList = ({ refreshTrigger }) => {
   const navigate = useNavigate();
@@ -311,11 +313,24 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
                   <TableCell className="font-medium text-gray-900">
                     {subSubCategory.name}
                   </TableCell>
-                  <TableCell className="text-gray-500 max-w-xs">
-                    <div className="break-words whitespace-normal">
+                <TableCell className="text-gray-500 max-w-[250px]">
+                    <div
+                      className="truncate block cursor-pointer max-w-[250px]"
+                      data-tooltip-id={`desc-tooltip-${subSubCategory._id}`}
+                      data-tooltip-content={subSubCategory.description}
+                    >
                       {subSubCategory.description}
                     </div>
+                    <Tooltip
+                      id={`desc-tooltip-${subSubCategory._id}`}
+                      content={subSubCategory.description}
+                      place="bottom"
+                      variant=""
+                      noArrow={false}
+                      className="max-w-xs bg-white bg-opacity-90 border border-gray-300 text-gray-800 text-sm rounded-lg px-4 py-2 shadow-md opacity-95 whitespace-normal break-words"
+                    />
                   </TableCell>
+
                   <TableCell className="font-medium text-gray-900">
                     {getParentSubCategoryName(subSubCategory.parentId)}
                   </TableCell>

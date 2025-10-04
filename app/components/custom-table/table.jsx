@@ -29,11 +29,23 @@ export const TableHead = ({ children, className = '' }) => (
   </th>
 );
 
-export const TableCell = ({ children, className = '' }) => (
-  <td className={`px-2 py-2 whitespace-nowrap text-sm ${className}`}>
+// Define TableCell component similarly
+export const TableCell = ({ children, className = '', title = '' }) => (
+  <td
+    className={`px-2 py-2 whitespace-nowrap text-sm ${className}`}
+    title={title}
+  >
     {children}
   </td>
 );
+
+// Define prop types for all components
+
+TableCell.propTypes = {
+  children: PropTypes.node,
+  className: PropTypes.string,
+  title: PropTypes.string,
+};
 
 Table.propTypes = {
   children: PropTypes.node,
@@ -43,18 +55,17 @@ Table.propTypes = {
 TableHeader.propTypes = {
   children: PropTypes.node,
 };
+
 TableBody.propTypes = {
   children: PropTypes.node,
 };
+
 TableRow.propTypes = {
   children: PropTypes.node,
   className: PropTypes.string,
 };
+
 TableHead.propTypes = {
-  children: PropTypes.node,
-  className: PropTypes.string,
-};
-TableCell.propTypes = {
   children: PropTypes.node,
   className: PropTypes.string,
 };

@@ -1,10 +1,31 @@
-import { Button, Pagination, SearchBar, DeleteConfirmationModal, SearchBarContainer, LoadingData, Container, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableContainer, DataNotFound, CustomIcon } from '@/components';
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import {
+  Button,
+  Pagination,
+  SearchBar,
+  DeleteConfirmationModal,
+  SearchBarContainer,
+  LoadingData,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableContainer,
+  DataNotFound,
+  CustomIcon,
+} from '@/components';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import brandService from '@/api/service/brandService'; // Adjust this import path
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
-
-
+import Tooltip from '@/components/custom-table/tooltip'; // Adjust path to your Tooltip component
 
 import { useNavigate } from 'react-router-dom';
 
@@ -14,7 +35,6 @@ const BrandListPage = ({ refreshTrigger }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Pagination and search state
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 0,
@@ -24,7 +44,6 @@ const BrandListPage = ({ refreshTrigger }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const searchTimeoutRef = useRef(null);
 
-  // Delete modal state
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     itemId: null,
@@ -32,15 +51,13 @@ const BrandListPage = ({ refreshTrigger }) => {
     isLoading: false,
   });
 
-  // Memoize filtered brands
   const filteredBrands = useMemo(() => {
     if (!searchTerm) return brands;
-    return brands.filter(brand => 
-      brand.name.toLowerCase().includes(searchTerm.toLowerCase())
+    return brands.filter((brand) =>
+      brand.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [brands, searchTerm]);
 
-  // Fetch brands from API with pagination and search
   const fetchBrands = useCallback(
     async (page = 1, search = '') => {
       setLoading(true);
@@ -53,14 +70,8 @@ const BrandListPage = ({ refreshTrigger }) => {
         };
 
         const response = await brandService.getAll(params);
-        
-        // Debug logging
-        console.log('Brand API Response:', response);
-        console.log('Response data:', response?.data);
-        
-        // Handle different response structures
+
         if (response?.data?.success) {
-          // Standard success response
           setBrands(response.data.data || []);
           setPagination((prev) => ({
             ...prev,
@@ -68,10 +79,11 @@ const BrandListPage = ({ refreshTrigger }) => {
             totalPages:
               response.data.totalPages ||
               Math.ceil(response.data.total / pagination.itemsPerPage),
-            totalItems: response.data.total || (response.data.data ? response.data.data.length : 0),
+            totalItems:
+              response.data.total ||
+              (response.data.data ? response.data.data.length : 0),
           }));
         } else if (Array.isArray(response?.data)) {
-          // Direct array response (like the API you showed)
           setBrands(response.data);
           setPagination((prev) => ({
             ...prev,
@@ -80,43 +92,38 @@ const BrandListPage = ({ refreshTrigger }) => {
             totalItems: response.data.length,
           }));
         } else {
-          console.error('Unexpected response structure:', response?.data);
           setError('Failed to fetch brands - unexpected response format');
         }
       } catch (err) {
-        console.error('Error fetching brands:', err);
         setError('Failed to fetch brands');
         toast.error('Failed to load brands');
       } finally {
         setLoading(false);
       }
     },
-    [pagination.itemsPerPage]
+    [pagination.itemsPerPage],
   );
 
-  // Load brands on mount and when dependencies change
   useEffect(() => {
     fetchBrands(pagination.currentPage, searchTerm);
   }, [refreshTrigger, fetchBrands, pagination.currentPage, searchTerm]);
 
-  // Handle page change
   const handlePageChange = (page) => {
     setPagination((prev) => ({ ...prev, currentPage: page }));
   };
 
-  // Handle search - debounced API call
-  const handleSearch = useCallback((term) => {
-    setSearchTerm(term);
-    setPagination((prev) => ({ ...prev, currentPage: 1 }));
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    searchTimeoutRef.current = setTimeout(() => {
-      fetchBrands(1, term);
-    }, 700);
-  }, [fetchBrands]);
+  const handleSearch = useCallback(
+    (term) => {
+      setSearchTerm(term);
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+      searchTimeoutRef.current = setTimeout(() => {
+        fetchBrands(1, term);
+      }, 700);
+    },
+    [fetchBrands],
+  );
 
-  // Handle delete brand
   const handleDelete = useCallback((id, name) => {
     setDeleteModal({
       isOpen: true,
@@ -126,7 +133,6 @@ const BrandListPage = ({ refreshTrigger }) => {
     });
   }, []);
 
-  // Confirm delete
   const confirmDelete = async () => {
     if (!deleteModal.itemId) return;
     setDeleteModal((prev) => ({ ...prev, isLoading: true }));
@@ -134,14 +140,20 @@ const BrandListPage = ({ refreshTrigger }) => {
       const response = await brandService.delete(deleteModal.itemId);
       if (response?.data?.success) {
         toast.success('Brand deleted successfully!');
-        setBrands((prev) => prev.filter((brand) => brand._id !== deleteModal.itemId));
+        setBrands((prev) =>
+          prev.filter((brand) => brand._id !== deleteModal.itemId),
+        );
         const newTotalItems = pagination.totalItems - 1;
-        const newTotalPages = Math.max(1, Math.ceil(newTotalItems / pagination.itemsPerPage));
+        const newTotalPages = Math.max(
+          1,
+          Math.ceil(newTotalItems / pagination.itemsPerPage),
+        );
         setPagination((prev) => ({
           ...prev,
           totalItems: newTotalItems,
           totalPages: newTotalPages,
-          currentPage: prev.currentPage > newTotalPages ? newTotalPages : prev.currentPage,
+          currentPage:
+            prev.currentPage > newTotalPages ? newTotalPages : prev.currentPage,
         }));
       } else {
         toast.error(response?.data?.message || 'Failed to delete brand');
@@ -158,7 +170,6 @@ const BrandListPage = ({ refreshTrigger }) => {
     }
   };
 
-  // Close delete modal
   const closeDeleteModal = () => {
     setDeleteModal({
       isOpen: false,
@@ -168,7 +179,6 @@ const BrandListPage = ({ refreshTrigger }) => {
     });
   };
 
-  // Edit handler
   const handleEdit = (brand) => {
     if (brand.level !== undefined && brand.level !== 0) {
       toast.error('Only main brands can be edited from this page');
@@ -178,13 +188,10 @@ const BrandListPage = ({ refreshTrigger }) => {
     navigate(`/products/brands/edit/${finalId}`);
   };
 
-  // View handler
-   const handleView = (brand) => {
-     const finalId = brand.id || brand._id;
-     navigate(`/products/brands/view/${finalId}`);
-   };
- 
-
+  const handleView = (brand) => {
+    const finalId = brand.id || brand._id;
+    navigate(`/products/brands/view/${finalId}`);
+  };
 
   return (
     <TableContainer>
@@ -221,7 +228,9 @@ const BrandListPage = ({ refreshTrigger }) => {
               {brands.map((brand, index) => (
                 <TableRow key={brand._id}>
                   <TableCell className="text-center font-medium text-gray-900">
-                    {(pagination.currentPage - 1) * pagination.itemsPerPage + index + 1}
+                    {(pagination.currentPage - 1) * pagination.itemsPerPage +
+                      index +
+                      1}
                   </TableCell>
                   <TableCell className="text-center">
                     {brand.logo ? (
@@ -234,8 +243,7 @@ const BrandListPage = ({ refreshTrigger }) => {
                           e.target.nextSibling.style.display = 'block';
                         }}
                       />
-                    ) : null}
-                    {!brand.logo && (
+                    ) : (
                       <div className="w-10 h-10 bg-gray-200 rounded-full mx-auto flex items-center justify-center text-gray-500 text-xs">
                         No Logo
                       </div>
@@ -252,17 +260,33 @@ const BrandListPage = ({ refreshTrigger }) => {
                           e.target.nextSibling.style.display = 'block';
                         }}
                       />
-                    ) : null}
-                    {!brand.banner && (
+                    ) : (
                       <div className="w-16 h-10 bg-gray-200 rounded mx-auto flex items-center justify-center text-gray-500 text-xs">
                         No Banner
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="font-medium text-gray-900">{brand.name}</TableCell>
-                  <TableCell className="text-gray-500 max-w-xs">
-                    <div className="break-words whitespace-normal">{brand.description}</div>
+                  <TableCell className="font-medium text-gray-900">
+                    {brand.name}
                   </TableCell>
+                  <TableCell className="text-gray-500 max-w-[250px]">
+                    <div
+                      className="truncate block cursor-pointer max-w-[250px]"
+                      data-tooltip-id={`desc-tooltip-${brand._id}`}
+                      data-tooltip-content={brand.description}
+                    >
+                      {brand.description}
+                    </div>
+                    <Tooltip
+                      id={`desc-tooltip-${brand._id}`}
+                      content={brand.description}
+                      place="bottom"
+                      variant=""
+                      noArrow={false}
+                      className="max-w-xs bg-white bg-opacity-90 border border-gray-300 text-gray-800 text-sm rounded-lg px-4 py-2 shadow-md opacity-95 whitespace-normal break-words"
+                    />
+                  </TableCell>
+
                   <TableCell>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
