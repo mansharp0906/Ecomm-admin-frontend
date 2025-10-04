@@ -20,7 +20,7 @@ import PropTypes from 'prop-types';
 import {
   buildCategoryPayload,
   handleFileUpload,
-  handleInputChange as utilHandleInputChange
+  handleInputChange as utilHandleInputChange,
 } from '@/utils';
 
 const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
@@ -46,7 +46,8 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const validationSchema = isEditMode
     ? subCategoryUpdateSchema
     : subCategoryCreateSchema;
-  const { validate, errors, setErrors, clearErrors, clearFieldError } = useValidation(validationSchema);
+  const { validate, errors, setErrors, clearErrors, clearFieldError } =
+    useValidation(validationSchema);
 
   // Fetch all categories for dropdown
   const fetchCategories = async () => {
@@ -175,9 +176,12 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   // Function to check if all required fields are filled
   const areAllRequiredFieldsFilled = (data) => {
     return (
-      data.name && data.name.trim() !== '' &&
-      data.parentId && data.parentId.trim() !== '' &&
-      data.status && data.status.trim() !== ''
+      data.name &&
+      data.name.trim() !== '' &&
+      data.parentId &&
+      data.parentId.trim() !== '' &&
+      data.status &&
+      data.status.trim() !== ''
     );
   };
 
@@ -187,7 +191,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
   const handleFileSelect = (file) => {
     handleFileUpload(file, setFormData, 'image', {
-      clearErrors: clearFieldError
+      clearErrors: clearFieldError,
     });
   };
 
@@ -205,19 +209,22 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       }
 
       // Simple duplicate check before submitting
-      const existingCategories = await categoryService.getAll({ 
-        level: 1, 
+      const existingCategories = await categoryService.getAll({
+        level: 1,
         status: 'active',
-        parentId: formData.parentId 
+        parentId: formData.parentId,
       });
       if (existingCategories?.data?.success && existingCategories.data.data) {
-        const duplicateCategory = existingCategories.data.data.find(category => 
-          category.name.toLowerCase() === formData.name.toLowerCase() && 
-          category._id !== categoryId
+        const duplicateCategory = existingCategories.data.data.find(
+          (category) =>
+            category.name.toLowerCase() === formData.name.toLowerCase() &&
+            category._id !== categoryId,
         );
-        
+
         if (duplicateCategory) {
-          toast.error('Sub-category name already exists under this parent. Please choose a different name.');
+          toast.error(
+            'Sub-category name already exists under this parent. Please choose a different name.',
+          );
           setLoading(false);
           return;
         }
@@ -225,7 +232,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
       // Build API payload using utility function
       const apiPayload = buildCategoryPayload(formData);
-      
+
       let response;
       if (isEditMode) {
         response = await categoryService.update(categoryId, apiPayload);
@@ -273,9 +280,9 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         });
         // Set errors using validation hook
         Object.keys(validationErrors).forEach((key) => {
-          setErrors(prev => ({
+          setErrors((prev) => ({
             ...prev,
-            [key]: validationErrors[key]
+            [key]: validationErrors[key],
           }));
         });
         // Don't show toast for validation errors, they will be displayed in fields

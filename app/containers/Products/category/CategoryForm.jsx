@@ -19,7 +19,7 @@ import {
 import {
   buildCategoryPayload,
   handleFileUpload,
-  handleInputChange as utilHandleInputChange
+  handleInputChange as utilHandleInputChange,
 } from '@/utils';
 
 const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
@@ -41,9 +41,12 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const validationSchema = isEditMode
     ? categoryUpdateSchema
     : categoryCreateSchema;
-  const { errors, validate, clearErrors, clearFieldError } = useValidation(validationSchema, {
-    showToast: false, // Disable automatic toast, we'll show specific errors
-  });
+  const { errors, validate, clearErrors, clearFieldError } = useValidation(
+    validationSchema,
+    {
+      showToast: false, // Disable automatic toast, we'll show specific errors
+    },
+  );
 
   const fetchCategoryData = useCallback(async () => {
     try {
@@ -95,13 +98,11 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     }
   }, [categoryId]);
 
-
   useEffect(() => {
     if (isEditMode && categoryId) {
       fetchCategoryData();
     }
   }, [isEditMode, categoryId, fetchCategoryData]);
-
 
   const handleInputChange = (e) => {
     utilHandleInputChange(e, setFormData, clearFieldError);
@@ -109,10 +110,9 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
   const handleFileSelect = (file) => {
     handleFileUpload(file, setFormData, 'image', {
-      clearErrors: clearFieldError
+      clearErrors: clearFieldError,
     });
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -138,15 +138,21 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       }
 
       // Simple duplicate check before submitting
-      const existingCategories = await categoryService.getAll({ level: 0, status: 'active' });
+      const existingCategories = await categoryService.getAll({
+        level: 0,
+        status: 'active',
+      });
       if (existingCategories?.data?.success && existingCategories.data.data) {
-        const duplicateCategory = existingCategories.data.data.find(category => 
-          category.name.toLowerCase() === formData.name.toLowerCase() && 
-          category._id !== categoryId
+        const duplicateCategory = existingCategories.data.data.find(
+          (category) =>
+            category.name.toLowerCase() === formData.name.toLowerCase() &&
+            category._id !== categoryId,
         );
-        
+
         if (duplicateCategory) {
-          toast.error('Category name already exists. Please choose a different name.');
+          toast.error(
+            'Category name already exists. Please choose a different name.',
+          );
           setLoading(false);
           return;
         }
@@ -154,12 +160,41 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
       // Build API payload using utility function
       const apiPayload = buildCategoryPayload(formData);
-      
+
       let response;
-      if (isEditMode) {
-        response = await categoryService.update(categoryId, apiPayload);
+
+      // If we have new file uploads, use FormData
+      if (hasNewImage) {
+        const formDataToSend = new FormData();
+
+        // Add basic fields
+        formDataToSend.append('name', formData.name);
+        formDataToSend.append('description', formData.description || '');
+        formDataToSend.append('metaTitle', formData.metaTitle || '');
+        formDataToSend.append(
+          'metaDescription',
+          formData.metaDescription || '',
+        );
+        formDataToSend.append('priority', formData.priority);
+        formDataToSend.append('status', formData.status);
+
+        // Handle image file upload
+        formDataToSend.append('image', imageInput.files[0]);
+
+        if (isEditMode) {
+          response = await categoryService.update(categoryId, formDataToSend);
+        } else {
+          response = await categoryService.create(formDataToSend);
+        }
       } else {
-        response = await categoryService.create(apiPayload);
+        // No file upload, send regular JSON data
+        const { imageFile, image, ...apiData } = formData;
+
+        if (isEditMode) {
+          response = await categoryService.update(categoryId, apiData);
+        } else {
+          response = await categoryService.create(apiData);
+        }
       }
 
       const isSuccess =
@@ -236,7 +271,6 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 placeholder="Enter category name"
                 error={errors?.name}
               />
-
 
               <TextAreaField
                 label="Description"

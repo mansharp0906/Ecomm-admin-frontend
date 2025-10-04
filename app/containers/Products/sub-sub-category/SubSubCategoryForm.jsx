@@ -19,7 +19,7 @@ import PropTypes from 'prop-types';
 import {
   buildCategoryPayload,
   handleFileUpload,
-  handleInputChange as utilHandleInputChange
+  handleInputChange as utilHandleInputChange,
 } from '@/utils';
 
 const SubSubCategoryForm = ({
@@ -185,7 +185,7 @@ const SubSubCategoryForm = ({
 
   const handleFileSelect = (file) => {
     handleFileUpload(file, setFormData, 'image', {
-      clearErrors: clearFieldError
+      clearErrors: clearFieldError,
     });
   };
 
@@ -195,9 +195,23 @@ const SubSubCategoryForm = ({
     clearErrors();
 
     try {
+      // Prepare data for validation - ensure parentId is string
+      const validationData = {
+        ...formData,
+        parentId: typeof formData.parentId === 'object' && formData.parentId._id 
+          ? formData.parentId._id 
+          : formData.parentId
+      };
+      
+      // Debug: Log validation data
+      console.log('Validation data:', validationData);
+      console.log('parentId type:', typeof validationData.parentId);
+      console.log('parentId value:', validationData.parentId);
+      
       // Use validation schema instead of manual validation
-      const isValid = await validate(formData);
+      const isValid = await validate(validationData);
       if (!isValid) {
+        console.log('Validation failed, errors:', errors);
         setLoading(false);
         return;
       }
@@ -226,7 +240,7 @@ const SubSubCategoryForm = ({
 
       // Build API payload using utility function
       const apiPayload = buildCategoryPayload(formData);
-      
+
       let response;
       if (isEditMode) {
         response = await categoryService.update(categoryId, apiPayload);

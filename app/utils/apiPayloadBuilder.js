@@ -15,6 +15,7 @@ export const buildFormDataPayload = (
   fileFields = [],
   options = {},
 ) => {
+  const { customFieldMapping = {} } = options;
   const payload = new FormData();
 
   // Default file fields
@@ -59,10 +60,14 @@ export const buildFormDataPayload = (
 
     // Map file field names to backend expected names
     let fileFieldName = field;
-    if (field === 'images') {
+
+    // Check for custom field mapping first
+    if (customFieldMapping[field]) {
+      fileFieldName = customFieldMapping[field];
+    } else if (field === 'images') {
       fileFieldName = 'images';
     } else if (field === 'imageFile') {
-      fileFieldName = 'logo'; // Brand backend expects 'logo' not 'image'
+      fileFieldName = 'image'; // Default to 'image' for categories
     } else if (field === 'bannerFile') {
       fileFieldName = 'banner';
     } else if (field === 'thumbnailFile') {
@@ -223,5 +228,11 @@ export const buildCategoryPayload = (formData, options = {}) => {
  */
 export const buildBrandPayload = (formData, options = {}) => {
   const fileFields = ['imageFile', 'bannerFile', 'image', 'banner', 'logo'];
-  return buildApiPayload(formData, fileFields, options);
+  const customFieldMapping = {
+    imageFile: 'logo', // Brand backend expects 'logo' not 'image'
+  };
+  return buildApiPayload(formData, fileFields, {
+    ...options,
+    customFieldMapping,
+  });
 };
