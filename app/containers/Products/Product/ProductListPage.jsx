@@ -55,7 +55,7 @@ const ProductListPage = ({ refreshTrigger }) => {
   const filteredProducts = useMemo(() => {
     if (!searchTerm) return products;
     return products.filter((product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      (product.title || product.name || '').toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [products, searchTerm]);
 
@@ -68,7 +68,6 @@ const ProductListPage = ({ refreshTrigger }) => {
         const params = {
           page,
           limit: pagination.itemsPerPage,
-          level: 0, // Only main categories
           ...(search && { search: search }),
         };
 
@@ -198,10 +197,6 @@ const ProductListPage = ({ refreshTrigger }) => {
 
   // Edit handler
   const handleEdit = (product) => {
-    if (product.level !== undefined && product.level !== 0) {
-      toast.error('Only main products can be edited from this page');
-      return;
-    }
     const finalId = product.id || product._id;
     navigate(`/products/products/edit/${finalId}`);
   };
@@ -250,7 +245,7 @@ const ProductListPage = ({ refreshTrigger }) => {
                       1}
                   </TableCell>
                   <TableCell className="font-medium text-gray-900">
-                    {product.name}
+                    {product.title || product.name}
                   </TableCell>
                   <TableCell className="text-gray-500 max-w-xs">
                     <div className="break-words whitespace-normal">
@@ -296,7 +291,7 @@ const ProductListPage = ({ refreshTrigger }) => {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleDelete(product._id, product.name)}
+                        onClick={() => handleDelete(product._id, product.title || product.name)}
                         title="Delete"
                       >
                         <CustomIcon type="delete" size={4} />
