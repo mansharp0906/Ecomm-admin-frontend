@@ -11,6 +11,10 @@ import {
   attributeUpdateSchema,
 } from '@/validations';
 import ScrollContainer from '@/components/custom-scrollbar/ScrollContainer';
+import {
+  buildAttributePayload,
+  handleInputChange as utilHandleInputChange
+} from '@/utils';
 
 // Validation schemas are now imported from validations directory
 
@@ -66,6 +70,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
       setFormData((prev) => ({
         ...prev,
+        id: data._id || data.id, // Add id for validation
         name: data.name || '',
         values:
           Array.isArray(data.values) && data.values.length > 0
@@ -95,18 +100,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const fieldValue = type === 'checkbox' ? checked : value;
-    
-    setFormData({
-      ...formData,
-      [name]: fieldValue,
-    });
-
-    // Clear error for the current field if it's filled
-    if (errors[name] && fieldValue && (typeof fieldValue === 'boolean' || fieldValue.toString().trim() !== '')) {
-      clearFieldError(name);
-    }
+    utilHandleInputChange(e, setFormData, clearFieldError);
   };
 
   useEffect(() => {
@@ -121,13 +115,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   }, [isEditMode, categoryId, fetchCategoryData, categories.length]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    
-    // Clear error for the current field if it's filled
-    if (errors[name] && value && value.trim() !== '') {
-      clearFieldError(name);
-    }
+    utilHandleInputChange(e, setFormData, clearFieldError);
   };
 
   const handleValueChange = (index, field, value) => {
@@ -172,29 +160,7 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     clearErrors();
 
     try {
-      // Manual validation check
-      const validationErrors = {};
-      
-      if (!formData.name || formData.name.trim() === '') {
-        validationErrors.name = 'Attribute name is required';
-      }
-      
-      if (!formData.parentId || formData.parentId.trim() === '') {
-        validationErrors.parentId = 'Category is required';
-      }
-      
-      // If validation errors exist, set them and return
-      if (Object.keys(validationErrors).length > 0) {
-        Object.keys(validationErrors).forEach((key) => {
-          setFieldError(key, validationErrors[key]);
-        });
-        
-        // Show toast message for required fields
-        toast.error('Please fill the required fields');
-        
-        setLoading(false);
-        return;
-      }
+      // Use validation schema instead of manual validation
 
       // Prepare data for validation
       const validationData = {
@@ -241,21 +207,16 @@ const AttributeForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         // Continue with submission if duplicate check fails
       }
 
-      const apiData = {
-        name: formData.name,
-        values: formData.values,
-        isFilterable: formData.isFilterable,
-        isRequired: formData.isRequired,
-        displayType: formData.displayType,
-        status: formData.status,
-        categories: formData.parentId ? [formData.parentId] : [],
-      };
+      // Build API payload using utility function
+      // Remove id field from payload as it's not allowed by backend
+      const { id, ...payloadData } = formData;
+      const apiPayload = buildAttributePayload(payloadData);
 
       let response;
       if (isEditMode && categoryId) {
-        response = await attributeService.update(categoryId, apiData);
+        response = await attributeService.update(categoryId, apiPayload);
       } else {
-        response = await attributeService.create(apiData);
+        response = await attributeService.create(apiPayload);
       }
 
       const isSuccess =

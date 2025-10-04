@@ -12,6 +12,7 @@ export {
   buildProductPayload,
   buildCategoryPayload,
   buildBrandPayload,
+  buildAttributePayload,
 } from './apiPayloadBuilder';
 
 // File Upload Handler
