@@ -158,43 +158,17 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         }
       }
 
-      // Build API payload using utility function
-      const apiPayload = buildCategoryPayload(formData);
+      // Use utility function to build API payload
+      // Remove id field from payload as it's not allowed by backend
+      const { id, ...payloadData } = formData;
+      const apiPayload = buildCategoryPayload(payloadData);
 
       let response;
 
-      // If we have new file uploads, use FormData
-      if (hasNewImage) {
-        const formDataToSend = new FormData();
-
-        // Add basic fields
-        formDataToSend.append('name', formData.name);
-        formDataToSend.append('description', formData.description || '');
-        formDataToSend.append('metaTitle', formData.metaTitle || '');
-        formDataToSend.append(
-          'metaDescription',
-          formData.metaDescription || '',
-        );
-        formDataToSend.append('priority', formData.priority);
-        formDataToSend.append('status', formData.status);
-
-        // Handle image file upload
-        formDataToSend.append('image', imageInput.files[0]);
-
-        if (isEditMode) {
-          response = await categoryService.update(categoryId, formDataToSend);
-        } else {
-          response = await categoryService.create(formDataToSend);
-        }
+      if (isEditMode) {
+        response = await categoryService.update(categoryId, apiPayload);
       } else {
-        // No file upload, send regular JSON data
-        const { imageFile, image, ...apiData } = formData;
-
-        if (isEditMode) {
-          response = await categoryService.update(categoryId, apiData);
-        } else {
-          response = await categoryService.create(apiData);
-        }
+        response = await categoryService.create(apiPayload);
       }
 
       const isSuccess =
@@ -224,11 +198,29 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           onSuccess(response.data.data || response.data);
         }
       } else {
-        toast.error('Failed to save category');
+        // More detailed error message
+        const errorMessage =
+          response?.data?.message ||
+          response?.data?.error ||
+          'Failed to save category';
+        toast.error(errorMessage);
+        console.error('Category save failed:', response);
       }
     } catch (error) {
       console.error('Error saving category:', error);
-      toast.error(error.response?.data?.message || 'Failed to save category');
+
+      // Better error handling
+      let errorMessage = 'Failed to save category';
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -358,8 +350,8 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                       ? 'Updating...'
                       : 'Adding...'
                     : isEditMode
-                    ? 'Update Category'
-                    : 'Add Category'}
+                    ? 'Update'
+                    : 'Add'}
                 </Button>
               </div>
             </form>

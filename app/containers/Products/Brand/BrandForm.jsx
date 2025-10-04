@@ -1,16 +1,25 @@
-import { Button, LoadingData, InputTextField, SelectField, TextAreaField, FileUploadButton } from '@/components';
-
-
+import {
+  Button,
+  LoadingData,
+  InputTextField,
+  SelectField,
+  TextAreaField,
+  FileUploadButton,
+} from '@/components';
 
 import brandService from '@/api/service/brandService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
-import { useValidation, brandCreateSchema, brandUpdateSchema } from '@/validations';
+import {
+  useValidation,
+  brandCreateSchema,
+  brandUpdateSchema,
+} from '@/validations';
 import {
   buildBrandPayload,
   handleFileUpload,
-  handleInputChange as utilHandleInputChange
+  handleInputChange as utilHandleInputChange,
 } from '@/utils';
 
 // Validation schemas are now imported from validations directory
@@ -32,7 +41,8 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
 
   // Use validation hook
   const validationSchema = isEditMode ? brandUpdateSchema : brandCreateSchema;
-  const { errors, validate, clearErrors, clearFieldError, setFieldError } = useValidation(validationSchema);
+  const { errors, validate, clearErrors, clearFieldError, setFieldError } =
+    useValidation(validationSchema);
 
   const fetchCategoryData = useCallback(async () => {
     try {
@@ -106,16 +116,15 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
 
   const handleLogoSelect = (file) => {
     handleFileUpload(file, setFormData, 'image', {
-      clearErrors: clearFieldError
+      clearErrors: clearFieldError,
     });
   };
 
   const handleBannerSelect = (file) => {
     handleFileUpload(file, setFormData, 'banner', {
-      clearErrors: clearFieldError
+      clearErrors: clearFieldError,
     });
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -138,7 +147,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
 
       // Build API payload using utility function
       const apiPayload = buildBrandPayload(formData);
-      
+
       let response;
       if (isEditMode) {
         response = await brandService.update(bandId, apiPayload);
@@ -183,7 +192,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
           validationErrors[err.path] = err.message;
         });
         // Set errors using validation hook
-        Object.keys(validationErrors).forEach(key => {
+        Object.keys(validationErrors).forEach((key) => {
           setFieldError(key, validationErrors[key]);
         });
         toast.error('Please fill the required fields');
@@ -219,7 +228,8 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
         {isEditMode && isLoadingData ? (
           <LoadingData message="Loading data..." size="50px" />
         ) : (
-          <form   style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
+          <form
+            style={{ minHeight: '400px', overflowY: 'auto', height: '450px' }}
             onSubmit={handleSubmit}
             className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-5"
           >
@@ -246,7 +256,11 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
               label="Logo Upload"
               accept="image/*"
               showPreview={true}
-              previewValue={formData.image && formData.image.startsWith('http') ? formData.image : null}
+              previewValue={
+                formData.image && formData.image.startsWith('http')
+                  ? formData.image
+                  : null
+              }
               onFileSelect={handleLogoSelect}
               error={errors?.image}
             />
@@ -255,7 +269,11 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
               label="Banner Upload"
               accept="image/*"
               showPreview={true}
-              previewValue={formData.banner && formData.banner.startsWith('http') ? formData.banner : null}
+              previewValue={
+                formData.banner && formData.banner.startsWith('http')
+                  ? formData.banner
+                  : null
+              }
               onFileSelect={handleBannerSelect}
               error={errors?.banner}
             />
@@ -324,8 +342,8 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
                     ? 'Updating...'
                     : 'Adding...'
                   : isEditMode
-                  ? 'Update Band'
-                  : 'Add Band'}
+                  ? 'Update'
+                  : 'Add'}
               </Button>
             </div>
           </form>

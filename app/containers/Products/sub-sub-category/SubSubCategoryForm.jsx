@@ -142,9 +142,11 @@ const SubSubCategoryForm = ({
         }
 
         const newFormData = {
+          id: category._id || category.id, // Add id for validation
           name: category.name || '',
           description: category.description || '',
           image: category.image || null,
+          imageFile: null, // Reset file upload when editing
           priority: category.priority || 1,
           status: category.status || 'active',
           isFeatured: category.isFeatured || false,
@@ -195,23 +197,15 @@ const SubSubCategoryForm = ({
     clearErrors();
 
     try {
-      // Prepare data for validation - ensure parentId is string
+      // Prepare data for validation (include id for update mode)
       const validationData = {
         ...formData,
-        parentId: typeof formData.parentId === 'object' && formData.parentId._id 
-          ? formData.parentId._id 
-          : formData.parentId
+        id: isEditMode ? categoryId : undefined,
       };
-      
-      // Debug: Log validation data
-      console.log('Validation data:', validationData);
-      console.log('parentId type:', typeof validationData.parentId);
-      console.log('parentId value:', validationData.parentId);
       
       // Use validation schema instead of manual validation
       const isValid = await validate(validationData);
       if (!isValid) {
-        console.log('Validation failed, errors:', errors);
         setLoading(false);
         return;
       }
@@ -239,7 +233,9 @@ const SubSubCategoryForm = ({
       }
 
       // Build API payload using utility function
-      const apiPayload = buildCategoryPayload(formData);
+      // Remove id field from payload as it's not allowed by backend
+      const { id, ...payloadData } = formData;
+      const apiPayload = buildCategoryPayload(payloadData);
 
       let response;
       if (isEditMode) {

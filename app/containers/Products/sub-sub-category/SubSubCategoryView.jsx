@@ -161,7 +161,7 @@ const SubSubCategoryView = () => {
         ]}
         actions={[
           {
-            label: 'Edit Sub Sub Category',
+            label: 'Edit',
             onClick: handleEdit,
             variant: 'outline',
             icon: <CustomIcon type="edit" size={4} />,
