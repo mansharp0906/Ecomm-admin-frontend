@@ -12,7 +12,7 @@ const CategoryPage = () => {
   };
 
   return (
-    <Container>
+    <Container >
       <PageHeader
         title="Category"
         breadcrumbItems={[

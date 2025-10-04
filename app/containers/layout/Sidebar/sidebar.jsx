@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { MdArrowDropDown } from 'react-icons/md';
@@ -22,12 +22,9 @@ const ToggleIcon = ({ onClick, isOpen }) => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    className={`fixed top-20 w-8 h-8 z-50 transition-transform duration-300 transform
-  ${
-    isOpen
-      ? 'translate-x-70 rotate-180 text-blue-500'
-      : 'translate-x-15 text-gray-700'
-  }`}
+    className={`fixed top-20 w-8 h-8 z-50 transition-transform duration-300 transform ${
+      isOpen ? 'translate-x-70 rotate-180 text-blue-500' : 'translate-x-15 text-gray-700'
+    }`}
   >
     {isOpen ? (
       // Right-facing arrow (>)
@@ -47,8 +44,15 @@ ToggleIcon.propTypes = {
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
 
+  // Close any open dropdown if sidebar closes
+  useEffect(() => {
+    if (!sidebarOpen) {
+      setOpenDropdown(null);
+    }
+  }, [sidebarOpen]);
+
   const toggleDropdown = (key) => {
-    // Only toggle dropdown if sidebar is open
+    // Only toggle dropdown when sidebar is open
     if (!sidebarOpen) return;
     setOpenDropdown(openDropdown === key ? null : key);
   };
@@ -59,20 +63,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
   return (
     <div>
-      <div
-        className={`w-full h-full transition-all duration-300 ${
-          sidebarOpen ? 'w-64' : 'w-16'
-        } flex flex-col`}
-      >
-        <ToggleIcon
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          isOpen={sidebarOpen}
-          style={{ marginTop: '10rem', marginLeft: '-10px' }}
-        />
+      <div className={`w-full h-full transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'} flex flex-col`}>
+        <ToggleIcon onClick={() => setSidebarOpen(!sidebarOpen)} isOpen={sidebarOpen} style={{ marginTop: '10rem', marginLeft: '-10px' }} />
 
-        <nav className="pt-6  flex-1 overflow-y-auto no-scrollbar">
-          {/* Example Dashboard Link */}
+        <nav className="pt-6 flex-1 overflow-y-auto no-scrollbar">
           <ul className="list-none">
+            {/* Dashboard Link */}
             <li>
               <Link
                 to="/dashboard"
@@ -81,19 +77,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               >
                 <div className="flex items-center gap-3 overflow-hidden">
                   <DashboardIcon />
-
-                  <span
-                    className={`transition-opacity ml-2 duration-300 ${
-                      sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                    } truncate`}
-                  >
+                  <span className={`transition-opacity ml-2 duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                     Dashboard
                   </span>
                 </div>
               </Link>
             </li>
 
-            {/* Example dropdown: Product Section */}
+            {/* Product Section Dropdown */}
             <li>
               <button
                 className="w-full text-left px-4 py-2 flex justify-between items-center hover:bg-gray-200 whitespace-nowrap"
@@ -102,20 +93,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               >
                 <div className="flex items-center gap-3 overflow-hidden">
                   <ProductIcon />
-                  <span
-                    className={`transition-opacity ml-4 duration-300  ${
-                      sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                    } truncate`}
-                  >
+                  <span className={`transition-opacity ml-4 duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                     Product Section
                   </span>
                 </div>
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } ${
-                    openDropdown === 'productSection' ? 'rotate-180' : ''
-                  }`}
+                  } ${openDropdown === 'productSection' ? 'rotate-180' : ''}`}
                 />
               </button>
               <ul
@@ -147,25 +132,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 onClick={() => toggleDropdown('orderSection')}
                 aria-expanded={openDropdown === 'orderSection'}
               >
-                {/* <MdReceiptLong className="text-3xl mr-2" /> */}
                 <span className="">
                   <OrderIcon />
                 </span>
-
-                <span
-                  className={`transition-opacity duration-300 mr-16 ${
-                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } truncate`}
-                >
+                <span className={`transition-opacity duration-300 mr-16 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                   Order Section
                 </span>
-
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } ${
-                    openDropdown === 'orderSection' ? 'rotate-180' : ''
-                  }`}
+                  } ${openDropdown === 'orderSection' ? 'rotate-180' : ''}`}
                 />
               </button>
               {openDropdown === 'orderSection' && (
@@ -196,28 +172,20 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             {/* Product Management Dropdown */}
             <li>
               <button
-                className="w-full  px-4 py-2 flex justify-between items-center hover:bg-gray-200 whitespace-nowrap"
+                className="w-full px-4 py-2 flex justify-between items-center hover:bg-gray-200 whitespace-nowrap"
                 onClick={() => toggleDropdown('productManagement')}
                 aria-expanded={openDropdown === 'productManagement'}
               >
-                {/* <FaBoxOpen className="text-3xl mr-2" /> */}
                 <span className="inline-block mr-2">
                   <ProductManagementIcon />
                 </span>
-                <span
-                  className={`transition-opacity duration-300  mr-4 ${
-                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } truncate`}
-                >
+                <span className={`transition-opacity duration-300 mr-4 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                   Product Management
                 </span>
-
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } ${
-                    openDropdown === 'productManagement' ? 'rotate-180' : ''
-                  }`}
+                  } ${openDropdown === 'productManagement' ? 'rotate-180' : ''}`}
                 />
               </button>
               {openDropdown === 'productManagement' && (
@@ -252,22 +220,20 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                         {label}
                       </Link>
 
-                      {/* Submenu opens below */}
+                      {/* Submenu */}
                       {subItems && (
                         <ul className="absolute left-20 top-0 mt-10 w-44 text-sm bg-white border border-gray-300 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-300 z-50">
-                          {subItems.map(
-                            ({ label: subLabel, path: subPath }) => (
-                              <li key={subPath}>
-                                <Link
-                                  to={subPath}
-                                  className="block px-4 py-2 hover:bg-gray-100 whitespace-nowrap"
-                                  onClick={handleLinkClick}
-                                >
-                                  {subLabel}
-                                </Link>
-                              </li>
-                            ),
-                          )}
+                          {subItems.map(({ label: subLabel, path: subPath }) => (
+                            <li key={subPath}>
+                              <Link
+                                to={subPath}
+                                className="block px-4 py-2 hover:bg-gray-100 whitespace-nowrap"
+                                onClick={handleLinkClick}
+                              >
+                                {subLabel}
+                              </Link>
+                            </li>
+                          ))}
                         </ul>
                       )}
                     </li>
@@ -283,23 +249,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 onClick={() => toggleDropdown('promotionManagement')}
                 aria-expanded={openDropdown === 'promotionManagement'}
               >
-                {/* <MdCampaign className="text-3xl mr-2" /> */}
                 <span className="inline-block mr-2">
                   <PromotionIcon />
                 </span>
-                <span
-                  className={`transition-opacity duration-300 text-star mr-1  pl-1 ${
-                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } truncate`}
-                >
+                <span className={`transition-opacity duration-300 text-star mr-1 pl-1 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                   Promotion Management
                 </span>
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } ${
-                    openDropdown === 'promotionManagement' ? 'rotate-180' : ''
-                  }`}
+                  } ${openDropdown === 'promotionManagement' ? 'rotate-180' : ''}`}
                 />
               </button>
               {openDropdown === 'promotionManagement' && (
@@ -331,24 +290,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 onClick={() => toggleDropdown('reportsAnalysis')}
                 aria-expanded={openDropdown === 'reportsAnalysis'}
               >
-                {/* <MdAssessment className="text-3xl mr-2" /> */}
                 <span className="inline-block mr-2">
                   <ReportsIcon />
                 </span>
 
-                <span
-                  className={`transition-opacity text-start  mr-9 duration-300  ${
-                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } truncate`}
-                >
+                <span className={`transition-opacity text-start mr-9 duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                   Reports & Analysis
                 </span>
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } ${
-                    openDropdown === 'reportsAnalysis' ? 'rotate-180' : ''
-                  }`}
+                  } ${openDropdown === 'reportsAnalysis' ? 'rotate-180' : ''}`}
                 />
               </button>
               {openDropdown === 'reportsAnalysis' && (
@@ -380,23 +332,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 onClick={() => toggleDropdown('userManagement')}
                 aria-expanded={openDropdown === 'userManagement'}
               >
-                {/* <FaUsersCog className="text-3xl mr-2" /> */}
                 <span className="inline-block mr-2">
                   <UserManagementIcon />
                 </span>
-                <span
-                  className={`transition-opacity text-start  mr-12  duration-300   ${
-                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } truncate`}
-                >
+                <span className={`transition-opacity text-start mr-12 duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                   User Management
                 </span>
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } ${
-                    openDropdown === 'userManagement' ? 'rotate-180' : ''
-                  }`}
+                  } ${openDropdown === 'userManagement' ? 'rotate-180' : ''}`}
                 />
               </button>
               {openDropdown === 'userManagement' && (
@@ -428,24 +373,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 onClick={() => toggleDropdown('businessSettings')}
                 aria-expanded={openDropdown === 'businessSettings'}
               >
-                {/* <MdBusiness className="text-3xl mr-2" /> */}
                 <span className="inline-block mr-2">
                   <BusinessSettingsIcon />
                 </span>
-                <span
-                  className={`transition-opacity text-start  mr-11 duration-300  ${
-                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } truncate`}
-                >
+                <span className={`transition-opacity text-start mr-11 duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                   Business Settings
                 </span>
-
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } ${
-                    openDropdown === 'businessSettings' ? 'rotate-180' : ''
-                  }`}
+                  } ${openDropdown === 'businessSettings' ? 'rotate-180' : ''}`}
                 />
               </button>
               {openDropdown === 'businessSettings' && (
@@ -480,36 +417,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 <span className="inline-block mr-2">
                   <SystemSettingsIcon />
                 </span>
-
-                {/* Label */}
-                <span
-                  className={`transition-opacity duration-300 text-start  mr-12  ${
-                    sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } truncate`}
-                >
+                <span className={`transition-opacity duration-300 text-start mr-12 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                   System Settings
                 </span>
-
-                {/* Dropdown arrow */}
                 <MdArrowDropDown
                   className={`inline ml-2 transform transition-transform ${
                     sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'
-                  } ${
-                    openDropdown === 'systemSettings' ? 'rotate-180' : ''
-                  }`}
+                  } ${openDropdown === 'systemSettings' ? 'rotate-180' : ''}`}
                 />
               </button>
 
-              {/* Dropdown menu */}
               {openDropdown === 'systemSettings' && (
                 <ul className="shadow-xl rounded mt-1 pl-4 text-sm">
                   {[
                     { label: 'Login Settings', path: '/system/login' },
                     { label: 'Email Template', path: '/system/emails' },
-                    {
-                      label: 'Third Party Setup',
-                      path: '/system/integrations',
-                    },
+                    { label: 'Third Party Setup', path: '/system/integrations' },
                   ].map(({ label, path }) => (
                     <li key={path}>
                       <Link
