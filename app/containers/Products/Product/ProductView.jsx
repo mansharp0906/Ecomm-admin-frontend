@@ -11,7 +11,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import productServices from '@/api/service/productServices';
 import { toast } from 'react-toastify';
 
-const ProductVew = () => {
+const ProductView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
@@ -93,7 +93,7 @@ const ProductVew = () => {
         breadcrumbItems={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Products', href: '/products/products' },
-          { label: product.name },
+          { label: product.title || product.name },
         ]}
         actions={[
           {
@@ -114,7 +114,7 @@ const ProductVew = () => {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">
-              {product.name}
+              {product.title || product.name}
             </h2>
             <p className="text-sm text-gray-500">Product ID: {product._id}</p>
           </div>
@@ -129,9 +129,9 @@ const ProductVew = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Name
+                  Title
                 </label>
-                <p className="mt-1 text-sm text-gray-900">{product.name}</p>
+                <p className="mt-1 text-sm text-gray-900">{product.title || product.name}</p>
               </div>
 
               <div>
@@ -154,19 +154,37 @@ const ProductVew = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Level
+                  SKU
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {product.sku || 'N/A'}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Barcode
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {product.barcode || 'N/A'}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Type
                 </label>
                 <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                  Level {product.level || 0}
+                  {product.type || 'physical'}
                 </span>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Priority
+                  Unit
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {product.priority || 'N/A'}
+                  {product.unit || 'pcs'}
                 </p>
               </div>
             </div>
@@ -198,24 +216,33 @@ const ProductVew = () => {
                 </label>
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    product.isFeatured
+                    product.featured
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {product.isFeatured ? 'Yes' : 'No'}
+                  {product.featured ? 'Yes' : 'No'}
                 </span>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Image
+                  Brand
                 </label>
-                {product.image ? (
+                <p className="mt-1 text-sm text-gray-900">
+                  {product.brand?.name || 'N/A'}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Thumbnail
+                </label>
+                {product.thumbnail ? (
                   <div className="mt-2">
                     <img
-                      src={product.image}
-                      alt={product.name}
+                      src={product.thumbnail}
+                      alt={product.title || product.name}
                       className="h-20 w-20 object-cover rounded-lg"
                       onError={(e) => {
                         e.target.style.display = 'none';
@@ -223,11 +250,34 @@ const ProductVew = () => {
                     />
                   </div>
                 ) : (
-                  <p className="mt-1 text-sm text-gray-500">No image</p>
+                  <p className="mt-1 text-sm text-gray-500">No thumbnail</p>
                 )}
               </div>
             </div>
           </div>
+
+          {/* Product Images */}
+          {product.images && product.images.length > 0 && (
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Product Images
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {product.images.map((image, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={image}
+                      alt={`${product.title || product.name} - Image ${index + 1}`}
+                      className="h-24 w-24 object-cover rounded-lg border border-gray-200"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* SEO Information */}
           <div className="mt-8 pt-6 border-t border-gray-200">
@@ -301,4 +351,4 @@ const ProductVew = () => {
   );
 };
 
-export default ProductVew;
+export default ProductView;

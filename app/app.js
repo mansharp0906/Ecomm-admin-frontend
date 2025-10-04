@@ -60,6 +60,7 @@ import AttributeView from './containers/Products/attributes/AttributeView';
 import BrandFormPage from './containers/Products/Brand/BrandFormPage';
 import BrandView from './containers/Products/Brand/BrandView';
 import ProductFormPage from './containers/Products/Product/ProductFormPage';
+import ProductView from './containers/Products/Product/ProductView';
 import BrandPage from './containers/Products/Brand/BrandPage';
 import VendorsPage from './containers/Products/Ventors/VendorsPage';
 // import './styles/toast.css';
@@ -161,6 +162,14 @@ function App() {
               <Route
                 path="products/products/add"
                 element={<ProductFormPage />}
+              />
+              <Route
+                path="products/products/edit/:id"
+                element={<ProductFormPage />}
+              />
+              <Route
+                path="products/products/view/:id"
+                element={<ProductView />}
               />
               <Route path="/products/vendors" element={<VendorsPage />} />
               <Route path="/products/import" element={<BulkImpor />} />

@@ -36,11 +36,28 @@ export const buildFormDataPayload = (
       // Convert objects to JSON string
       payload.append(key, JSON.stringify(value));
     } else if (Array.isArray(value)) {
-      // Handle arrays
-      if (value.length > 0) {
-        payload.append(key, JSON.stringify(value));
+      // Special handling for variants array
+      if (key === 'variants') {
+        const filteredVariants = value
+          .filter(
+            (variant) => variant && variant.sku && variant.sku.trim() !== '',
+          )
+          .map((variant) => ({
+            ...variant,
+            sku: variant.sku.trim(),
+          }));
+        // Only include variants if there are valid ones, otherwise skip the field
+        if (filteredVariants.length > 0) {
+          payload.append(key, JSON.stringify(filteredVariants));
+        }
+        // Don't add variants field if empty
       } else {
-        payload.append(key, JSON.stringify([]));
+        // Handle other arrays
+        if (value.length > 0) {
+          payload.append(key, JSON.stringify(value));
+        } else {
+          payload.append(key, JSON.stringify([]));
+        }
       }
     } else if (typeof value === 'boolean') {
       // Convert boolean to string
@@ -49,8 +66,39 @@ export const buildFormDataPayload = (
       // Convert number to string
       payload.append(key, String(value));
     } else {
-      // String values
-      payload.append(key, String(value || ''));
+      // Special handling for numeric fields that might come as strings
+      const numericFields = [
+        'tax',
+        'shippingCost',
+        'minOrderQty',
+        'length',
+        'width',
+        'height',
+      ];
+      const optionalNumericFields = ['weight']; // Fields that can be omitted if empty
+
+      if (
+        numericFields.includes(key) &&
+        value !== null &&
+        value !== undefined &&
+        value !== ''
+      ) {
+        payload.append(key, String(Number(value) || 0));
+      } else if (optionalNumericFields.includes(key)) {
+        // Only include weight if it has a valid value
+        if (
+          value !== null &&
+          value !== undefined &&
+          value !== '' &&
+          value.toString().trim() !== ''
+        ) {
+          payload.append(key, String(Number(value) || 0));
+        }
+        // Don't add weight field if empty
+      } else {
+        // String values
+        payload.append(key, String(value || ''));
+      }
     }
   });
 
@@ -128,8 +176,25 @@ export const buildJsonPayload = (formData, fileFields = [], options = {}) => {
       // Keep objects as is
       payload[key] = value;
     } else if (Array.isArray(value)) {
-      // Keep arrays as is
-      payload[key] = value;
+      // Special handling for variants array
+      if (key === 'variants') {
+        const filteredVariants = value
+          .filter(
+            (variant) => variant && variant.sku && variant.sku.trim() !== '',
+          )
+          .map((variant) => ({
+            ...variant,
+            sku: variant.sku.trim(),
+          }));
+        // Only include variants if there are valid ones, otherwise skip the field
+        if (filteredVariants.length > 0) {
+          payload[key] = filteredVariants;
+        }
+        // Don't add variants field if empty
+      } else {
+        // Keep other arrays as is
+        payload[key] = value;
+      }
     } else if (typeof value === 'boolean') {
       // Convert boolean
       payload[key] = Boolean(value);
@@ -137,8 +202,39 @@ export const buildJsonPayload = (formData, fileFields = [], options = {}) => {
       // Convert number
       payload[key] = Number(value) || 0;
     } else {
-      // String values
-      payload[key] = String(value || '');
+      // Special handling for numeric fields that might come as strings
+      const numericFields = [
+        'tax',
+        'shippingCost',
+        'minOrderQty',
+        'length',
+        'width',
+        'height',
+      ];
+      const optionalNumericFields = ['weight']; // Fields that can be omitted if empty
+
+      if (
+        numericFields.includes(key) &&
+        value !== null &&
+        value !== undefined &&
+        value !== ''
+      ) {
+        payload[key] = Number(value) || 0;
+      } else if (optionalNumericFields.includes(key)) {
+        // Only include weight if it has a valid value
+        if (
+          value !== null &&
+          value !== undefined &&
+          value !== '' &&
+          value.toString().trim() !== ''
+        ) {
+          payload[key] = Number(value) || 0;
+        }
+        // Don't add weight field if empty
+      } else {
+        // String values
+        payload[key] = String(value || '');
+      }
     }
   });
 

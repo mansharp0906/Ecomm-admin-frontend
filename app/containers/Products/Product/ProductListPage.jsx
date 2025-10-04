@@ -73,8 +73,6 @@ const ProductListPage = ({ refreshTrigger }) => {
         };
 
         const response = await productServices.getAll(params);
-        console.log('Product API Response:', response);
-        console.log('Response Data:', response?.data);
         
         // Check if response is successful
         if (response?.data?.success || (response?.status >= 200 && response?.status < 300)) {
