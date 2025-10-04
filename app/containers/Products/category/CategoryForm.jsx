@@ -16,6 +16,11 @@ import {
   categoryCreateSchema,
   categoryUpdateSchema,
 } from '@/validations';
+import {
+  buildCategoryPayload,
+  handleFileUpload,
+  handleInputChange as utilHandleInputChange
+} from '@/utils';
 
 const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [formData, setFormData] = useState({
@@ -99,28 +104,13 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-    
-    // Clear field error when user starts typing
-    if (errors?.[name]) {
-      clearFieldError(name);
-    }
+    utilHandleInputChange(e, setFormData, clearFieldError);
   };
 
-  const handleFileUpload = (file) => {
-    setFormData({
-      ...formData,
-      imageFile: file,
+  const handleFileSelect = (file) => {
+    handleFileUpload(file, setFormData, 'image', {
+      clearErrors: clearFieldError
     });
-    
-    // Clear field error when file is selected
-    if (errors?.image) {
-      clearFieldError('image');
-    }
   };
 
 
@@ -162,41 +152,14 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         }
       }
 
-      // Check if we have new file uploads
-      const imageInput = document.getElementById('image');
-      const hasNewImage = imageInput && imageInput.files && imageInput.files[0];
+      // Build API payload using utility function
+      const apiPayload = buildCategoryPayload(formData);
       
       let response;
-      
-      // If we have new file uploads, use FormData
-      if (hasNewImage) {
-        const formDataToSend = new FormData();
-        
-        // Add basic fields
-        formDataToSend.append('name', formData.name);
-        formDataToSend.append('description', formData.description || '');
-        formDataToSend.append('metaTitle', formData.metaTitle || '');
-        formDataToSend.append('metaDescription', formData.metaDescription || '');
-        formDataToSend.append('priority', formData.priority);
-        formDataToSend.append('status', formData.status);
-        
-        // Handle image file upload
-        formDataToSend.append('image', imageInput.files[0]);
-        
-        if (isEditMode) {
-          response = await categoryService.update(categoryId, formDataToSend);
-        } else {
-          response = await categoryService.create(formDataToSend);
-        }
+      if (isEditMode) {
+        response = await categoryService.update(categoryId, apiPayload);
       } else {
-        // No file upload, send regular JSON data
-        const { imageFile, image, ...apiData } = formData;
-        
-        if (isEditMode) {
-          response = await categoryService.update(categoryId, apiData);
-        } else {
-          response = await categoryService.create(apiData);
-        }
+        response = await categoryService.create(apiPayload);
       }
 
       const isSuccess =
@@ -290,7 +253,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 label="Category Image"
                 id="image"
                 accept="image/*"
-                onFileSelect={handleFileUpload}
+                onFileSelect={handleFileSelect}
                 showPreview={true}
                 previewValue={formData.image}
                 error={errors?.image}

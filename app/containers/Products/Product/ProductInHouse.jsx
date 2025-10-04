@@ -1,7 +1,7 @@
 import { Container, PageHeader } from '@/components';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ProductListPage from './ProductListPage';
+import ProductListPage from '../product/ProductListPage';
 
 const ProductInHouse = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
