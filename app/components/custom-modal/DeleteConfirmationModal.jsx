@@ -2,7 +2,6 @@ import { Button } from '@/components';
 import React from 'react';
 import PropTypes from 'prop-types';
 
-
 const DeleteConfirmationModal = ({
   isOpen,
   onClose,
