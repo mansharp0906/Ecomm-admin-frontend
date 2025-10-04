@@ -159,7 +159,9 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       }
 
       // Use utility function to build API payload
-      const apiPayload = buildCategoryPayload(formData);
+      // Remove id field from payload as it's not allowed by backend
+      const { id, ...payloadData } = formData;
+      const apiPayload = buildCategoryPayload(payloadData);
 
       let response;
 
@@ -197,18 +199,19 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         }
       } else {
         // More detailed error message
-        const errorMessage = response?.data?.message || 
-                           response?.data?.error || 
-                           'Failed to save category';
+        const errorMessage =
+          response?.data?.message ||
+          response?.data?.error ||
+          'Failed to save category';
         toast.error(errorMessage);
         console.error('Category save failed:', response);
       }
     } catch (error) {
       console.error('Error saving category:', error);
-      
+
       // Better error handling
       let errorMessage = 'Failed to save category';
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
@@ -216,7 +219,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -347,8 +350,8 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                       ? 'Updating...'
                       : 'Adding...'
                     : isEditMode
-                    ? 'Update Category'
-                    : 'Add Category'}
+                    ? 'Update'
+                    : 'Add'}
                 </Button>
               </div>
             </form>

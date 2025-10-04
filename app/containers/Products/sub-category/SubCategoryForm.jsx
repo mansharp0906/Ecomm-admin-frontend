@@ -103,37 +103,32 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
       if (category) {
         let parentId = '';
+        
+        // Handle parentId extraction from different data structures
         if (category.parentId) {
           if (typeof category.parentId === 'object' && category.parentId._id) {
+            // parentId is an object with _id property
             parentId = category.parentId._id;
           } else if (typeof category.parentId === 'string') {
+            // parentId is already a string
             parentId = category.parentId;
           }
-        } else if (category.parentId === null) {
-          // If parentId is null, check if there's a parent field or if we need to use path
-          if (category.parent && category.parent._id) {
-            parentId = category.parent._id;
-          } else if (category.path) {
-            // Try to find a category that matches the path
-            const parentExists = categories.find(
-              (cat) => cat._id === category.path,
-            );
-            if (parentExists) {
-              parentId = category.path;
-            } else {
-              // For now, leave it empty so user can select the correct parent
-              parentId = '';
-              // Show a warning to the user
-              toast.warning(
-                'Parent category not found. Please select the correct parent category.',
-              );
-            }
-          } else {
-            parentId = '';
-          }
+        } else if (category.path) {
+          // Use path as parentId if available
+          parentId = category.path;
+        } else if (category.parent && category.parent._id) {
+          // Check parent field
+          parentId = category.parent._id;
+        }
+        
+        // Validate that we have a valid parentId
+        if (!parentId) {
+          console.warn('No valid parentId found for sub-category:', category);
+          toast.warning('Parent category not found. Please select the correct parent category.');
         }
 
         const newFormData = {
+          id: category._id || category.id, // Add id for validation
           name: category.name || '',
           description: category.description || '',
           image: category.image || null,
@@ -201,8 +196,14 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     clearErrors();
 
     try {
+      // Prepare data for validation (include id for update mode)
+      const validationData = {
+        ...formData,
+        id: isEditMode ? categoryId : undefined,
+      };
+      
       // Use validation schema instead of manual validation
-      const isValid = await validate(formData);
+      const isValid = await validate(validationData);
       if (!isValid) {
         setLoading(false);
         return;
@@ -231,7 +232,9 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       }
 
       // Build API payload using utility function
-      const apiPayload = buildCategoryPayload(formData);
+      // Remove id field from payload as it's not allowed by backend
+      const { id, ...payloadData } = formData;
+      const apiPayload = buildCategoryPayload(payloadData);
 
       let response;
       if (isEditMode) {
