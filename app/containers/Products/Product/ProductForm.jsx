@@ -11,6 +11,13 @@ import FileUploadButton from '@/components/custom-fileuplode/FileUploadButton';
 import productServices from '@/api/service/productServices';
 import categoryService from '@/api/service/categoryService';
 import brandService from '@/api/service/brandService';
+import {
+  buildProductPayload,
+  handleFileUpload,
+  handleMultipleFileUpload,
+  handleInputChange as utilHandleInputChange,
+  removeFileFromUpload
+} from '@/utils';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
@@ -51,6 +58,7 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
     metaTitle: '',
     metaDescription: '',
     pdf: '',
+    pdfFile: null, // For PDF file upload
     tags: '',
     variants: [], // Product variants array
   });
@@ -272,25 +280,16 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
   }, [fetchCategories, fetchSubCategories, fetchBrands]);
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const val = type === 'checkbox' ? checked : value;
-    if (name === 'images') {
-      // For images array, handle differently if needed, else use index-based handlers outside
-      return;
-    }
+    const { name, value } = e.target;
     
-    setFormData((prev) => ({ ...prev, [name]: val }));
+    // Use utility function for basic input handling
+    utilHandleInputChange(e, setFormData, clearFieldError, {
+      clearRelatedFields: name === 'category' ? ['subCategory'] : []
+    });
     
-    // Clear field error when user starts typing/selecting
-    if (errors[name] && val && val.toString().trim() !== '') {
-      clearFieldError(name);
-    }
-    
-    // If category is changed, fetch sub-categories and reset sub-category selection
+    // If category is changed, fetch sub-categories
     if (name === 'category') {
-      fetchSubCategories(val);
-      setFormData((prev) => ({ ...prev, subCategory: '' }));
-      // Don't clear sub-category error automatically - let user select sub-category first
+      fetchSubCategories(value);
     }
   };
 
@@ -302,107 +301,39 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
   };
 
   const handleThumbnailSelect = (file) => {
-    if (file) {
-      // Create a preview URL for the selected file
-      const previewUrl = URL.createObjectURL(file);
-      
-      // Update form data with the file and preview URL
-      setFormData((prev) => ({ 
-        ...prev, 
-        thumbnail: previewUrl,
-        thumbnailFile: file // Store the actual file for upload
-      }));
-      
-      // Clear any thumbnail errors
-      if (errors?.thumbnail) {
-        clearFieldError('thumbnail');
-      }
-    }
+    handleFileUpload(file, setFormData, 'thumbnail', {
+      clearErrors: clearFieldError
+    });
+  };
+
+  // Handle PDF file upload
+  const handlePdfChange = (e) => {
+    // This is called when file input changes
+  };
+
+  const handlePdfSelect = (file) => {
+    handleFileUpload(file, setFormData, 'pdf', {
+      createPreview: false,
+      clearErrors: clearFieldError
+    });
   };
 
   // Handle multiple images file upload
   const handleImagesChange = (e) => {
-    // Handle multiple file selection
-    if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files);
-      
-      // Add new files to existing files instead of replacing
-      setFormData((prev) => {
-        const existingFiles = prev.images || [];
-        const existingPreviews = prev.imagesPreview || [];
-        
-        // Filter out duplicate files by name and size
-        const uniqueNewFiles = newFiles.filter(newFile => 
-          !existingFiles.some(existingFile => 
-            existingFile.name === newFile.name && existingFile.size === newFile.size
-          )
-        );
-        
-        if (uniqueNewFiles.length === 0) {
-          // No new unique files, reset input value
-          e.target.value = '';
-          return prev;
-        }
-        
-        const allFiles = [...existingFiles, ...uniqueNewFiles];
-        const newPreviews = uniqueNewFiles.map(file => URL.createObjectURL(file));
-        const allPreviews = [...existingPreviews, ...newPreviews];
-        
-        // Reset input value to allow selecting same file again
-        e.target.value = '';
-        
-        return {
-          ...prev,
-          images: allFiles,
-          imagesPreview: allPreviews
-        };
-      });
-      
-      // Clear any images errors
-      if (errors?.images) {
-        clearFieldError('images');
-      }
-    }
+    handleMultipleFileUpload(e.target.files, setFormData, 'images', {
+      clearErrors: clearFieldError,
+      preventDuplicates: true,
+      maxFiles: 10
+    });
+    e.target.value = ''; // Reset input
   };
 
   const handleImagesSelect = (files) => {
-    if (files && files.length > 0) {
-      // Ensure files is an array
-      const newFiles = Array.isArray(files) ? files : [files];
-      
-      // Add new files to existing files instead of replacing
-      setFormData((prev) => {
-        const existingFiles = prev.images || [];
-        const existingPreviews = prev.imagesPreview || [];
-        
-        // Filter out duplicate files by name and size
-        const uniqueNewFiles = newFiles.filter(newFile => 
-          !existingFiles.some(existingFile => 
-            existingFile.name === newFile.name && existingFile.size === newFile.size
-          )
-        );
-        
-        if (uniqueNewFiles.length === 0) {
-          // No new unique files
-          return prev;
-        }
-        
-        const allFiles = [...existingFiles, ...uniqueNewFiles];
-        const newPreviews = uniqueNewFiles.map(file => URL.createObjectURL(file));
-        const allPreviews = [...existingPreviews, ...newPreviews];
-        
-        return {
-          ...prev,
-          images: allFiles,
-          imagesPreview: allPreviews
-        };
-      });
-      
-      // Clear any images errors
-      if (errors?.images) {
-        clearFieldError('images');
-      }
-    }
+    handleMultipleFileUpload(files, setFormData, 'images', {
+      clearErrors: clearFieldError,
+      preventDuplicates: true,
+      maxFiles: 10
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -421,143 +352,28 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
         return;
       }
 
-      // Build payload matching expected API structure
-      // If we have any files (thumbnail or images), we need to use FormData
-      const hasFileUpload = formData.thumbnailFile || (formData.images && formData.images.length > 0);
-      
-      let apiPayload;
-      if (hasFileUpload) {
-        // Use FormData for file uploads
-        apiPayload = new FormData();
-        apiPayload.append('title', formData.title || '');
-        apiPayload.append('slug', formData.slug || formData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''));
-        apiPayload.append('description', String(formData.description || ''));
-        apiPayload.append('shortDescription', String(formData.shortDescription || ''));
-        // Handle SKU - only append if not empty to avoid duplicate null values
-        if (formData.sku && formData.sku.trim() !== '') {
-          apiPayload.append('sku', String(formData.sku));
-        }
-        // Handle barcode - only append if not empty to avoid duplicate empty strings
-        if (formData.barcode && formData.barcode.trim() !== '') {
-          apiPayload.append('barcode', String(formData.barcode));
-        }
-        apiPayload.append('thumbnail', formData.thumbnailFile); // Append the actual file
-        apiPayload.append('brand', formData.brand);
-        apiPayload.append('category', formData.category);
-        apiPayload.append('subCategory', formData.subCategory);
-        apiPayload.append('type', String(formData.type || ''));
-        apiPayload.append('unit', String(formData.unit || ''));
-        apiPayload.append('minOrderQty', Number(formData.minOrderQty) || 1);
-        apiPayload.append('tax', Number(formData.tax) || 0);
-        apiPayload.append('taxType', String(formData.taxType || ''));
-        apiPayload.append('shippingCost', Number(formData.shippingCost) || 0);
-        apiPayload.append('weight', Number(formData.weight) || 0);
-        // Handle dimensions as nested object
-        const dimensions = {
-          length: Number(formData.length) || 0,
-          width: Number(formData.width) || 0,
-          height: Number(formData.height) || 0
-        };
-        apiPayload.append('dimensions', JSON.stringify(dimensions));
-        apiPayload.append('status', String(formData.status || ''));
-        apiPayload.append('featured', Boolean(formData.featured));
-        apiPayload.append('metaTitle', String(formData.metaTitle || ''));
-        apiPayload.append('metaDescription', String(formData.metaDescription || ''));
-        apiPayload.append('pdf', String(formData.pdf || ''));
-        apiPayload.append('createdBy', "651fa9f9eabf0f001fc6a826");
-        
-        // Handle images files - append each file with proper field name
-        if (formData.images && formData.images.length > 0) {
-          formData.images.forEach((file, index) => {
-            apiPayload.append('images', file);
-          });
-        }
-        
-        // Handle tags as JSON array
-        if (formData.tags && formData.tags.trim() !== '') {
-          const tagsArray = formData.tags.split(',').map((tag) => tag.trim()).filter(tag => tag !== '');
-          apiPayload.append('tags', JSON.stringify(tagsArray));
-        } else {
-          apiPayload.append('tags', JSON.stringify([]));
-        }
-        
-        // Handle attributes array
-        if (formData.attributes && formData.attributes.length > 0) {
-          apiPayload.append('attributes', JSON.stringify(formData.attributes));
-        }
-        
-        // Handle variants array - explicitly set to empty array to avoid MongoDB issues
-        if (formData.variants && formData.variants.length > 0) {
-          // Filter out variants with null or empty SKUs to avoid duplicate key errors
-          const validVariants = formData.variants.filter(variant => 
-            variant.sku && variant.sku.trim() !== ''
-          );
-          if (validVariants.length > 0) {
-            apiPayload.append('variants', JSON.stringify(validVariants));
-          } else {
-            // Explicitly set empty array to avoid MongoDB creating default variants
-            apiPayload.append('variants', JSON.stringify([]));
-          }
-        } else {
-          // Explicitly set empty array to avoid MongoDB creating default variants
-          apiPayload.append('variants', JSON.stringify([]));
-        }
-      } else {
-        // Use regular JSON payload
-        apiPayload = {
-        title: formData.title || '',
-        slug:
-          formData.slug ||
-          formData.title
-            .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9-]/g, ''), // Auto-generate slug
-        description: String(formData.description || ''),
-        shortDescription: String(formData.shortDescription || ''),
-        // Handle SKU - only include if not empty to avoid duplicate null values
-        ...(formData.sku && formData.sku.trim() !== '' ? { sku: String(formData.sku) } : {}),
-        // Handle barcode - only include if not empty to avoid duplicate empty strings
-        ...(formData.barcode && formData.barcode.trim() !== '' ? { barcode: String(formData.barcode) } : {}),
-        thumbnail: formData.thumbnail && formData.thumbnail.trim() !== '' ? String(formData.thumbnail) : '/uploads/default-thumbnail.jpg',
-        images: [], // No images in JSON payload when no files uploaded
-        brand: formData.brand,
-        category: formData.category,
-        subCategory: formData.subCategory,
-        attributes: formData.attributes || [], // Product level attributes
-        type: String(formData.type || ''),
-        unit: String(formData.unit || ''),
-        minOrderQty: Number(formData.minOrderQty) || 1,
-        tax: Number(formData.tax) || 0,
-        taxType: String(formData.taxType || ''),
-        shippingCost: Number(formData.shippingCost) || 0,
-        weight: Number(formData.weight) || 0,
+      // Build API payload using utility function
+      const processedFormData = {
+        ...formData,
+        slug: formData.slug || formData.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
         dimensions: {
           length: Number(formData.length) || 0,
           width: Number(formData.width) || 0,
-          height: Number(formData.height) || 0,
+          height: Number(formData.height) || 0
         },
-        status: String(formData.status || ''),
-        featured: Boolean(formData.featured),
-        metaTitle: String(formData.metaTitle || ''),
-        metaDescription: String(formData.metaDescription || ''),
-        pdf: String(formData.pdf || ''),
-        tags: formData.tags
-          ? formData.tags.split(',').map((tag) => tag.trim()).filter(tag => tag !== '')
+        tags: formData.tags && formData.tags.trim() !== '' 
+          ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
           : [],
-        // Handle variants - explicitly set to empty array to avoid MongoDB issues
-        variants: (() => {
-          if (formData.variants && formData.variants.length > 0) {
-            // Filter out variants with null or empty SKUs to avoid duplicate key errors
-            const validVariants = formData.variants.filter(variant => 
-              variant.sku && variant.sku.trim() !== ''
-            );
-            return validVariants;
-          }
-          return []; // Explicitly set empty array
-        })(),
-        createdBy: "651fa9f9eabf0f001fc6a826" // This should come from auth context
-        };
-      }
+        variants: formData.variants && formData.variants.length > 0
+          ? formData.variants.filter(variant => variant.sku && variant.sku.trim() !== '')
+          : []
+      };
+      
+      const apiPayload = buildProductPayload(processedFormData, {
+        customFields: {
+          createdBy: "651fa9f9eabf0f001fc6a826"
+        }
+      });
 
       let response;
       
@@ -605,6 +421,7 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
           metaTitle: '',
           metaDescription: '',
           pdf: '',
+          pdfFile: null,
           tags: '',
           variants: [],
         });
@@ -674,6 +491,7 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
       metaTitle: '',
       metaDescription: '',
       pdf: '',
+      pdfFile: null,
       tags: '',
       variants: [],
     });
@@ -835,14 +653,7 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
                         <button
                           type="button"
                           onClick={() => {
-                            // Remove this image from the preview and files
-                            const newFiles = formData.images.filter((_, i) => i !== index);
-                            const newPreviews = formData.imagesPreview.filter((_, i) => i !== index);
-                            setFormData(prev => ({
-                              ...prev,
-                              images: newFiles,
-                              imagesPreview: newPreviews
-                            }));
+                            removeFileFromUpload(index, setFormData, 'images');
                           }}
                           className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
                         >
@@ -958,12 +769,22 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
               rows={2}
               error={errors?.metaDescription}
             />
+            <FileUploadButton
+              label="Product PDF"
+              id="pdf"
+              accept=".pdf"
+              onChange={handlePdfChange}
+              onFileSelect={handlePdfSelect}
+              showPreview={false}
+              error={errors?.pdf}
+            />
             <InputTextField
-              label="PDF URL"
+              label="PDF URL (Alternative)"
               name="pdf"
               value={formData.pdf}
               onChange={handleInputChange}
               error={errors?.pdf}
+              placeholder="Or enter PDF URL directly"
             />
             <InputTextField
               label="Tags (comma separated)"

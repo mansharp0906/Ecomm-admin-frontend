@@ -17,6 +17,11 @@ import {
   subCategoryUpdateSchema,
 } from '@/validations';
 import PropTypes from 'prop-types';
+import {
+  buildCategoryPayload,
+  handleFileUpload,
+  handleInputChange as utilHandleInputChange,
+} from '@/utils';
 
 const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [formData, setFormData] = useState({
@@ -41,7 +46,8 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const validationSchema = isEditMode
     ? subCategoryUpdateSchema
     : subCategoryCreateSchema;
-  const { validate, errors, setErrors, clearErrors, clearFieldError } = useValidation(validationSchema);
+  const { validate, errors, setErrors, clearErrors, clearFieldError } =
+    useValidation(validationSchema);
 
   // Fetch all categories for dropdown
   const fetchCategories = async () => {
@@ -97,37 +103,34 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
       if (category) {
         let parentId = '';
+
+        // Handle parentId extraction from different data structures
         if (category.parentId) {
           if (typeof category.parentId === 'object' && category.parentId._id) {
+            // parentId is an object with _id property
             parentId = category.parentId._id;
           } else if (typeof category.parentId === 'string') {
+            // parentId is already a string
             parentId = category.parentId;
           }
-        } else if (category.parentId === null) {
-          // If parentId is null, check if there's a parent field or if we need to use path
-          if (category.parent && category.parent._id) {
-            parentId = category.parent._id;
-          } else if (category.path) {
-            // Try to find a category that matches the path
-            const parentExists = categories.find(
-              (cat) => cat._id === category.path,
-            );
-            if (parentExists) {
-              parentId = category.path;
-            } else {
-              // For now, leave it empty so user can select the correct parent
-              parentId = '';
-              // Show a warning to the user
-              toast.warning(
-                'Parent category not found. Please select the correct parent category.',
-              );
-            }
-          } else {
-            parentId = '';
-          }
+        } else if (category.path) {
+          // Use path as parentId if available
+          parentId = category.path;
+        } else if (category.parent && category.parent._id) {
+          // Check parent field
+          parentId = category.parent._id;
+        }
+
+        // Validate that we have a valid parentId
+        if (!parentId) {
+          console.warn('No valid parentId found for sub-category:', category);
+          toast.warning(
+            'Parent category not found. Please select the correct parent category.',
+          );
         }
 
         const newFormData = {
+          id: category._id || category.id, // Add id for validation
           name: category.name || '',
           description: category.description || '',
           image: category.image || null,
@@ -170,39 +173,23 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   // Function to check if all required fields are filled
   const areAllRequiredFieldsFilled = (data) => {
     return (
-      data.name && data.name.trim() !== '' &&
-      data.parentId && data.parentId.trim() !== '' &&
-      data.status && data.status.trim() !== ''
+      data.name &&
+      data.name.trim() !== '' &&
+      data.parentId &&
+      data.parentId.trim() !== '' &&
+      data.status &&
+      data.status.trim() !== ''
     );
   };
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const newFormData = {
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value,
-    };
-    
-    setFormData(newFormData);
-
-    // Clear error for the current field if it's filled
-    if (errors[name] && value && value.trim() !== '') {
-      clearFieldError(name);
-    }
+    utilHandleInputChange(e, setFormData, clearFieldError);
   };
 
-  const handleFileUpload = (file) => {
-    const newFormData = {
-      ...formData,
-      imageFile: file,
-    };
-    
-    setFormData(newFormData);
-    
-    // Clear field error when file is selected
-    if (errors?.image && file) {
-      clearFieldError('image');
-    }
+  const handleFileSelect = (file) => {
+    handleFileUpload(file, setFormData, 'image', {
+      clearErrors: clearFieldError,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -211,94 +198,51 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     clearErrors();
 
     try {
-      // Manual validation check
-      const validationErrors = {};
-      
-      if (!formData.name || formData.name.trim() === '') {
-        validationErrors.name = 'Sub-category name is required';
-      }
-      
-      if (!formData.parentId || formData.parentId.trim() === '') {
-        validationErrors.parentId = 'Parent category is required';
-      }
-      
-      
-      if (!formData.status || formData.status.trim() === '') {
-        validationErrors.status = 'Status is required';
-      }
-      
-      // If validation errors exist, set them and return
-      if (Object.keys(validationErrors).length > 0) {
-        Object.keys(validationErrors).forEach((key) => {
-          setErrors(prev => ({
-            ...prev,
-            [key]: validationErrors[key]
-          }));
-        });
-        
-        // Show toast message for required fields
-        toast.error('Please fill the required fields');
-        
+      // Prepare data for validation (include id for update mode)
+      const validationData = {
+        ...formData,
+        id: isEditMode ? categoryId : undefined,
+      };
+
+      // Use validation schema instead of manual validation
+      const isValid = await validate(validationData);
+      if (!isValid) {
         setLoading(false);
         return;
       }
 
       // Simple duplicate check before submitting
-      const existingCategories = await categoryService.getAll({ 
-        level: 1, 
+      const existingCategories = await categoryService.getAll({
+        level: 1,
         status: 'active',
-        parentId: formData.parentId 
+        parentId: formData.parentId,
       });
       if (existingCategories?.data?.success && existingCategories.data.data) {
-        const duplicateCategory = existingCategories.data.data.find(category => 
-          category.name.toLowerCase() === formData.name.toLowerCase() && 
-          category._id !== categoryId
+        const duplicateCategory = existingCategories.data.data.find(
+          (category) =>
+            category.name.toLowerCase() === formData.name.toLowerCase() &&
+            category._id !== categoryId,
         );
-        
+
         if (duplicateCategory) {
-          toast.error('Sub-category name already exists under this parent. Please choose a different name.');
+          toast.error(
+            'Sub-category name already exists under this parent. Please choose a different name.',
+          );
           setLoading(false);
           return;
         }
       }
 
-      // Check if we have new file uploads
-      const imageInput = document.getElementById('image');
-      const hasNewImage = imageInput && imageInput.files && imageInput.files[0];
-      
+      // Build API payload using utility function
+      // Remove id field from payload as it's not allowed by backend
+      const { id, ...payloadData } = formData;
+      const apiPayload = buildCategoryPayload(payloadData);
+
       let response;
-      
-      // If we have new file uploads, use FormData
-      if (hasNewImage) {
-        const formDataToSend = new FormData();
-        
-        // Add basic fields
-        formDataToSend.append('name', formData.name);
-        formDataToSend.append('description', formData.description || '');
-        formDataToSend.append('metaTitle', formData.metaTitle || '');
-        formDataToSend.append('metaDescription', formData.metaDescription || '');
-        formDataToSend.append('priority', formData.priority);
-        formDataToSend.append('status', formData.status);
-        formDataToSend.append('parentId', formData.parentId);
-        formDataToSend.append('isFeatured', formData.isFeatured);
-        
-        // Handle image file upload
-        formDataToSend.append('image', imageInput.files[0]);
-        
-        if (isEditMode) {
-          response = await categoryService.update(categoryId, formDataToSend);
-        } else {
-          response = await categoryService.create(formDataToSend);
-        }
+      if (isEditMode) {
+        response = await categoryService.update(categoryId, apiPayload);
       } else {
-        // No file upload, send regular JSON data
-        const { imageFile, image: _image, ...apiData } = formData;
-        
-        if (isEditMode) {
-          response = await categoryService.update(categoryId, apiData);
-        } else {
-          response = await categoryService.create(apiData);
-        }
+        response = await categoryService.create(apiPayload);
       }
 
       const isSuccess =
@@ -341,9 +285,9 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         });
         // Set errors using validation hook
         Object.keys(validationErrors).forEach((key) => {
-          setErrors(prev => ({
+          setErrors((prev) => ({
             ...prev,
-            [key]: validationErrors[key]
+            [key]: validationErrors[key],
           }));
         });
         // Don't show toast for validation errors, they will be displayed in fields
@@ -444,7 +388,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 label="Sub Category Image"
                 id="image"
                 accept="image/*"
-                onFileSelect={handleFileUpload}
+                onFileSelect={handleFileSelect}
                 showPreview={true}
                 previewValue={formData.image}
                 error={errors?.image}

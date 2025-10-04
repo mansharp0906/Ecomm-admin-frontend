@@ -16,6 +16,11 @@ import {
   categoryCreateSchema,
   categoryUpdateSchema,
 } from '@/validations';
+import {
+  buildCategoryPayload,
+  handleFileUpload,
+  handleInputChange as utilHandleInputChange,
+} from '@/utils';
 
 const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const [formData, setFormData] = useState({
@@ -36,9 +41,12 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
   const validationSchema = isEditMode
     ? categoryUpdateSchema
     : categoryCreateSchema;
-  const { errors, validate, clearErrors, clearFieldError } = useValidation(validationSchema, {
-    showToast: false, // Disable automatic toast, we'll show specific errors
-  });
+  const { errors, validate, clearErrors, clearFieldError } = useValidation(
+    validationSchema,
+    {
+      showToast: false, // Disable automatic toast, we'll show specific errors
+    },
+  );
 
   const fetchCategoryData = useCallback(async () => {
     try {
@@ -90,39 +98,21 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     }
   }, [categoryId]);
 
-
   useEffect(() => {
     if (isEditMode && categoryId) {
       fetchCategoryData();
     }
   }, [isEditMode, categoryId, fetchCategoryData]);
 
-
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-    
-    // Clear field error when user starts typing
-    if (errors?.[name]) {
-      clearFieldError(name);
-    }
+    utilHandleInputChange(e, setFormData, clearFieldError);
   };
 
-  const handleFileUpload = (file) => {
-    setFormData({
-      ...formData,
-      imageFile: file,
+  const handleFileSelect = (file) => {
+    handleFileUpload(file, setFormData, 'image', {
+      clearErrors: clearFieldError,
     });
-    
-    // Clear field error when file is selected
-    if (errors?.image) {
-      clearFieldError('image');
-    }
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -148,57 +138,37 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       }
 
       // Simple duplicate check before submitting
-      const existingCategories = await categoryService.getAll({ level: 0, status: 'active' });
+      const existingCategories = await categoryService.getAll({
+        level: 0,
+        status: 'active',
+      });
       if (existingCategories?.data?.success && existingCategories.data.data) {
-        const duplicateCategory = existingCategories.data.data.find(category => 
-          category.name.toLowerCase() === formData.name.toLowerCase() && 
-          category._id !== categoryId
+        const duplicateCategory = existingCategories.data.data.find(
+          (category) =>
+            category.name.toLowerCase() === formData.name.toLowerCase() &&
+            category._id !== categoryId,
         );
-        
+
         if (duplicateCategory) {
-          toast.error('Category name already exists. Please choose a different name.');
+          toast.error(
+            'Category name already exists. Please choose a different name.',
+          );
           setLoading(false);
           return;
         }
       }
 
-      // Check if we have new file uploads
-      const imageInput = document.getElementById('image');
-      const hasNewImage = imageInput && imageInput.files && imageInput.files[0];
-      
+      // Use utility function to build API payload
+      // Remove id field from payload as it's not allowed by backend
+      const { id, ...payloadData } = formData;
+      const apiPayload = buildCategoryPayload(payloadData);
+
       let response;
-      
-      // If we have new file uploads, use FormData
-      if (hasNewImage) {
-        const formDataToSend = new FormData();
-        
-        // Add basic fields
-        formDataToSend.append('name', formData.name);
-        formDataToSend.append('description', formData.description || '');
-        formDataToSend.append('metaTitle', formData.metaTitle || '');
-        formDataToSend.append('metaDescription', formData.metaDescription || '');
-        formDataToSend.append('priority', formData.priority);
-        formDataToSend.append('status', formData.status);
-        
-        // Handle image file upload
-        formDataToSend.append('image', imageInput.files[0]);
-        
-        
-        if (isEditMode) {
-          response = await categoryService.update(categoryId, formDataToSend);
-        } else {
-          response = await categoryService.create(formDataToSend);
-        }
+
+      if (isEditMode) {
+        response = await categoryService.update(categoryId, apiPayload);
       } else {
-        // No file upload, send regular JSON data
-        const { imageFile, image, ...apiData } = formData;
-        
-        
-        if (isEditMode) {
-          response = await categoryService.update(categoryId, apiData);
-        } else {
-          response = await categoryService.create(apiData);
-        }
+        response = await categoryService.create(apiPayload);
       }
 
       const isSuccess =
@@ -228,11 +198,29 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           onSuccess(response.data.data || response.data);
         }
       } else {
-        toast.error('Failed to save category');
+        // More detailed error message
+        const errorMessage =
+          response?.data?.message ||
+          response?.data?.error ||
+          'Failed to save category';
+        toast.error(errorMessage);
+        console.error('Category save failed:', response);
       }
     } catch (error) {
       console.error('Error saving category:', error);
-      toast.error(error.response?.data?.message || 'Failed to save category');
+
+      // Better error handling
+      let errorMessage = 'Failed to save category';
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -276,7 +264,6 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 error={errors?.name}
               />
 
-
               <TextAreaField
                 label="Description"
                 name="description"
@@ -292,7 +279,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                 label="Category Image"
                 id="image"
                 accept="image/*"
-                onFileSelect={handleFileUpload}
+                onFileSelect={handleFileSelect}
                 showPreview={true}
                 previewValue={formData.image}
                 error={errors?.image}
@@ -363,8 +350,8 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
                       ? 'Updating...'
                       : 'Adding...'
                     : isEditMode
-                    ? 'Update Category'
-                    : 'Add Category'}
+                    ? 'Update'
+                    : 'Add'}
                 </Button>
               </div>
             </form>

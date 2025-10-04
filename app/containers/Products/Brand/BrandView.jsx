@@ -1,4 +1,11 @@
-import { Button, LoadingData, Container, Breadcrumb, CustomIcon, ScrollContainer } from '@/components';
+import {
+  Button,
+  LoadingData,
+  Container,
+  Breadcrumb,
+  CustomIcon,
+  ScrollContainer,
+} from '@/components';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -86,9 +93,7 @@ const BrandView = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Brand Details
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Brand Details</h1>
           </div>
           <div className="flex space-x-3">
             <Button
@@ -97,7 +102,7 @@ const BrandView = () => {
               className="flex items-center space-x-2"
             >
               <CustomIcon type="edit" size={4} />
-              <span>Edit Brand</span>
+              <span>Edit</span>
             </Button>
             <Button
               variant="secondary"
@@ -105,7 +110,7 @@ const BrandView = () => {
               className="flex items-center space-x-2"
             >
               <CustomIcon type="arrow-left" size={4} />
-              <span>Back to Brands</span>
+              <span>Back</span>
             </Button>
           </div>
         </div>
@@ -125,7 +130,9 @@ const BrandView = () => {
               {/* Brand Images */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Logo</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Logo
+                  </h3>
                   {brand.logo ? (
                     <img
                       src={brand.logo}
@@ -147,9 +154,11 @@ const BrandView = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Banner</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Banner
+                  </h3>
                   {brand.banner ? (
                     <img
                       src={brand.banner}
@@ -176,20 +185,30 @@ const BrandView = () => {
               {/* Brand Details */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Basic Information</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Basic Information
+                  </h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Name</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Name
+                      </label>
                       <p className="text-lg text-gray-900">{brand.name}</p>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Slug</label>
-                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">{brand.slug}</p>
+                      <label className="text-sm font-medium text-gray-500">
+                        Slug
+                      </label>
+                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">
+                        {brand.slug}
+                      </p>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Status</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Status
+                      </label>
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           brand.status === 'active'
@@ -200,42 +219,62 @@ const BrandView = () => {
                         {brand.status}
                       </span>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Priority</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Priority
+                      </label>
                       <p className="text-sm text-gray-900">{brand.priority}</p>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-700">{brand.description || 'No description provided'}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Description
+                  </h3>
+                  <p className="text-gray-700">
+                    {brand.description || 'No description provided'}
+                  </p>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">SEO Information</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    SEO Information
+                  </h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Meta Title</label>
-                      <p className="text-sm text-gray-900">{brand.metaTitle || 'Not set'}</p>
+                      <label className="text-sm font-medium text-gray-500">
+                        Meta Title
+                      </label>
+                      <p className="text-sm text-gray-900">
+                        {brand.metaTitle || 'Not set'}
+                      </p>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Meta Description</label>
-                      <p className="text-sm text-gray-700">{brand.metaDescription || 'Not set'}</p>
+                      <label className="text-sm font-medium text-gray-500">
+                        Meta Description
+                      </label>
+                      <p className="text-sm text-gray-700">
+                        {brand.metaDescription || 'Not set'}
+                      </p>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Timestamps</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Timestamps
+                  </h3>
                   <div className="space-y-2 text-sm text-gray-600">
                     <div>
-                      <span className="font-medium">Created:</span> {new Date(brand.createdAt).toLocaleString()}
+                      <span className="font-medium">Created:</span>{' '}
+                      {new Date(brand.createdAt).toLocaleString()}
                     </div>
                     <div>
-                      <span className="font-medium">Updated:</span> {new Date(brand.updatedAt).toLocaleString()}
+                      <span className="font-medium">Updated:</span>{' '}
+                      {new Date(brand.updatedAt).toLocaleString()}
                     </div>
                   </div>
                 </div>

@@ -16,6 +16,11 @@ import {
   subSubCategoryUpdateSchema,
 } from '@/validations';
 import PropTypes from 'prop-types';
+import {
+  buildCategoryPayload,
+  handleFileUpload,
+  handleInputChange as utilHandleInputChange,
+} from '@/utils';
 
 const SubSubCategoryForm = ({
   onSuccess,
@@ -137,9 +142,11 @@ const SubSubCategoryForm = ({
         }
 
         const newFormData = {
+          id: category._id || category.id, // Add id for validation
           name: category.name || '',
           description: category.description || '',
           image: category.image || null,
+          imageFile: null, // Reset file upload when editing
           priority: category.priority || 1,
           status: category.status || 'active',
           isFeatured: category.isFeatured || false,
@@ -175,28 +182,13 @@ const SubSubCategoryForm = ({
   }, [isEditMode, categoryId, fetchCategoryData, subCategories.length]);
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value,
-    });
-
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      clearFieldError(name);
-    }
+    utilHandleInputChange(e, setFormData, clearFieldError);
   };
 
-  const handleFileUpload = (file) => {
-    setFormData({
-      ...formData,
-      imageFile: file,
+  const handleFileSelect = (file) => {
+    handleFileUpload(file, setFormData, 'image', {
+      clearErrors: clearFieldError,
     });
-    
-    // Clear field error when file is selected
-    if (errors?.image) {
-      clearFieldError('image');
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -205,34 +197,15 @@ const SubSubCategoryForm = ({
     clearErrors();
 
     try {
-      // Manual validation check
-      const validationErrors = {};
-
-      if (!formData.name || formData.name.trim() === '') {
-        validationErrors.name = 'Sub-sub-category name is required';
-      }
-
-      if (!formData.parentId || formData.parentId.trim() === '') {
-        validationErrors.parentId = 'Parent sub-category is required';
-      }
-
-
-      if (!formData.status || formData.status.trim() === '') {
-        validationErrors.status = 'Status is required';
-      }
-
-      // If validation errors exist, set them and return
-      if (Object.keys(validationErrors).length > 0) {
-        Object.keys(validationErrors).forEach((key) => {
-          setErrors((prev) => ({
-            ...prev,
-            [key]: validationErrors[key],
-          }));
-        });
-        
-        // Show toast message for required fields
-        toast.error('Please fill the required fields');
-        
+      // Prepare data for validation (include id for update mode)
+      const validationData = {
+        ...formData,
+        id: isEditMode ? categoryId : undefined,
+      };
+      
+      // Use validation schema instead of manual validation
+      const isValid = await validate(validationData);
+      if (!isValid) {
         setLoading(false);
         return;
       }
@@ -259,43 +232,16 @@ const SubSubCategoryForm = ({
         }
       }
 
-      // Check if we have new file uploads
-      const imageInput = document.getElementById('image');
-      const hasNewImage = imageInput && imageInput.files && imageInput.files[0];
-      
+      // Build API payload using utility function
+      // Remove id field from payload as it's not allowed by backend
+      const { id, ...payloadData } = formData;
+      const apiPayload = buildCategoryPayload(payloadData);
+
       let response;
-      
-      // If we have new file uploads, use FormData
-      if (hasNewImage) {
-        const formDataToSend = new FormData();
-        
-        // Add basic fields
-        formDataToSend.append('name', formData.name);
-        formDataToSend.append('description', formData.description || '');
-        formDataToSend.append('metaTitle', formData.metaTitle || '');
-        formDataToSend.append('metaDescription', formData.metaDescription || '');
-        formDataToSend.append('priority', formData.priority);
-        formDataToSend.append('status', formData.status);
-        formDataToSend.append('parentId', formData.parentId);
-        formDataToSend.append('isFeatured', formData.isFeatured);
-        
-        // Handle image file upload
-        formDataToSend.append('image', imageInput.files[0]);
-        
-        if (isEditMode) {
-          response = await categoryService.update(categoryId, formDataToSend);
-        } else {
-          response = await categoryService.create(formDataToSend);
-        }
+      if (isEditMode) {
+        response = await categoryService.update(categoryId, apiPayload);
       } else {
-        // No file upload, send regular JSON data
-        const { imageFile, image: _image, ...apiData } = formData;
-        
-        if (isEditMode) {
-          response = await categoryService.update(categoryId, apiData);
-        } else {
-          response = await categoryService.create(apiData);
-        }
+        response = await categoryService.create(apiPayload);
       }
 
       const isSuccess =
@@ -435,7 +381,7 @@ const SubSubCategoryForm = ({
                 label="Sub Sub Category Image"
                 id="image"
                 accept="image/*"
-                onFileSelect={handleFileUpload}
+                onFileSelect={handleFileSelect}
                 showPreview={true}
                 previewValue={formData.image}
                 error={errors?.image}
