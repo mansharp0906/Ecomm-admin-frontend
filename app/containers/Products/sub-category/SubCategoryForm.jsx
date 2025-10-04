@@ -103,7 +103,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
 
       if (category) {
         let parentId = '';
-        
+
         // Handle parentId extraction from different data structures
         if (category.parentId) {
           if (typeof category.parentId === 'object' && category.parentId._id) {
@@ -120,11 +120,13 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
           // Check parent field
           parentId = category.parent._id;
         }
-        
+
         // Validate that we have a valid parentId
         if (!parentId) {
           console.warn('No valid parentId found for sub-category:', category);
-          toast.warning('Parent category not found. Please select the correct parent category.');
+          toast.warning(
+            'Parent category not found. Please select the correct parent category.',
+          );
         }
 
         const newFormData = {
@@ -201,7 +203,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         ...formData,
         id: isEditMode ? categoryId : undefined,
       };
-      
+
       // Use validation schema instead of manual validation
       const isValid = await validate(validationData);
       if (!isValid) {
