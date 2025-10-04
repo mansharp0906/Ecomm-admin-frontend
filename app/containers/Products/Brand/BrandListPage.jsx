@@ -97,7 +97,7 @@ const BrandListPage = ({ refreshTrigger }) => {
   // Load brands on mount and when dependencies change
   useEffect(() => {
     fetchBrands(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchBrands, pagination.currentPage, searchTerm]);
+  }, [refreshTrigger, fetchBrands, pagination.currentPage]);
 
   // Handle page change
   const handlePageChange = (page) => {
