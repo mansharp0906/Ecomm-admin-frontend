@@ -71,7 +71,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
           page,
           limit: pagination.itemsPerPage,
           level: 0, // Only main categories
-          status: 'active', // Only active categories
+          // status: 'active', // Show all categories (active + inactive)
           ...(search && { search: search }),
         };
 
@@ -106,7 +106,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
   // Load categories on component mount and when refreshTrigger changes
   useEffect(() => {
     fetchCategories(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchCategories, pagination.currentPage, searchTerm]);
+  }, [refreshTrigger, fetchCategories, pagination.currentPage]);
 
   // Handle page change
   const handlePageChange = (page) => {

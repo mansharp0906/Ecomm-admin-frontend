@@ -30,7 +30,6 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
     status: 'active',
     parentId: '',
     isFeatured: false,
-    level: 1, // Add level field for sub-category
   });
 
   const [loading, setLoading] = useState(false);
@@ -142,7 +141,6 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         };
 
         setFormData(newFormData);
-        s;
       } else {
         toast.error('No sub category data found');
       }
@@ -294,7 +292,7 @@ const SubCategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         }
       } else {
         // No file upload, send regular JSON data
-        const { imageFile, level: _level, image: _image, ...apiData } = formData;
+        const { imageFile, image: _image, ...apiData } = formData;
         
         if (isEditMode) {
           response = await categoryService.update(categoryId, apiData);

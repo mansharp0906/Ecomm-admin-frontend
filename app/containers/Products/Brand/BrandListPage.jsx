@@ -106,7 +106,7 @@ const BrandListPage = ({ refreshTrigger }) => {
 
   useEffect(() => {
     fetchBrands(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchBrands, pagination.currentPage, searchTerm]);
+  }, [refreshTrigger, fetchBrands, pagination.currentPage]);
 
   const handlePageChange = (page) => {
     setPagination((prev) => ({ ...prev, currentPage: page }));

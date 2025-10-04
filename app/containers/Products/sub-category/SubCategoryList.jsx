@@ -118,7 +118,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
   useEffect(() => {
     fetchAllCategories();
     fetchSubCategories(pagination.currentPage, searchTerm);
-  }, [refreshTrigger, fetchSubCategories, pagination.currentPage, searchTerm]);
+  }, [refreshTrigger, fetchSubCategories, pagination.currentPage]);
 
   // Handle page change
   const handlePageChange = (page) => {

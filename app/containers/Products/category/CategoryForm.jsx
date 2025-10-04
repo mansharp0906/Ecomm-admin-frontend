@@ -183,6 +183,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
         // Handle image file upload
         formDataToSend.append('image', imageInput.files[0]);
         
+        
         if (isEditMode) {
           response = await categoryService.update(categoryId, formDataToSend);
         } else {
@@ -191,6 +192,7 @@ const CategoryForm = ({ onSuccess, onCancel, categoryId, isEditMode }) => {
       } else {
         // No file upload, send regular JSON data
         const { imageFile, image, ...apiData } = formData;
+        
         
         if (isEditMode) {
           response = await categoryService.update(categoryId, apiData);
