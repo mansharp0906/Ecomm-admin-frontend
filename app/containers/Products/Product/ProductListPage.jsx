@@ -29,6 +29,7 @@ import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import Tooltip from '@/components/custom-table/tooltip';
 
+import { formatDateShort } from '@/utils';
 const ProductListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
@@ -277,11 +278,7 @@ const ProductListPage = ({ refreshTrigger }) => {
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-500">
-                    {new Date(product.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
+                    {formatDateShort(product.createdAt)}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex space-x-1 justify-center">

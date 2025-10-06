@@ -12,6 +12,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import attributeService from '@/api/service/attributeService';
 import { toast } from 'react-toastify';
 
+import { formatDateLong } from '@/utils';
 const AttributeView = () => {
   const { id } = useParams();
   const navigate = useNavigate();

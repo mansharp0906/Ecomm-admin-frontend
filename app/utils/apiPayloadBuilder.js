@@ -332,3 +332,49 @@ export const buildBrandPayload = (formData, options = {}) => {
     customFieldMapping,
   });
 };
+
+/**
+ * Attribute-specific payload builder
+ * @param {Object} formData - Attribute form data
+ * @param {Object} options - Additional options
+ * @returns {Object} API payload
+ */
+export const buildAttributePayload = (formData, options = {}) => {
+  // Attributes don't have file uploads, so always use JSON payload
+  const payload = {};
+
+  // Handle basic fields
+  Object.keys(formData).forEach((key) => {
+    const value = formData[key];
+
+    // Skip file fields and null/undefined values
+    if (value === null || value === undefined) {
+      return;
+    }
+
+    // Handle different data types
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      // Keep objects as is
+      payload[key] = value;
+    } else if (Array.isArray(value)) {
+      // Keep arrays as is (for values array)
+      payload[key] = value;
+    } else if (typeof value === 'boolean') {
+      // Convert boolean
+      payload[key] = Boolean(value);
+    } else if (typeof value === 'number') {
+      // Convert number
+      payload[key] = Number(value) || 0;
+    } else {
+      // String values
+      payload[key] = String(value || '');
+    }
+  });
+
+  // Add custom fields from options
+  if (options.customFields) {
+    Object.assign(payload, options.customFields);
+  }
+
+  return payload;
+};

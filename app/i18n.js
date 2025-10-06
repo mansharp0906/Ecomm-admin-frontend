@@ -1,7 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import detector from 'i18next-browser-languagedetector';
-import moment from 'moment';
 import enTranslation from './translations/en.json';
 
 const resources = {
@@ -13,7 +12,8 @@ const resources = {
 const locale = ['en'];
 
 i18n.on('languageChanged', (language) => {
-  moment.locale(language);
+  // Set document language for proper date formatting
+  document.documentElement.lang = language;
 
   if (language === i18n.options.fallbackLng[0]) {
     if (window.location.pathname.includes('/' + i18n.options.fallbackLng[0])) {

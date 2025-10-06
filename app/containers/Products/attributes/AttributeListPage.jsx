@@ -22,6 +22,7 @@ import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import { formatDateShort } from '@/utils';
 const AttributeListPage = ({ refreshTrigger }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -319,11 +320,7 @@ const AttributeListPage = ({ refreshTrigger }) => {
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-500">
-                    {new Date(attribute?.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
+                    {formatDateShort(attribute?.createdAt)}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex space-x-1 justify-center">

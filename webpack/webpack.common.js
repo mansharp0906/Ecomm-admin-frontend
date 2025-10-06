@@ -25,7 +25,6 @@ module.exports = {
       filename: '[name].[chunkhash].css',
       chunkFilename: '[id].[chunkhash].css',
     }),
-    new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/),
     new CopyPlugin({
       patterns: [{ from: 'public' }],
     }),

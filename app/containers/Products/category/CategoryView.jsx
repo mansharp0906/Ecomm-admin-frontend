@@ -10,6 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
+import { formatDateLong } from '@/utils';
 
 const CategoryView = () => {
   const { id } = useParams();
@@ -273,15 +274,7 @@ const CategoryView = () => {
                   Created At
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {category.createdAt
-                    ? new Date(category.createdAt).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : 'N/A'}
+                  {formatDateLong(category.createdAt)}
                 </p>
               </div>
               <div>
@@ -289,15 +282,7 @@ const CategoryView = () => {
                   Updated At
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {category.updatedAt
-                    ? new Date(category.updatedAt).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : 'N/A'}
+                  {formatDateLong(category.updatedAt)}
                 </p>
               </div>
             </div>

@@ -41,3 +41,16 @@ export {
   mergeFormData,
   createConditionalFormData,
 } from './formDataUtils';
+
+// Date Utils
+export {
+  formatDateShort,
+  formatDateLong,
+  formatDateOnly,
+  formatDateTime,
+  getRelativeTime,
+  isValidDate,
+  getCurrentDateISO,
+  formatDateForAPI,
+  getDateRange,
+} from './dateUtils';

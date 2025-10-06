@@ -12,6 +12,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import brandService from '@/api/service/brandService';
 import { toast } from 'react-toastify';
 
+import { formatDateLong } from '@/utils';
 const BrandView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -270,11 +271,11 @@ const BrandView = () => {
                   <div className="space-y-2 text-sm text-gray-600">
                     <div>
                       <span className="font-medium">Created:</span>{' '}
-                      {new Date(brand.createdAt).toLocaleString()}
+                      {formatDateLong(brand.createdAt)}
                     </div>
                     <div>
                       <span className="font-medium">Updated:</span>{' '}
-                      {new Date(brand.updatedAt).toLocaleString()}
+                      {formatDateLong(brand.updatedAt)}
                     </div>
                   </div>
                 </div>
