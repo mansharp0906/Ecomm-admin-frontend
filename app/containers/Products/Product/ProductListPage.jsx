@@ -73,19 +73,21 @@ const ProductListPage = ({ refreshTrigger }) => {
         };
 
         const response = await productServices.getAll(params);
+        console.log('Product API Response:', response);
+        console.log('Response Data:', response?.data);
         
         // Check if response is successful
         if (response?.data?.success || (response?.status >= 200 && response?.status < 300)) {
-          // Use data directly from API (backend should return only level 0 categories)
-          const productsData = response.data?.data || response.data || [];
+          // Use data directly from API - check for products array in response
+          const productsData = response.data?.products || response.data?.data || response.data || [];
           setProducts(Array.isArray(productsData) ? productsData : []);
 
           // Update pagination state from API response (backend handles pagination)
           setPagination((prev) => ({
             ...prev,
-            currentPage: response.data?.page || page,
+            currentPage: response.data?.currentPage || response.data?.page || page,
             totalPages:
-              response.data?.totalPages ||
+              response.data?.pages || response.data?.totalPages ||
               Math.ceil((response.data?.total || productsData.length) / pagination.itemsPerPage),
             totalItems: response.data?.total || productsData.length,
           }));
