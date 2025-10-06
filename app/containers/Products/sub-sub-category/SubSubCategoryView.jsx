@@ -11,7 +11,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import categoryService from '@/api/service/categoryService';
 import { toast } from 'react-toastify';
 
-import { formatDateLong } from '@/utils';
+import { formatDateDDMMYYYY } from '@/utils';
 const SubSubCategoryView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -392,18 +392,7 @@ const SubSubCategoryView = () => {
                     Created At
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
-                    {subSubCategory.createdAt
-                      ? new Date(subSubCategory.createdAt).toLocaleString(
-                          'en-US',
-                          {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          },
-                        )
-                      : 'N/A'}
+                    {formatDateDDMMYYYY(subSubCategory.createdAt)}
                   </p>
                 </div>
                 <div>
@@ -411,18 +400,7 @@ const SubSubCategoryView = () => {
                     Updated At
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
-                    {subSubCategory.updatedAt
-                      ? new Date(subSubCategory.updatedAt).toLocaleString(
-                          'en-US',
-                          {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          },
-                        )
-                      : 'N/A'}
+                    {formatDateDDMMYYYY(subSubCategory.updatedAt)}
                   </p>
                 </div>
               </div>

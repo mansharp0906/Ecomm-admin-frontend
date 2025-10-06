@@ -11,7 +11,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import productServices from '@/api/service/productServices';
 import { toast } from 'react-toastify';
 
-import { formatDateLong } from '@/utils';
+import { formatDateDDMMYYYY } from '@/utils';
 const ProductView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -316,9 +316,7 @@ const ProductView = () => {
                   Created At
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {product.createdAt
-                    ? formatDateLong(product.createdAt)
-                    : 'N/A'}
+                  {formatDateDDMMYYYY(product.createdAt)}
                 </p>
               </div>
               <div>
@@ -326,9 +324,7 @@ const ProductView = () => {
                   Updated At
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {product.updatedAt
-                    ? formatDateLong(product.updatedAt)
-                    : 'N/A'}
+                  {formatDateDDMMYYYY(product.updatedAt)}
                 </p>
               </div>
             </div>

@@ -214,6 +214,167 @@ export const getDateRange = (days) => {
   };
 };
 
+/**
+ * Format date as DD/MM/YYYY (26/10/2025)
+ * @param {string|Date} dateString - Date string or Date object
+ * @returns {string} Formatted date string
+ */
+export const formatDateDDMMYYYY = (dateString) => {
+  if (!dateString) return 'N/A';
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid Date';
+  }
+};
+
+/**
+ * Format date as MM/DD/YYYY (10/26/2025) - US Style
+ * @param {string|Date} dateString - Date string or Date object
+ * @returns {string} Formatted date string
+ */
+export const formatDateMMDDYYYY = (dateString) => {
+  if (!dateString) return 'N/A';
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${month}/${day}/${year}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid Date';
+  }
+};
+
+/**
+ * Format date as YYYY-MM-DD (2025-10-26) - ISO Style
+ * @param {string|Date} dateString - Date string or Date object
+ * @returns {string} Formatted date string
+ */
+export const formatDateYYYYMMDD = (dateString) => {
+  if (!dateString) return 'N/A';
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid Date';
+  }
+};
+
+/**
+ * Format date as DD-MM-YYYY (26-10-2025) - European Style
+ * @param {string|Date} dateString - Date string or Date object
+ * @returns {string} Formatted date string
+ */
+export const formatDateDDMMYYYY_Dash = (dateString) => {
+  if (!dateString) return 'N/A';
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${day}-${month}-${year}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid Date';
+  }
+};
+
+/**
+ * Format date as MM-DD-YYYY (10-26-2025) - US Style with Dash
+ * @param {string|Date} dateString - Date string or Date object
+ * @returns {string} Formatted date string
+ */
+export const formatDateMMDDYYYY_Dash = (dateString) => {
+  if (!dateString) return 'N/A';
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${month}-${day}-${year}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid Date';
+  }
+};
+
+/**
+ * Format date as DD.MM.YYYY (26.10.2025) - European Dot Style
+ * @param {string|Date} dateString - Date string or Date object
+ * @returns {string} Formatted date string
+ */
+export const formatDateDDMMYYYY_Dot = (dateString) => {
+  if (!dateString) return 'N/A';
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${day}.${month}.${year}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid Date';
+  }
+};
+
+/**
+ * Format date as YYYY/MM/DD (2025/10/26) - Reverse Style
+ * @param {string|Date} dateString - Date string or Date object
+ * @returns {string} Formatted date string
+ */
+export const formatDateYYYYMMDD_Slash = (dateString) => {
+  if (!dateString) return 'N/A';
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}/${month}/${day}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid Date';
+  }
+};
+
 // Default export with all functions
 export default {
   formatDateShort,
@@ -225,4 +386,11 @@ export default {
   getCurrentDateISO,
   formatDateForAPI,
   getDateRange,
+  formatDateDDMMYYYY,
+  formatDateMMDDYYYY,
+  formatDateYYYYMMDD,
+  formatDateDDMMYYYY_Dash,
+  formatDateMMDDYYYY_Dash,
+  formatDateDDMMYYYY_Dot,
+  formatDateYYYYMMDD_Slash,
 };

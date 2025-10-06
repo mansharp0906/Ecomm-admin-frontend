@@ -28,6 +28,7 @@ import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import Tooltip from '@/components/custom-table/tooltip';
+import { formatDateDDMMYYYY } from '@/utils';
 
 
 const SubSubCategoryList = ({ refreshTrigger }) => {
@@ -281,6 +282,7 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
                 <TableHead>Level</TableHead>
                 <TableHead>Featured</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Created Date</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -359,6 +361,9 @@ const SubSubCategoryList = ({ refreshTrigger }) => {
                     >
                       {subSubCategory.status}
                     </span>
+                  </TableCell>
+                  <TableCell className="text-gray-500">
+                    {formatDateDDMMYYYY(subSubCategory.createdAt)}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex space-x-2 justify-center">

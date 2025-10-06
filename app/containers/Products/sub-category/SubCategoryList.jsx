@@ -28,7 +28,7 @@ import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import Tooltip from '@/components/custom-table/tooltip';
 
-import { formatDateShort } from '@/utils';
+import { formatDateDDMMYYYY } from '@/utils';
 const SubCategoryList = ({ refreshTrigger }) => {
   const navigate = useNavigate();
   const [subCategories, setSubCategories] = useState([]);
@@ -344,14 +344,7 @@ const SubCategoryList = ({ refreshTrigger }) => {
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-500">
-                    {new Date(subCategory.createdAt).toLocaleDateString(
-                      'en-US',
-                      {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      },
-                    )}
+                    {formatDateDDMMYYYY(subCategory.createdAt)}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex space-x-2 justify-center">

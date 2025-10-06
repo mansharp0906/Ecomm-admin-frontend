@@ -16,7 +16,7 @@ import {
   CustomIcon,
   Container,
 } from '@/components';
-import { formatDateShort } from '@/utils';
+import { formatDateDDMMYYYY } from '@/utils';
 import React, {
   useState,
   useEffect,
@@ -353,7 +353,7 @@ const CategoryListPage = ({ refreshTrigger }) => {
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-500">
-                    {formatDateShort(category.createdAt)}
+                    {formatDateDDMMYYYY(category.createdAt)}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex space-x-1 justify-center">

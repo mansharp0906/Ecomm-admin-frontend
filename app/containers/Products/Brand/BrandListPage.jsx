@@ -15,7 +15,7 @@ import {
   DataNotFound,
   CustomIcon,
 } from '@/components';
-import { formatDateShort } from '@/utils';
+import { formatDateDDMMYYYY } from '@/utils';
 import React, {
   useState,
   useEffect,
@@ -300,7 +300,7 @@ const BrandListPage = ({ refreshTrigger }) => {
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-500">
-                    {formatDateShort(brand.createdAt)}
+                    {formatDateDDMMYYYY(brand.createdAt)}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex space-x-1 justify-center">

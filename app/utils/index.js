@@ -53,4 +53,11 @@ export {
   getCurrentDateISO,
   formatDateForAPI,
   getDateRange,
+  formatDateDDMMYYYY,
+  formatDateMMDDYYYY,
+  formatDateYYYYMMDD,
+  formatDateDDMMYYYY_Dash,
+  formatDateMMDDYYYY_Dash,
+  formatDateDDMMYYYY_Dot,
+  formatDateYYYYMMDD_Slash,
 } from './dateUtils';
