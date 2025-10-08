@@ -33,10 +33,10 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
     title: '',
     description: '',
     shortDescription: '',
-    sku: '',
     brand: '',
     category: '',
     subCategory: '',
+    stop: '',
     thumbnail: '',
     thumbnailFile: null,
     images: [],
@@ -97,46 +97,98 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
   const validationSchema = isEditMode
     ? productUpdateSchema
     : productCreateSchema;
-  const { errors, validate, clearErrors, setFieldError, clearFieldError } =
+  const { errors, validate, clearErrors, setError, clearFieldError } =
     useValidation(validationSchema);
 
-  const fetchSubCategories = useCallback(async (categoryId) => {
+  // Fetch all sub categories (level 1) for dropdown
+  const fetchSubCategories = async () => {
     setLoadingSubCategories(true);
     try {
       const response = await categoryService.getTree();
       if (response?.data) {
+        // Extract all sub categories (level 1) from the tree structure
         const allSubCategories = [];
-        const extractSubCategories = (cats) => {
-          cats.forEach((cat) => {
-            if (cat.children && cat.children.length) {
-              const level1 = cat.children.filter((c) => c.level === 1);
-              if (level1.length) allSubCategories.push(...level1);
-              extractSubCategories(cat.children);
+
+        const extractSubCategories = (categories) => {
+          categories.forEach((category) => {
+            if (category.children && category.children.length > 0) {
+              // Check if children are Level 1 (sub categories)
+              const level1Children = category.children.filter(
+                (child) => child.level === 1,
+              );
+              if (level1Children.length > 0) {
+                allSubCategories.push(...level1Children);
+              }
+              // Recursively extract from deeper levels
+              extractSubCategories(category.children);
             }
           });
         };
+
         extractSubCategories(response.data);
-        const filtered = categoryId
-          ? allSubCategories.filter(
-              (sc) =>
-                sc.parentId === categoryId ||
-                (sc.parent && sc.parent._id === categoryId),
-            )
-          : allSubCategories;
-        setSubCategories(
-          filtered.map((c) => ({
-            ...c,
-            displayName: `${c.name} (Sub Category)`,
-          })),
-        );
+
+        const formattedSubCategories = allSubCategories.map((cat) => ({
+          ...cat,
+          displayName: `${cat.name} (${
+            cat.parentId ? 'Sub Category' : 'Main Category'
+          })`,
+        }));
+
+        setSubCategories(formattedSubCategories);
       }
-    } catch {
-      toast.error('Failed to load sub-categories');
+    } catch (error) {
+      toast.error('Failed to load sub categories');
     } finally {
       setLoadingSubCategories(false);
     }
-  }, []);
+  };
 
+
+  const fetchCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      const response = await categoryService.getTree();
+      console.log('Category API response:', response);
+      if (response?.data) {
+        const mainCategories = response.data.filter((cat) => cat.level === 0);
+        const formattedCategories = mainCategories.map((cat) => ({
+          ...cat,
+          displayName: cat.name, // or add any suffix if needed
+        }));
+        setCategories(formattedCategories);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to load categories');
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+  const fetchBrands = async () => {
+    setLoadingBrands(true);
+    try {
+      const response = await brandService.getAll();
+      if (response?.data) {
+        // Ensure each brand has label and value keys for SelectField
+        const formattedBrands = response.data.map((brand) => ({
+          ...brand,
+          displayName: brand.name, // or any additional format
+        }));
+        setBrands(formattedBrands);
+      }
+    } catch (e) {
+      toast.error('Failed to load brands');
+    } finally {
+      setLoadingBrands(false);
+    }
+  };
+
+  // Run fetchCategories once on mount
+  useEffect(() => {
+    fetchCategories();
+    fetchBrands();
+    fetchSubCategories();
+  }, []);
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     utilHandleInputChange(e, setFormData, clearFieldError, {
@@ -402,20 +454,17 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
             />
             <SelectField
               label="Category"
-              name="parentId"
-              value={formData.parentId}
+              name="category"
+              value={formData.category}
               onChange={handleInputChange}
-              options={(() => {
-                const options = [
-                  { value: '', label: 'Select Category' },
-                  ...categories.map((cat) => ({
-                    value: cat._id,
-                    label: cat.displayName,
-                  })),
-                ];
-                return options;
-              })()}
-              error={errors?.parentId}
+              options={[
+                { value: '', label: 'Select Category' },
+                ...categories.map((cat) => ({
+                  value: cat._id,
+                  label: cat.displayName,
+                })),
+              ]}
+              error={errors?.category}
               disabled={loadingCategories}
             />
             <SelectField

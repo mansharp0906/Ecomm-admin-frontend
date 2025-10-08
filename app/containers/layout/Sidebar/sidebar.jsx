@@ -93,7 +93,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               >
                 <div className="flex items-center gap-3 overflow-hidden">
                   <ProductIcon />
-                  <span className={`transition-opacity ml-4 duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
+                  <span className={`transition-opacity ml-3 duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                     Product Section
                   </span>
                 </div>
@@ -335,7 +335,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 <span className="inline-block mr-2">
                   <UserManagementIcon />
                 </span>
-                <span className={`transition-opacity text-start mr-12 duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
+                <span className={`transition-opacity text-start mr-9 duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                   User Management
                 </span>
                 <MdArrowDropDown
@@ -376,7 +376,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 <span className="inline-block mr-2">
                   <BusinessSettingsIcon />
                 </span>
-                <span className={`transition-opacity text-start mr-11 duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
+                <span className={`transition-opacity text-start mr-10 duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 hidden'} truncate`}>
                   Business Settings
                 </span>
                 <MdArrowDropDown
