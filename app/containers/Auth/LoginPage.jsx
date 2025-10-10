@@ -1,6 +1,7 @@
 /* eslint-disable */
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { showSuccessToast, showErrorToast } from '@/utils/toast';
 import authService from '@/api/service/authService';
 import LoadingOverlay from '@/components/Loading/index'; // import it here
@@ -13,11 +14,13 @@ export default function LoginPage() {
     password: '',
     rememberMe: false,
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
 
   // Use validation hook
-  const { errors, validate, clearErrors, clearFieldError } = useValidation(loginSchema);
+  const { errors, validate, clearErrors, clearFieldError } =
+    useValidation(loginSchema);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -25,13 +28,10 @@ export default function LoginPage() {
       ...formData,
       [name]: type === 'checkbox' ? checked : value,
     });
-    
-    // Clear field error when user starts typing (same logic as sub-category form)
+
     if (errors[name] && value && value.trim() !== '') {
       clearFieldError(name);
     }
-    
-    // Clear login error when user starts typing
     if (loginError) {
       setLoginError('');
     }
@@ -42,24 +42,24 @@ export default function LoginPage() {
     setLoading(true);
     clearErrors();
     setLoginError('');
-
     try {
-      // Validate form data first
       const isValid = await validate(formData);
       if (!isValid) {
         setLoading(false);
         return;
       }
-
-      const response = await authService.login({ 
-        email: formData.email, 
-        password: formData.password 
+      const response = await authService.login({
+        email: formData.email,
+        password: formData.password,
       });
-      
       if (response?.data?.success) {
         const token = response.data.data?.token;
+        const user = response.data.data?.user;
         if (token) {
           localStorage.setItem('token', token);
+          if (user?.role) {
+            localStorage.setItem('userRole', user.role);
+          }
           showSuccessToast('Login successful!');
           navigate('/dashboard');
         } else {
@@ -72,20 +72,18 @@ export default function LoginPage() {
       }
     } catch (error) {
       let errorMessage = 'Login failed!';
-      
-      // Handle specific error cases
       if (error.response?.status === 401) {
         errorMessage = 'Wrong email or password';
       } else if (error.response?.status === 404) {
         errorMessage = 'User not found. Please register first.';
       } else if (error.response?.status === 403) {
-        errorMessage = 'Account not verified. Please check your email for verification.';
+        errorMessage =
+          'Account not verified. Please check your email for verification.';
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
       setLoginError(errorMessage);
       showErrorToast(errorMessage);
     } finally {
@@ -93,10 +91,11 @@ export default function LoginPage() {
     }
   };
 
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+
   return (
     <>
       {loading && <LoadingOverlay />}
-
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="w-full max-w-md p-8 space-y-6 bg-white shadow-lg rounded-lg">
           <h2 className="text-2xl font-bold text-center text-gray-800">
@@ -115,41 +114,52 @@ export default function LoginPage() {
                 onChange={handleInputChange}
                 placeholder="Enter your email address"
                 className={`mt-1 w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-                  errors?.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
+                  errors?.email
+                    ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300'
                 }`}
               />
               {errors?.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email}</p>
               )}
             </div>
-
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Password
               </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Enter your password"
-                className={`mt-1 w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-                  errors?.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'
-                }`}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Enter your password"
+                  className={`mt-1 w-full px-4 py-2 border pr-10 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
+                    errors?.password
+                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300'
+                  }`}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={togglePasswordVisibility}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-600"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
               {errors?.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
               )}
             </div>
-
             {/* API Error Message */}
             {loginError && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-sm text-red-600">{loginError}</p>
               </div>
             )}
-
             {/* Forgot Password Link */}
             <div className="text-right">
               <Link
@@ -159,7 +169,6 @@ export default function LoginPage() {
                 Forgot password?
               </Link>
             </div>
-
             {/* Submit Button */}
             <button
               type="submit"
@@ -173,7 +182,6 @@ export default function LoginPage() {
               {loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
-
           {/* Register Link */}
           <p className="text-center text-sm text-gray-600">
             Don't have an account?{' '}

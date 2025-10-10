@@ -28,9 +28,17 @@ api.interceptors.response.use(
 
     // Handle token expiration
     if (error.response?.status === 401) {
+      // Don't force a redirect for authentication endpoints themselves (login/register)
+      // so that login components can handle 401 responses and show proper messages
+      const requestUrl = error.config?.url || '';
+      const isAuthEndpoint = /\/auth\/(login|register)/i.test(requestUrl);
+
       localStorage.removeItem('token');
-      // Redirect to login page
-      window.location.href = '/login';
+
+      if (!isAuthEndpoint) {
+        // Redirect to login page for other endpoints when token is expired/unauthorized
+        window.location.href = '/login';
+      }
     }
 
     return Promise.reject(error);

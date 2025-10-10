@@ -1,41 +1,45 @@
 import { Container, PageHeader } from '@/components';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import CategoryForm from './CategoryForm';
+import ShopForm from './ShopForm';
 
-const CategoryFormPage = () => {
+const ShopFormPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
 
   const handleFormSuccess = () => {
-    navigate('/products/categories');
+    navigate('/products/subsubcategories');
   };
 
   const handleFormCancel = () => {
-    navigate('/products/categories');
+    navigate('/products/subsubcategories');
   };
 
   return (
     <Container>
       <PageHeader
-        title={isEditMode ? 'Edit Category' : 'Add Category'}
+        title={isEditMode ? 'Edit Shop' : 'Add Shop'}
         breadcrumbItems={[
           // { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Categories', href: '/products/categories' },
-          { label: isEditMode ? 'Edit Category' : 'Add New Category' },
+          { label: 'Shop', href: '/shops' },
+          {
+            label: isEditMode
+              ? 'Edit Shop'
+              : 'Add Shop',
+          },
         ]}
       />
 
-      <CategoryForm
+      <ShopForm
         key={id || 'new'}
         onSuccess={handleFormSuccess}
         onCancel={handleFormCancel}
-        categoryId={id}
+        shopId={id}
         isEditMode={isEditMode}
       />
     </Container>
   );
 };
 
-export default CategoryFormPage;
+export default ShopFormPage;

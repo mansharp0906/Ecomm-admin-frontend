@@ -2,7 +2,7 @@ import { Button, Container, Breadcrumb } from '@/components';
 import React, { useState } from 'react';
 import { MdAdd } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
-import VendorsListPage from './VendorsListPage';
+import BrandListPage from '../Brand/BrandListPage';
 
 const VendorsPage = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -34,7 +34,7 @@ const VendorsPage = () => {
           ]}
         />
       </div>
-      <VendorsListPage refreshTrigger={refreshTrigger} />
+      <BrandListPage refreshTrigger={refreshTrigger} />
     </Container>
   );
 };

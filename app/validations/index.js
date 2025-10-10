@@ -40,3 +40,6 @@ export {
   subSubCategoryCreateSchema,
   subSubCategoryUpdateSchema,
 } from './schemas/subSubCategoryValidation';
+
+export { vendorValidation } from './schemas/vendorValidation';
+export { shopCreateSchema, shopUpdateSchema } from './schemas/shopValidation';

@@ -210,8 +210,8 @@ const BrandListPage = ({ refreshTrigger }) => {
       {!loading && brands.length === 0 && <DataNotFound />}
 
       {!loading && brands.length > 0 && (
-        <div className="overflow-x-auto">
-          <Table>
+        <div className="overflow-x-auto block max-w-full">
+          <Table className='min-w-full'>
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center">S.No</TableHead>

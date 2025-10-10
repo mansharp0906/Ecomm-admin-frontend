@@ -10,9 +10,14 @@ export const brandCreateSchema = Yup.object({
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
 
-  logo: Yup.string().nullable(),
-
-  banner: Yup.string().nullable(),
+  logo: Yup.string()
+    .nullable()
+    .notRequired()
+    .transform((value, originalValue) => (originalValue === '' ? null : value)),
+  banner: Yup.string()
+    .nullable()
+    .notRequired()
+    .transform((value, originalValue) => (originalValue === '' ? null : value)),
 
   website: Yup.string().nullable(),
 
@@ -32,7 +37,7 @@ export const brandCreateSchema = Yup.object({
 
   priority: Yup.number().nullable(),
 
-  image: Yup.string().nullable(),
+  // logo: Yup.string().nullable(),
 
   metaTitle: Yup.string().nullable(),
 
@@ -53,9 +58,14 @@ export const brandUpdateSchema = Yup.object({
     .required('Status is required')
     .oneOf(['active', 'inactive'], 'Status must be active or inactive'),
 
-  logo: Yup.string().nullable(),
-
-  banner: Yup.string().nullable(),
+  logo: Yup.string()
+    .nullable()
+    .notRequired()
+    .transform((value, originalValue) => (originalValue === '' ? null : value)),
+  banner: Yup.string()
+    .nullable()
+    .notRequired()
+    .transform((value, originalValue) => (originalValue === '' ? null : value)),
 
   website: Yup.string().nullable(),
 
@@ -75,7 +85,7 @@ export const brandUpdateSchema = Yup.object({
 
   priority: Yup.number().nullable(),
 
-  image: Yup.string().nullable(),
+  // logo: Yup.string().nullable(),
 
   metaTitle: Yup.string().nullable(),
 

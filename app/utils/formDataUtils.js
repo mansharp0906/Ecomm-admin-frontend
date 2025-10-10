@@ -30,43 +30,55 @@ export const resetFormData = (setFormData, defaultValues = {}) => {
 };
 
 /**
- * Update form data field
- * @param {Function} setFormData - Form data setter function
- * @param {string} fieldName - Field name to update
- * @param {any} value - New value
- * @param {Object} options - Additional options
+ * ✅ Update form data field (Supports deep nested dot notation paths)
+ * Example: "contact.email" or "contact.address.city"
  */
 export const updateFormDataField = (
   setFormData,
-  fieldName,
+  fieldPath,
   value,
   options = {},
 ) => {
   const { clearErrors = null, clearRelatedFields = [] } = options;
 
-  setFormData((prev) => {
-    const newData = { ...prev, [fieldName]: value };
+  setFormData((prevData) => {
+    const keys = fieldPath.split('.');
+    const updated = { ...prevData };
+    let nested = updated;
 
-    // Clear related fields if specified
-    clearRelatedFields.forEach((field) => {
-      newData[field] = '';
+    // Traverse deep path and clone objects
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      nested[key] = nested[key] ? { ...nested[key] } : {};
+      nested = nested[key];
+    }
+
+    // Set final value
+    nested[keys[keys.length - 1]] = value;
+
+    // Clear related fields if any
+    clearRelatedFields.forEach((relatedField) => {
+      const relKeys = relatedField.split('.');
+      let relNested = updated;
+      for (let i = 0; i < relKeys.length - 1; i++) {
+        const k = relKeys[i];
+        relNested[k] = relNested[k] ? { ...relNested[k] } : {};
+        relNested = relNested[k];
+      }
+      relNested[relKeys[relKeys.length - 1]] = '';
     });
 
-    return newData;
-  });
+    // Clear errors
+    if (clearErrors && typeof clearErrors === 'function') {
+      clearErrors(fieldPath);
+    }
 
-  // Clear field errors if provided
-  if (clearErrors && typeof clearErrors === 'function') {
-    clearErrors(fieldName);
-  }
+    return updated;
+  });
 };
 
 /**
- * Handle input change event
- * @param {Event} event - Input change event
- * @param {Function} setFormData - Form data setter function
- * @param {Function} clearErrors - Error clearing function
- * @param {Object} options - Additional options
+ * ✅ Handle input change event (Supports nested fields)
  */
 export const handleInputChange = (
   event,
@@ -77,16 +89,13 @@ export const handleInputChange = (
   const { name, value, type, checked } = event.target;
   const { clearRelatedFields = [] } = options;
 
-  // Determine the actual value based on input type
   const actualValue = type === 'checkbox' ? checked : value;
 
-  // Update form data
   updateFormDataField(setFormData, name, actualValue, {
     clearErrors,
     clearRelatedFields,
   });
 
-  // Clear field error when user starts typing/selecting
   if (clearErrors && actualValue && actualValue.toString().trim() !== '') {
     clearErrors(name);
   }
@@ -94,9 +103,6 @@ export const handleInputChange = (
 
 /**
  * Process form data before API submission
- * @param {Object} formData - Raw form data
- * @param {Object} options - Processing options
- * @returns {Object} Processed form data
  */
 export const processFormData = (formData, options = {}) => {
   const {
@@ -122,7 +128,7 @@ export const processFormData = (formData, options = {}) => {
     }
   });
 
-  // Apply default values for missing fields
+  // Apply default values
   Object.keys(defaultValues).forEach((field) => {
     if (
       processed[field] === undefined ||
@@ -138,15 +144,19 @@ export const processFormData = (formData, options = {}) => {
 
 /**
  * Validate required fields
- * @param {Object} formData - Form data to validate
- * @param {Array} requiredFields - Array of required field names
- * @returns {Object} Validation result
  */
 export const validateRequiredFields = (formData, requiredFields = []) => {
   const errors = {};
 
   requiredFields.forEach((field) => {
-    const value = formData[field];
+    // ✅ Support deep nested field validation
+    const keys = field.split('.');
+    let value = formData;
+    for (const key of keys) {
+      if (value == null) break;
+      value = value[key];
+    }
+
     if (!value || (typeof value === 'string' && value.trim() === '')) {
       errors[field] = `${field} is required`;
     }
@@ -160,9 +170,6 @@ export const validateRequiredFields = (formData, requiredFields = []) => {
 
 /**
  * Convert form data to API format
- * @param {Object} formData - Form data
- * @param {Object} fieldMappings - Field name mappings
- * @returns {Object} API formatted data
  */
 export const convertToApiFormat = (formData, fieldMappings = {}) => {
   const apiData = {};
@@ -177,9 +184,6 @@ export const convertToApiFormat = (formData, fieldMappings = {}) => {
 
 /**
  * Convert API data to form format
- * @param {Object} apiData - API data
- * @param {Object} fieldMappings - Field name mappings (reverse)
- * @returns {Object} Form formatted data
  */
 export const convertFromApiFormat = (apiData, fieldMappings = {}) => {
   const formData = {};
@@ -194,9 +198,6 @@ export const convertFromApiFormat = (apiData, fieldMappings = {}) => {
 
 /**
  * Create form data from API response
- * @param {Object} apiData - API response data
- * @param {Object} options - Processing options
- * @returns {Object} Form data object
  */
 export const createFormDataFromApi = (apiData, options = {}) => {
   const {
@@ -233,16 +234,18 @@ export const createFormDataFromApi = (apiData, options = {}) => {
 
 /**
  * Deep merge form data objects
- * @param {Object} target - Target object
- * @param {Object} source - Source object
- * @returns {Object} Merged object
  */
 export const mergeFormData = (target, source) => {
   const result = { ...target };
 
   Object.keys(source).forEach((key) => {
     if (source[key] !== undefined && source[key] !== null) {
-      result[key] = source[key];
+      // ✅ If nested object, deep merge
+      if (typeof source[key] === 'object' && !Array.isArray(source[key])) {
+        result[key] = mergeFormData(result[key] || {}, source[key]);
+      } else {
+        result[key] = source[key];
+      }
     }
   });
 
@@ -251,9 +254,6 @@ export const mergeFormData = (target, source) => {
 
 /**
  * Create form data with conditional fields
- * @param {Object} baseData - Base form data
- * @param {Object} conditions - Conditional field definitions
- * @returns {Object} Form data with conditional fields
  */
 export const createConditionalFormData = (baseData, conditions = {}) => {
   const result = { ...baseData };
@@ -262,10 +262,8 @@ export const createConditionalFormData = (baseData, conditions = {}) => {
     const condition = conditions[field];
     const { when, then, otherwise } = condition;
 
-    // Evaluate condition
     const conditionMet = typeof when === 'function' ? when(result) : when;
 
-    // Set field value based on condition
     result[field] = conditionMet ? then : otherwise;
   });
 

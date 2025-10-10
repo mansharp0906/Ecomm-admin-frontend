@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Button,
   LoadingData,
@@ -13,12 +14,10 @@ import categoryService from '@/api/service/categoryService';
 import brandService from '@/api/service/brandService';
 import {
   buildProductPayload,
-  handleFileUpload,
   handleMultipleFileUpload,
   handleInputChange as utilHandleInputChange,
-  removeFileFromUpload
+  removeFileFromUpload,
 } from '@/utils';
-import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import {
@@ -26,23 +25,23 @@ import {
   productCreateSchema,
   productUpdateSchema,
 } from '@/validations';
+import { Plus, Trash2, X } from 'lucide-react';
+import ProductVariant from './ProductVariant';
 
 const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
   const [formData, setFormData] = useState({
     title: '',
-    slug: '', // Auto-generate from title
     description: '',
     shortDescription: '',
-    sku: '', // Product level SKU
-    barcode: '',
     brand: '',
     category: '',
     subCategory: '',
+    stop: '',
     thumbnail: '',
-    thumbnailFile: null, // Store the actual file for upload
-    images: [], // Multiple image files
-    imagesPreview: [], // Preview URLs for display
-    attributes: [], // Product level attributes for filtering
+    thumbnailFile: null,
+    images: [],
+    imagesPreview: [],
+    attributes: [],
     type: 'physical',
     unit: 'pcs',
     minOrderQty: 1,
@@ -53,15 +52,29 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
     length: '',
     width: '',
     height: '',
-    status: 'draft', // Default to draft as per requirements
+    status: 'active',
     featured: false,
     metaTitle: '',
     metaDescription: '',
     pdf: '',
-    pdfFile: null, // For PDF file upload
-    tags: '',
-    variants: [], // Product variants array
+    pdfFile: null,
+    tags: [],
+    variants: [],
   });
+
+  const [currentTag, setCurrentTag] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [subCategories, setSubCategories] = useState([]);
+  const [loadingSubCategories, setLoadingSubCategories] = useState(false);
+  const [brands, setBrands] = useState([]);
+  const [loadingBrands, setLoadingBrands] = useState(false);
+
+  // Variant modal state management
+  const [ProductVariantVisible, setProductVariantVisible] = useState(false);
+  const [editingVariant, setEditingVariant] = useState(null);
 
   const typeOptions = [
     { value: 'physical', label: 'Physical' },
@@ -77,7 +90,6 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
     { value: 'exclusive', label: 'Exclusive' },
   ];
   const statusOptions = [
-    { value: 'draft', label: 'Draft' },
     { value: 'active', label: 'Active' },
     { value: 'inactive', label: 'Inactive' },
   ];
@@ -85,112 +97,11 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
   const validationSchema = isEditMode
     ? productUpdateSchema
     : productCreateSchema;
-  const { errors, validate, clearErrors, setFieldError, clearFieldError } =
+  const { errors, validate, clearErrors, setError, clearFieldError } =
     useValidation(validationSchema);
 
-  const [loading, setLoading] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
-  const [subCategories, setSubCategories] = useState([]);
-  const [loadingSubCategories, setLoadingSubCategories] = useState(false);
-  const [brands, setBrands] = useState([]);
-  const [loadingBrands, setLoadingBrands] = useState(false);
-
-  const fetchProductData = useCallback(async () => {
-    if (!productId) return;
-    try {
-      setIsLoadingData(true);
-      const response = await productServices.getById(productId);
-      if (typeof response?.data === 'string') {
-        toast.error('Server error: API returned HTML instead of JSON');
-        return;
-      }
-      const product = response?.data?.success
-        ? response.data.data
-        : response.data;
-      if (product) {
-        const newFormData = {
-          title: product.title || '',
-          slug: product.slug || '',
-          description: product.description || '',
-          shortDescription: product.shortDescription || '',
-          sku: product.sku || '',
-          barcode: product.barcode || '',
-          brand: product.brand || '',
-          category: product.category || '',
-          subCategory: product.subCategory || '',
-          thumbnail: product.thumbnail || '',
-          images: [], // Will be populated from file uploads
-          imagesPreview: [], // Will be populated from file uploads
-          attributes: product.attributes || [],
-          type: product.type || 'physical',
-          unit: product.unit || 'pcs',
-          minOrderQty: product.minOrderQty || 1,
-          tax: product.tax || 0,
-          taxType: product.taxType || 'exclusive',
-          shippingCost: product.shippingCost || 0,
-          weight: product.weight || '',
-          length: product.dimensions?.length || '',
-          width: product.dimensions?.width || '',
-          height: product.dimensions?.height || '',
-          status: product.status || 'draft',
-          featured: product.featured || false,
-          metaTitle: product.metaTitle || '',
-          metaDescription: product.metaDescription || '',
-          pdf: product.pdf || '',
-          tags:
-            product.tags && Array.isArray(product.tags)
-              ? product.tags.join(', ')
-              : '',
-          variants: product.variants || [],
-        };
-        
-        setFormData(newFormData);
-        
-        // If product has a category, fetch its sub-categories
-        if (newFormData.category) {
-          fetchSubCategories(newFormData.category);
-        }
-      } else {
-        toast.error('No product data found');
-      }
-    } catch (error) {
-      if (error.message.includes('Unexpected token')) {
-        toast.error('Server returned invalid response format');
-      } else {
-        toast.error('Failed to fetch product data: ' + error.message);
-      }
-    } finally {
-      setIsLoadingData(false);
-    }
-  }, [productId]);
-
-  // Fetch all categories for dropdown
-  const fetchCategories = useCallback(async () => {
-    setLoadingCategories(true);
-    try {
-      const response = await categoryService.getTree();
-      if (response?.data) {
-        // Filter only Level 0 categories (main categories) for dropdown
-        const mainCategories = response.data.filter((cat) => cat.level === 0);
-
-        const formattedCategories = mainCategories.map((cat) => ({
-          ...cat,
-          displayName: `${cat.name} (Level ${cat.level})`,
-        }));
-
-        setCategories(formattedCategories);
-      }
-    } catch (error) {
-      toast.error('Failed to load categories');
-    } finally {
-      setLoadingCategories(false);
-    }
-  }, []);
-
-  // Fetch all sub-categories and filter based on selected category
-  const fetchSubCategories = useCallback(async (categoryId) => {
+  // Fetch all sub categories (level 1) for dropdown
+  const fetchSubCategories = async () => {
     setLoadingSubCategories(true);
     try {
       const response = await categoryService.getTree();
@@ -216,189 +127,200 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
 
         extractSubCategories(response.data);
 
-        // If a category is selected, filter sub-categories that belong to that category
-        let filteredSubCategories = allSubCategories;
-        if (categoryId) {
-          filteredSubCategories = allSubCategories.filter(subCat => 
-            subCat.parentId === categoryId || 
-            (subCat.parent && subCat.parent._id === categoryId)
-          );
-        }
-
-        const formattedSubCategories = filteredSubCategories.map((cat) => ({
+        const formattedSubCategories = allSubCategories.map((cat) => ({
           ...cat,
-          displayName: `${cat.name} (Sub Category)`,
+          displayName: `${cat.name} (${
+            cat.parentId ? 'Sub Category' : 'Main Category'
+          })`,
         }));
 
         setSubCategories(formattedSubCategories);
       }
     } catch (error) {
-      toast.error('Failed to load sub-categories');
+      toast.error('Failed to load sub categories');
     } finally {
       setLoadingSubCategories(false);
     }
-  }, []);
+  };
 
-  // Fetch all brands for dropdown
-  const fetchBrands = useCallback(async () => {
+
+  const fetchCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      const response = await categoryService.getTree();
+      console.log('Category API response:', response);
+      if (response?.data) {
+        const mainCategories = response.data.filter((cat) => cat.level === 0);
+        const formattedCategories = mainCategories.map((cat) => ({
+          ...cat,
+          displayName: cat.name, // or add any suffix if needed
+        }));
+        setCategories(formattedCategories);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to load categories');
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+  const fetchBrands = async () => {
     setLoadingBrands(true);
     try {
-      const response = await brandService.getAll({ status: 'active' });
+      const response = await brandService.getAll();
       if (response?.data) {
-        let brandsData = [];
-        
-        // Handle different response structures
-        if (response.data.success && response.data.data) {
-          brandsData = response.data.data;
-        } else if (Array.isArray(response.data)) {
-          brandsData = response.data;
-        }
-
-        const formattedBrands = brandsData.map((brand) => ({
+        // Ensure each brand has label and value keys for SelectField
+        const formattedBrands = response.data.map((brand) => ({
           ...brand,
-          displayName: brand.name,
+          displayName: brand.name, // or any additional format
         }));
-
         setBrands(formattedBrands);
       }
-    } catch (error) {
+    } catch (e) {
       toast.error('Failed to load brands');
     } finally {
       setLoadingBrands(false);
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    if (isEditMode && productId) fetchProductData();
-  }, [isEditMode, productId, fetchProductData]);
-
-  // Load categories, sub-categories, and brands on component mount
+  // Run fetchCategories once on mount
   useEffect(() => {
     fetchCategories();
-    fetchSubCategories(); // Load all sub-categories initially
-    fetchBrands(); // Load all brands
-  }, [fetchCategories, fetchSubCategories, fetchBrands]);
-
+    fetchBrands();
+    fetchSubCategories();
+  }, []);
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    // Use utility function for basic input handling
     utilHandleInputChange(e, setFormData, clearFieldError, {
-      clearRelatedFields: name === 'category' ? ['subCategory'] : []
+      clearRelatedFields: name === 'category' ? ['subCategory'] : [],
     });
-    
-    // If category is changed, fetch sub-categories
     if (name === 'category') {
       fetchSubCategories(value);
     }
   };
 
-  // Helper for updating images array items (removed - now using file upload)
-
-  // Handle thumbnail file upload
-  const handleThumbnailChange = (e) => {
-    // This is called when file input changes
+  const addTag = () => {
+    if (currentTag.trim() && !formData.tags.includes(currentTag.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        tags: [...prev.tags, currentTag.trim()],
+      }));
+      setCurrentTag('');
+    }
   };
 
-  const handleThumbnailSelect = (file) => {
-    handleFileUpload(file, setFormData, 'thumbnail', {
-      clearErrors: clearFieldError
-    });
+  const removeTag = (tag) => {
+    setFormData((prev) => ({
+      ...prev,
+      tags: prev.tags.filter((t) => t !== tag),
+    }));
   };
 
-  // Handle PDF file upload
-  const handlePdfChange = (e) => {
-    // This is called when file input changes
-  };
-
-  const handlePdfSelect = (file) => {
-    handleFileUpload(file, setFormData, 'pdf', {
-      createPreview: false,
-      clearErrors: clearFieldError
-    });
-  };
-
-  // Handle multiple images file upload
   const handleImagesChange = (e) => {
-    handleMultipleFileUpload(e.target.files, setFormData, 'images', {
-      clearErrors: clearFieldError,
-      preventDuplicates: true,
-      maxFiles: 10
-    });
-    e.target.value = ''; // Reset input
+    if (e.target.files) {
+      handleMultipleFileUpload(e.target.files, setFormData, 'images', {
+        clearErrors: clearFieldError,
+        preventDuplicates: true,
+        maxFiles: 10,
+      });
+      const previewUrls = Array.from(e.target.files).map((file) =>
+        URL.createObjectURL(file),
+      );
+      setFormData((prev) => ({
+        ...prev,
+        imagesPreview: [...prev.imagesPreview, ...previewUrls],
+      }));
+      e.target.value = '';
+    }
   };
 
-  const handleImagesSelect = (files) => {
-    handleMultipleFileUpload(files, setFormData, 'images', {
-      clearErrors: clearFieldError,
-      preventDuplicates: true,
-      maxFiles: 10
+  const removeImagePreview = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      imagesPreview: prev.imagesPreview.filter((_, i) => i !== index),
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
+
+  const openAddProductVariant = () => {
+    setEditingVariant(null);
+    setProductVariantVisible(true);
+  };
+
+  const openEditProductVariant = (variant) => {
+    setEditingVariant(variant);
+    setProductVariantVisible(true);
+  };
+
+  const saveVariant = (variant) => {
+    setFormData((prev) => {
+      if (editingVariant) {
+        const newVariants = prev.variants.map((v) =>
+          v.sku === editingVariant.sku ? variant : v,
+        );
+        return { ...prev, variants: newVariants };
+      } else {
+        return { ...prev, variants: [...prev.variants, variant] };
+      }
     });
+    setProductVariantVisible(false);
+  };
+
+  const deleteVariant = (sku) => {
+    setFormData((prev) => ({
+      ...prev,
+      variants: prev.variants.filter((v) => v.sku !== sku),
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     clearErrors();
-
     try {
-      const validationData = {
+      const isValid = await validate({
         ...formData,
         id: isEditMode ? productId : undefined,
-      };
-      const isValid = await validate(validationData);
+      });
       if (!isValid) {
         setLoading(false);
         return;
       }
-
-      // Build API payload using utility function
-      const processedFormData = {
-        ...formData,
-        slug: formData.slug || formData.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-        dimensions: {
-          length: Number(formData.length) || 0,
-          width: Number(formData.width) || 0,
-          height: Number(formData.height) || 0
+      const payload = buildProductPayload(
+        {
+          ...formData,
+          brand: { $oid: formData.brand },
+          category: { $oid: formData.category },
+          subCategory: { $oid: formData.subCategory },
+          dimensions: {
+            length: Number(formData.length) || 0,
+            width: Number(formData.width) || 0,
+            height: Number(formData.height) || 0,
+          },
+          tags: formData.tags.filter((t) => t.trim() !== ''),
+          variants: formData.variants,
         },
-        tags: formData.tags && formData.tags.trim() !== '' 
-          ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
-          : [],
-        variants: formData.variants && formData.variants.length > 0
-          ? formData.variants.filter(variant => variant.sku && variant.sku.trim() !== '')
-          : []
-      };
-      
-      const apiPayload = buildProductPayload(processedFormData, {
-        customFields: {
-          createdBy: "651fa9f9eabf0f001fc6a826"
-        }
-      });
+        { customFields: { createdBy: '651fa9f9eabf0f001fc6a826' } },
+      );
 
       let response;
-      
       if (isEditMode) {
-        response = await productServices.update(productId, apiPayload);
+        response = await productServices.update(productId, payload);
       } else {
-        response = await productServices.create(apiPayload);
+        response = await productServices.create(payload);
       }
-
-
-      const isSuccess =
+      if (
         response?.data?.success ||
-        (response?.status >= 200 && response?.status < 300);
-
-      if (isSuccess) {
+        (response.status >= 200 && response.status < 300)
+      ) {
         toast.success(
           `Product ${isEditMode ? 'updated' : 'added'} successfully!`,
         );
         setFormData({
           title: '',
-          slug: '',
           description: '',
           shortDescription: '',
           sku: '',
-          barcode: '',
           brand: '',
           category: '',
           subCategory: '',
@@ -416,46 +338,22 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
           length: '',
           width: '',
           height: '',
-          status: 'draft',
+          status: 'active',
           featured: false,
           metaTitle: '',
           metaDescription: '',
           pdf: '',
           pdfFile: null,
-          tags: '',
+          tags: [],
           variants: [],
         });
         clearErrors();
         if (onSuccess) onSuccess(response.data.data || response.data);
       } else {
-        const errorMessage = response?.data?.message || response?.data?.error || 'Failed to save product';
-        toast.error(`Failed to save product: ${errorMessage}`);
+        toast.error('Failed to save product');
       }
     } catch (error) {
-      
-      if (error.name === 'ValidationError') {
-        const validationErrors = {};
-        error.inner.forEach((err) => {
-          validationErrors[err.path] = err.message;
-        });
-        Object.keys(validationErrors).forEach((key) =>
-          setFieldError(key, validationErrors[key]),
-        );
-        toast.error('Please fill the required fields');
-      } else {
-        // More detailed error handling
-        let errorMessage = 'Failed to add product';
-        
-        if (error.response?.data?.message) {
-          errorMessage = error.response.data.message;
-        } else if (error.response?.data?.error) {
-          errorMessage = error.response.data.error;
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-        
-        toast.error(`Error: ${errorMessage}`);
-      }
+      toast.error(`Error: ${error.message || error.toString()}`);
     } finally {
       setLoading(false);
     }
@@ -464,11 +362,9 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
   const handleCancel = () => {
     setFormData({
       title: '',
-      slug: '',
       description: '',
       shortDescription: '',
       sku: '',
-      barcode: '',
       brand: '',
       category: '',
       subCategory: '',
@@ -486,13 +382,13 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
       length: '',
       width: '',
       height: '',
-      status: 'draft',
+      status: 'active',
       featured: false,
       metaTitle: '',
       metaDescription: '',
       pdf: '',
       pdfFile: null,
-      tags: '',
+      tags: [],
       variants: [],
     });
     clearErrors();
@@ -500,10 +396,8 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      {isEditMode && isLoadingData ? (
-        <LoadingData message="Loading data..." size="50px" />
-      ) : loadingCategories || loadingBrands ? (
+    <div>
+      {(isEditMode && isLoadingData) || loadingCategories || loadingBrands ? (
         <LoadingData message="Loading data..." size="50px" />
       ) : (
         <ScrollContainer>
@@ -543,31 +437,18 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
               name="sku"
               value={formData.sku}
               onChange={handleInputChange}
-              placeholder="Enter product SKU"
+              placeholder="Enter SKU"
               error={errors?.sku}
-            />
-            <InputTextField
-              label="Barcode"
-              name="barcode"
-              value={formData.barcode}
-              onChange={handleInputChange}
-              error={errors?.barcode}
             />
             <SelectField
               label="Brand"
               name="brand"
               value={formData.brand}
               onChange={handleInputChange}
-              options={(() => {
-                const options = [
-                  { value: '', label: 'Select Brand' },
-                  ...brands.map((brand) => ({
-                    value: brand._id,
-                    label: brand.displayName,
-                  })),
-                ];
-                return options;
-              })()}
+              options={[
+                { value: '', label: 'Select Brand' },
+                ...brands.map((b) => ({ value: b._id, label: b.displayName })),
+              ]}
               error={errors?.brand}
               disabled={loadingBrands}
             />
@@ -576,16 +457,13 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
               name="category"
               value={formData.category}
               onChange={handleInputChange}
-              options={(() => {
-                const options = [
-                  { value: '', label: 'Select Category' },
-                  ...categories.map((cat) => ({
-                    value: cat._id,
-                    label: cat.displayName,
-                  })),
-                ];
-                return options;
-              })()}
+              options={[
+                { value: '', label: 'Select Category' },
+                ...categories.map((cat) => ({
+                  value: cat._id,
+                  label: cat.displayName,
+                })),
+              ]}
               error={errors?.category}
               disabled={loadingCategories}
             />
@@ -594,78 +472,32 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
               name="subCategory"
               value={formData.subCategory}
               onChange={handleInputChange}
-              options={(() => {
-                const options = [
-                  { value: '', label: 'Select Sub Category' },
-                  ...subCategories.map((cat) => ({
-                    value: cat._id,
-                    label: cat.displayName,
-                  })),
-                ];
-                return options;
-              })()}
+              options={[
+                { value: '', label: 'Select Sub Category' },
+                ...subCategories.map((c) => ({
+                  value: c._id,
+                  label: c.displayName,
+                })),
+              ]}
               error={errors?.subCategory}
               disabled={loadingSubCategories}
             />
-            <FileUploadButton
-              label="Thumbnail Image"
-              id="thumbnail"
-              accept="image/*"
-              onChange={handleThumbnailChange}
-              onFileSelect={handleThumbnailSelect}
-              showPreview={true}
-              previewValue={formData.thumbnail}
-              error={errors?.thumbnail}
+
+            <SelectField
+              label="Shop"
+              name="Shop"
+              value={formData.subCategory}
+              onChange={handleInputChange}
+              options={[
+                { value: '', label: 'Select Shop' },
+                ...subCategories.map((c) => ({
+                  value: c._id,
+                  label: c.displayName,
+                })),
+              ]}
+              error={errors?.subCategory}
+              disabled={loadingSubCategories}
             />
-
-            {/* Images file upload for multiple images */}
-            <div className="flex flex-col">
-              <label htmlFor="images" className="mb-1 font-semibold text-gray-700">
-                Product Images (Multiple Selection)
-              </label>
-              <input
-                type="file"
-                id="images"
-                name="images"
-                multiple
-                accept="image/*"
-                onChange={handleImagesChange}
-                className={`block w-full border rounded p-2 cursor-pointer text-gray-700 ${
-                  errors?.images ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors?.images && (
-                <p className="mt-1 text-sm text-red-600">{errors.images}</p>
-              )}
-              
-              {/* Custom preview for multiple images - right below the Product Images field */}
-              {formData.imagesPreview && formData.imagesPreview.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-sm text-gray-600 mb-2">Selected Images:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.imagesPreview.map((previewUrl, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={previewUrl}
-                          alt={`Preview ${index + 1}`}
-                          className="w-20 h-20 object-cover rounded border"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            removeFileFromUpload(index, setFormData, 'images');
-                          }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
             <SelectField
               label="Type"
               name="type"
@@ -674,6 +506,18 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
               options={typeOptions}
               error={errors?.type}
             />
+            <SelectField
+              label="Status"
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              options={[
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+              ]}
+              error={errors?.status}
+            />
+
             <SelectField
               label="Unit"
               name="unit"
@@ -746,14 +590,7 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
               error={errors?.height}
               type="number"
             />
-            <SelectField
-              label="Status"
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-              options={statusOptions}
-              error={errors?.status}
-            />
+
             <InputTextField
               label="Meta Title"
               name="metaTitle"
@@ -769,12 +606,13 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
               rows={2}
               error={errors?.metaDescription}
             />
+
             <FileUploadButton
               label="Product PDF"
               id="pdf"
               accept=".pdf"
-              onChange={handlePdfChange}
-              onFileSelect={handlePdfSelect}
+              onChange={() => {}}
+              onFileSelect={() => {}}
               showPreview={false}
               error={errors?.pdf}
             />
@@ -786,14 +624,102 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
               error={errors?.pdf}
               placeholder="Or enter PDF URL directly"
             />
-            <InputTextField
-              label="Tags (comma separated)"
-              name="tags"
-              value={formData.tags}
-              onChange={handleInputChange}
-              error={errors?.tags}
-            />
+            {/* Variants Section */}
+            <div className="sm:col-span-2">
+              <h2 className=" font-bold mb-2">Variants</h2>
+              <Button
+                onClick={openAddProductVariant}
+                className="mb-4 flex items-center gap-2"
+              >
+                <Plus /> Add Variant
+              </Button>
 
+              {formData.variants.length === 0 && (
+                <p className="text-gray-500 mb-4">No variants added yet.</p>
+              )}
+
+              <ul>
+                {formData.variants.map((v) => (
+                  <li
+                    key={v.sku}
+                    className="flex justify-between items-center p-3 border rounded mb-3"
+                  >
+                    <div>
+                      <strong>{v.name || v.sku}</strong> - ₹{v.price} - Stock:{' '}
+                      {v.stock} - Status: {v.status}
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => openEditProductVariant(v)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => deleteVariant(v.sku)}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {/* Tags Input */}
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tags
+              </label>
+
+              {/* Input + Button */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={currentTag}
+                  onChange={(e) => setCurrentTag(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addTag();
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                  placeholder="Type a tag and press Enter"
+                />
+                <button
+                  type="button"
+                  onClick={addTag}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Tag List */}
+              {formData.tags.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {formData.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="text-blue-500 hover:text-red-500"
+                        aria-label={`Remove tag ${tag}`}
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
             <CheckboxField
               label="Featured"
               name="featured"
@@ -802,8 +728,20 @@ const ProductForm = ({ onSuccess, onCancel, productId, isEditMode }) => {
               error={errors?.featured}
               description="Mark this product as featured"
             />
-
-            <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
+            <ProductVariant
+              visible={ProductVariantVisible}
+              variant={editingVariant}
+              onSave={(variant) => {
+                saveVariant(variant);
+                setEditingVariant(null);
+              }}
+              onClose={() => {
+                setProductVariantVisible(false);
+                setEditingVariant(null);
+              }}
+            />
+            {/* Submit and Cancel buttons */}
+            <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t mt-4">
               <Button
                 type="button"
                 variant="secondary"
