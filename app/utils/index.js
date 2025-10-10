@@ -40,3 +40,5 @@ export {
   mergeFormData,
   createConditionalFormData,
 } from './formDataUtils';
+
+export * from './shopUtils';

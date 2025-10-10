@@ -62,6 +62,10 @@ import BrandView from './containers/Products/Brand/BrandView';
 import ProductFormPage from './containers/Products/Product/ProductFormPage';
 import BrandPage from './containers/Products/Brand/BrandPage';
 import VendorsPage from './containers/Products/Ventors/VendorsPage';
+import VendorRegistered from './containers/Auth/VendorRegistered';
+import ShopPage from './containers/Shop/ShopPage';
+import ShopFormPage from './containers/Shop/ShopFormPage';
+import ShopViewPage from './containers/Shop/ShopView';
 // import './styles/toast.css';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -87,6 +91,7 @@ function App() {
             <Route path="/" element={<LoginPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/vendor-register" element={<VendorRegistered />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
             {/* Protected pages with Layout */}
@@ -201,6 +206,11 @@ function App() {
               <Route path="/system/emails" element={<Login_Setting />} />
               <Route path="/system/login" element={<Email_template />} />
               <Route path="category" element={<CategoryFormPage />} />
+              {/* Shop */}
+              <Route path="shops" element={<ShopPage />} />
+              <Route path="shops/add" element={<ShopFormPage />} />
+              <Route path="shop/edit/:id" element={<ShopFormPage />} />
+              <Route path="shop/view/:id" element={<ShopViewPage />} />
             </Route>
 
             {/* 404 page */}

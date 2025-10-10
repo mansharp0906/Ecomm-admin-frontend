@@ -5,7 +5,7 @@ import {
   MdSettings,
 } from 'react-icons/md';
 import { FiBox } from 'react-icons/fi';
-import { FaClipboardList, FaUsersCog } from 'react-icons/fa';
+import { FaClipboardList, FaUsersCog,FaStore  } from 'react-icons/fa';
 import { TbPackageExport } from 'react-icons/tb';
 import { RiCoupon3Line } from 'react-icons/ri';
 import { AiOutlineBarChart } from 'react-icons/ai';
@@ -20,3 +20,4 @@ export const ReportsIcon = () => <AiOutlineBarChart size={24} color="#3F51B5" />
 export const UserManagementIcon = () => <FaUsersCog size={24} color="#009688" />;       // Teal
 export const BusinessSettingsIcon = () => <MdBusinessCenter size={24} color="#795548" />; // Brown
 export const SystemSettingsIcon = () => <MdSettings size={24} color="#607D8B" />;       // Blue Grey
+export const StoreIcon = () => <FaStore size={24} color="#607D8B"/>

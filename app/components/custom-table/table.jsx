@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 export const Table = ({ children, className = '' }) => (
-  <div className="overflow-x-auto">
-    <table className={`min-w-full divide-y divide-gray-200 ${className}`}>
+  <div className="overflow-x-auto"  >
+    <table className={`min-w-full w-full divide-y divide-gray-200 ${className}`}>
       {children}
     </table>
   </div>

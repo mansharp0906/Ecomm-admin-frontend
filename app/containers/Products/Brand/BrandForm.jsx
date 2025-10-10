@@ -22,19 +22,20 @@ import {
   handleInputChange as utilHandleInputChange,
 } from '@/utils';
 
-// Validation schemas are now imported from validations directory
-
 const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     metaTitle: '',
     metaDescription: '',
-    image: null,
+    logo: null,
     banner: null,
     priority: 1,
     status: 'active',
   });
+
+  const [existingLogoUrl, setExistingLogoUrl] = useState(null);
+  const [existingBannerUrl, setExistingBannerUrl] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
@@ -48,10 +49,8 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
     try {
       setIsLoadingData(true);
 
-      // Use BandsServices instead of direct fetch
       let response = await brandService.getById(bandId);
 
-      // Check if response is HTML (error page)
       if (
         typeof response?.data === 'string' &&
         response.data.includes('<!DOCTYPE')
@@ -60,40 +59,35 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
         return;
       }
 
-      // Determine the correct data structure
       let brand;
       if (response?.data?.success) {
         brand = response.data.data;
       } else if (response?.data) {
-        // If response.data exists but no success field, assume data is directly in response.data
         brand = response.data;
       } else {
         toast.error('Failed to fetch brand data');
         return;
       }
 
-      console.log('API Response:', response.data); // Debug log
-      console.log('Brand data:', brand); // Debug log
-
       if (brand) {
         const newFormData = {
           name: brand.name || '',
           description: brand.description || '',
-          image: brand.logo || null, // This should be the Cloudinary URL
-          banner: brand.banner || null, // This should be the Cloudinary URL
+          logo: brand.logo || null,
+          banner: brand.banner || null,
           priority: brand.priority || 1,
           status: brand.status || 'active',
           metaTitle: brand.metaTitle || '',
           metaDescription: brand.metaDescription || '',
         };
 
-        console.log('Setting form data:', newFormData); // Debug log
         setFormData(newFormData);
+        setExistingLogoUrl(brand.logo || null);
+        setExistingBannerUrl(brand.banner || null);
       } else {
         toast.error('No brand data found');
       }
     } catch (error) {
-      // Check if it's a JSON parsing error
       if (error.message.includes('Unexpected token')) {
         toast.error('Server returned invalid response format');
       } else {
@@ -115,7 +109,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
   };
 
   const handleLogoSelect = (file) => {
-    handleFileUpload(file, setFormData, 'image', {
+    handleFileUpload(file, setFormData, 'logo', {
       clearErrors: clearFieldError,
     });
   };
@@ -132,21 +126,25 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
     clearErrors();
 
     try {
-      // Prepare data for validation
       const validationData = {
         ...formData,
         id: isEditMode ? bandId : undefined,
       };
 
-      // Validate form data
       const isValid = await validate(validationData);
       if (!isValid) {
         setLoading(false);
         return;
       }
 
-      // Build API payload using utility function
-      const apiPayload = buildBrandPayload(formData);
+      // Preserve existing logo/banner if no new upload
+      const payloadData = {
+        ...formData,
+        logo: formData.logo || existingLogoUrl,
+        banner: formData.banner || existingBannerUrl,
+      };
+
+      const apiPayload = buildBrandPayload(payloadData);
 
       let response;
       if (isEditMode) {
@@ -164,20 +162,20 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
           `Brand ${isEditMode ? 'updated' : 'added'} successfully!`,
         );
 
-        // Reset form for both create and edit modes
         setFormData({
           name: '',
           description: '',
-          image: null,
+          logo: null,
           banner: null,
           metaTitle: '',
           metaDescription: '',
           priority: 1,
           status: 'active',
         });
+        setExistingLogoUrl(null);
+        setExistingBannerUrl(null);
         clearErrors();
 
-        // Notify parent component (this will trigger navigation)
         if (onSuccess) {
           onSuccess(response.data.data || response.data);
         }
@@ -186,12 +184,10 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
       }
     } catch (error) {
       if (error.name === 'ValidationError') {
-        // Handle validation errors
         const validationErrors = {};
         error.inner.forEach((err) => {
           validationErrors[err.path] = err.message;
         });
-        // Set errors using validation hook
         Object.keys(validationErrors).forEach((key) => {
           setFieldError(key, validationErrors[key]);
         });
@@ -208,13 +204,15 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
     setFormData({
       name: '',
       description: '',
-      image: null,
+      logo: null,
       banner: null,
       metaTitle: '',
       metaDescription: '',
       priority: 1,
       status: 'active',
     });
+    setExistingLogoUrl(null);
+    setExistingBannerUrl(null);
     clearErrors();
     if (onCancel) {
       onCancel();
@@ -223,7 +221,6 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
 
   return (
     <>
-      {/* Form */}
       <div className="bg-white rounded-lg shadow">
         {isEditMode && isLoadingData ? (
           <LoadingData message="Loading data..." size="50px" />
@@ -254,20 +251,20 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
             <FileUploadButton
               id="brand-logo"
               label="Logo Upload"
-              accept="image/*"
+              accept="logo/*"
               showPreview={true}
               previewValue={
-                formData.image && formData.image.startsWith('http')
-                  ? formData.image
+                formData.logo && formData.logo.startsWith('http')
+                  ? formData.logo
                   : null
               }
               onFileSelect={handleLogoSelect}
-              error={errors?.image}
+              error={errors?.logo}
             />
             <FileUploadButton
               id="brand-banner"
               label="Banner Upload"
-              accept="image/*"
+              accept="logo/*"
               showPreview={true}
               previewValue={
                 formData.banner && formData.banner.startsWith('http')
@@ -320,8 +317,7 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
               error={errors?.status}
             />
 
-            {/* Buttons should span full width */}
-            <div className="sm:col-span-2 flex justify-end space-x-4 pt-4 border-t">
+            <div className="absolute bottom-0 left-0 right-0 bg-white p-4 border-t flex justify-end space-x-4">
               <Button
                 type="button"
                 variant="secondary"
@@ -351,6 +347,13 @@ const BrandForm = ({ onSuccess, onCancel, bandId, isEditMode }) => {
       </div>
     </>
   );
+};
+
+BrandForm.propTypes = {
+  onSuccess: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  bandId: PropTypes.string,
+  isEditMode: PropTypes.bool,
 };
 
 export default BrandForm;
